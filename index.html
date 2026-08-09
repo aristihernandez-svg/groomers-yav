@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#1A3A5C">
+<meta name="theme-color" content="#171310">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -34,25 +34,25 @@
    BASE TOKENS — Premium Dark Night (default)
 ══════════════════════════════════════════════ */
 :root{
-  --bg:         #0B1120;
-  --bg2:        #0F1830;
-  --bg3:        #141F3A;
-  --bg4:        #1A2848;
-  --gold:       #4A9EFF;
-  --gold2:      #76B8FF;
-  --gold-dim:   rgba(74,158,255,0.18);
-  --gold-glow:  rgba(74,158,255,0.08);
+  --bg:         #171310;
+  --bg2:        #1F1911;
+  --bg3:        #2A2116;
+  --bg4:        #35291A;
+  --gold:       #E8A33D;
+  --gold2:      #F0C070;
+  --gold-dim:   rgba(232,163,61,0.18);
+  --gold-glow:  rgba(232,163,61,0.08);
   --glass:      rgba(255,255,255,0.05);
   --glass2:     rgba(255,255,255,0.08);
   --glass3:     rgba(255,255,255,0.12);
-  --border:     rgba(255,255,255,0.07);
-  --border2:    rgba(255,255,255,0.12);
-  --border-gold:rgba(74,158,255,0.30);
+  --border:     rgba(255,230,200,0.07);
+  --border2:    rgba(255,230,200,0.12);
+  --border-gold:rgba(232,163,61,0.30);
   /* Text — clear contrast ladder */
-  --t1:         #F0F4FF;   /* primary — headings, task names */
-  --t2:         #A8B8CC;   /* secondary — metadata, frequencies */
-  --t3:         #607080;   /* tertiary — hints, timestamps */
-  --t4:         #3A4A5A;   /* disabled / done */
+  --t1:         #F5EFE6;   /* primary — headings, task names */
+  --t2:         #C4B39C;   /* secondary — metadata, frequencies */
+  --t3:         #8A7860;   /* tertiary — hints, timestamps */
+  --t4:         #4A3F2E;   /* disabled / done */
   /* Status */
   --green:      #2ECC8A;
   --green-dim:  rgba(46,204,138,0.12);
@@ -60,7 +60,7 @@
   --red-dim:    rgba(232,64,64,0.12);
   /* Done state */
   --done-bg:    rgba(255,255,255,0.02);
-  --done-text:  #3A4A5A;
+  --done-text:  #4A3F2E;
   /* Misc */
   --safe-b:     env(safe-area-inset-bottom,0px);
   --safe-t:     env(safe-area-inset-top,0px);
@@ -207,7 +207,7 @@ body::before{
 #splash{
   position:fixed;inset:0;z-index:999;transition:opacity 0.6s;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:radial-gradient(ellipse at 30% 20%,#1A2848 0%,#0B1120 60%,#060C18 100%);
+  background:radial-gradient(ellipse at 30% 20%,#35291A 0%,#171310 60%,#0D0A07 100%);
 }
 #splash.out{opacity:0;pointer-events:none}
 .splash-ring{
@@ -351,9 +351,9 @@ body::before{
 [data-theme="standard-day"] .nav{background:#FFFFFF;border-top:1px solid rgba(0,0,0,0.08)}
 .nav::-webkit-scrollbar{display:none}
 .nb{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;padding:8px 14px 6px;cursor:pointer;border-top:2px solid transparent;transition:all 0.2s;min-width:60px}
-.nb.on{border-top-color:#1A3A5C}
-.nb.on .ni{color:#1A3A5C}
-.nb.on .nl{color:#1A3A5C;font-weight:700}
+.nb.on{border-top-color:#E8A33D}
+.nb.on .ni{color:#E8A33D}
+.nb.on .nl{color:#E8A33D;font-weight:700}
 .ni{font-size:21px;color:#607080;margin-bottom:2px;transition:color 0.2s;display:flex;align-items:center;justify-content:center;height:25px}
 .nl{font-size:10px;color:#607080;white-space:nowrap;font-weight:500;letter-spacing:0.3px;transition:color 0.2s}
 
@@ -765,14 +765,14 @@ body::before{
 </script>
 
 <!-- PIN gate — shown on first visit, never again once unlocked -->
-<div id="pinGate" style="display:none;position:fixed;inset:0;z-index:99999;background:#0B1120;align-items:center;justify-content:center;flex-direction:column;gap:20px">
+<div id="pinGate" style="display:none;position:fixed;inset:0;z-index:99999;background:#171310;align-items:center;justify-content:center;flex-direction:column;gap:20px">
   <img src="cars/Skycare_logo-removebg-preview.png" style="height:48px;filter:brightness(0) invert(1);margin-bottom:8px" alt="Skycare">
   <div style="font-size:18px;font-weight:700;color:#f0f4ff">Enter PIN to continue</div>
   <div style="display:flex;gap:10px;margin:8px 0" id="pinDots">
-    <div style="width:14px;height:14px;border-radius:50%;border:2px solid #4A90D9;background:transparent" id="pd0"></div>
-    <div style="width:14px;height:14px;border-radius:50%;border:2px solid #4A90D9;background:transparent" id="pd1"></div>
-    <div style="width:14px;height:14px;border-radius:50%;border:2px solid #4A90D9;background:transparent" id="pd2"></div>
-    <div style="width:14px;height:14px;border-radius:50%;border:2px solid #4A90D9;background:transparent" id="pd3"></div>
+    <div style="width:14px;height:14px;border-radius:50%;border:2px solid #E8A33D;background:transparent" id="pd0"></div>
+    <div style="width:14px;height:14px;border-radius:50%;border:2px solid #E8A33D;background:transparent" id="pd1"></div>
+    <div style="width:14px;height:14px;border-radius:50%;border:2px solid #E8A33D;background:transparent" id="pd2"></div>
+    <div style="width:14px;height:14px;border-radius:50%;border:2px solid #E8A33D;background:transparent" id="pd3"></div>
   </div>
   <div style="display:grid;grid-template-columns:repeat(3,72px);gap:12px">
     <button onclick="pinKey('1')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#f0f4ff;font-size:24px;font-weight:600;cursor:pointer">1</button>
@@ -1279,7 +1279,7 @@ function pinKey(k) {
   // Update dots
   for (let i = 0; i < 4; i++) {
     const dot = document.getElementById('pd' + i);
-    if (dot) dot.style.background = i < _pinEntry.length ? '#4A90D9' : 'transparent';
+    if (dot) dot.style.background = i < _pinEntry.length ? '#E8A33D' : 'transparent';
   }
   err.textContent = '';
   if (_pinEntry.length === 4) {
