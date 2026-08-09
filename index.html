@@ -876,7 +876,7 @@ const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxR1D54W4UQrLXAnk0e
 const DAYS      = ['☀ Sunday','1️⃣ Monday','2️⃣ Tuesday','3️⃣ Wednesday','4️⃣ Thursday','5️⃣ Friday','🗓 Saturday'];
 const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const DAY_EMOJIS= ['☀','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','🗓'];
-const DAY_COLORS= ['#E65C00','#1A3A5C','#005DAA','#006400','#7B2D8B','#C0181E','#D4860A'];
+const DAY_COLORS= ['#E65C00','#6B3410','#9C6B1F','#006400','#7B2D8B','#C0181E','#D4860A'];
 // getToday() is a function (not a constant) so it always returns the current
 // weekday even if the app is open across midnight.
 function getToday() { return new Date().getDay(); }
@@ -961,7 +961,7 @@ function setBarLogo(title = '') { setBar({ title }); }
 function setBarHome() { setBar({ home: true }); }
 
 const AREA_COLORS = {
-  'AIRCRAFT':'#1A4A5C',"CR GROOMERS' CORNER":'#1A3A5C',
+  'AIRCRAFT':'#6B4A1A',"CR GROOMERS' CORNER":'#6B3410',
   'CR OFFICE':'#5C3A1A','MX HANGAR':'#2E5C1A',
   'MISC':'#4A4A4A','CHARTER':'#5C1A4A','CLOSURE':'#8B0000',
 };
@@ -2629,10 +2629,10 @@ function renderCart(el, items) {
         const ri=items.indexOf(item);
         const cqty = item.qty||1;
         const isCH = item.source === 'crewhouse';
-        html+=`<div class="srow" style="background:${isCH?'rgba(74,144,217,0.13)':'var(--glass)'};border-left:3px solid ${isCH?'var(--accent)':col}" onclick="toggleShop(${ri})">
+        html+=`<div class="srow" style="background:${isCH?'rgba(232,163,61,0.13)':'var(--glass)'};border-left:3px solid ${isCH?'var(--accent)':col}" onclick="toggleShop(${ri})">
           <div class="scb" style="background:${isCH?'var(--accent)':col};border-color:${isCH?'var(--accent)':col};color:#fff">✓</div>
           <div class="sinfo">
-            <div class="sname" style="font-weight:600;color:var(--t1)">${item.item}${isCH?` <span style="background:rgba(74,144,217,0.25);color:var(--accent);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle">🏠 Crew House</span>`:''}${item.url?` <a href="${item.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:5px;color:var(--accent);opacity:0.8;text-decoration:none" title="Open product page">🔗</a>`:''}</div>
+            <div class="sname" style="font-weight:600;color:var(--t1)">${item.item}${isCH?` <span style="background:rgba(232,163,61,0.25);color:var(--accent);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle">🏠 Crew House</span>`:''}${item.url?` <a href="${item.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:5px;color:var(--accent);opacity:0.8;text-decoration:none" title="Open product page">🔗</a>`:''}</div>
             <div class="smeta"><span>${item.cabinet}</span></div>
             ${item.notes && String(item.notes)!=='false' && item.notes.trim() ? `<div style="font-size:11px;color:var(--t3);margin-top:2px;font-style:italic">${item.notes}</div>` : ''}
           </div>
@@ -3180,7 +3180,7 @@ function renderCrewCarsList(el) {
       const trackPct=Math.min(Math.max(svcPct,4),92);
       const fc=_fc(fuelPct);
       const fpNum=fuelPctNum??0;
-      const cardBorder=anyAlert?'rgba(239,68,68,.42)':'#1A2840';
+      const cardBorder=anyAlert?'rgba(239,68,68,.42)':'#3A2A10';
       const cardBg=anyAlert?'linear-gradient(110deg,#160F14,#130C18)':'linear-gradient(110deg,#0D1828,#0B1625)';
       const chip=milAlert||battAlert||fuelAlert?
         `<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(239,68,68,.18);color:#F87171;flex-shrink:0;margin-left:6px;white-space:nowrap">Alert</span>`:
@@ -3227,7 +3227,7 @@ function renderCrewCarsList(el) {
           </div>
         </div>
       </div>`;
-      const raceStrip=svcRemain!==null?`<div style="border-top:1px solid #1A2840;padding:9px 13px 11px;background:${svcCol}06">
+      const raceStrip=svcRemain!==null?`<div style="border-top:1px solid #3A2A10;padding:9px 13px 11px;background:${svcCol}06">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <div style="display:flex;align-items:center;gap:5px">
             ${_spannerSvg(svcCol,13)}
@@ -3240,7 +3240,7 @@ function renderCrewCarsList(el) {
           </div>
         </div>
         <div style="position:relative;height:30px;display:flex;align-items:center">
-          <div style="position:absolute;left:0;right:0;height:6px;background:#1A2840;border-radius:3px;overflow:hidden">
+          <div style="position:absolute;left:0;right:0;height:6px;background:#3A2A10;border-radius:3px;overflow:hidden">
             <div style="height:100%;width:${svcPct}%;border-radius:3px;background:linear-gradient(90deg,#3B82F640,${svcCol})"></div>
           </div>
           <div style="position:absolute;top:50%;transform:translate(-50%,-50%);left:${trackPct}%;pointer-events:none">
@@ -3276,7 +3276,7 @@ function renderCrewCarsList(el) {
     };
     const alertCars=CREW_CARS.filter(c=>_hasAlert(c));
     const clearCars=CREW_CARS.filter(c=>!_hasAlert(c));
-    const secHdr=(label,color)=>`<div style="font-size:10px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin:0 14px 10px;color:${color}">${label}<span style="flex:1;height:1px;background:#1A2840;display:block"></span></div>`;
+    const secHdr=(label,color)=>`<div style="font-size:10px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin:0 14px 10px;color:${color}">${label}<span style="flex:1;height:1px;background:#3A2A10;display:block"></span></div>`;
     if(alertCars.length){
       html+=secHdr('⚠️ Needs Attention','#EF4444');
       alertCars.forEach(c=>{html+=_buildCard(c);});
@@ -4369,7 +4369,7 @@ function renderProcs(el) {
         ${statusDot}
         <!-- Icon area -->
         <div style="
-          background:linear-gradient(160deg,var(--navy2,#0d1f3c),var(--bg));
+          background:linear-gradient(160deg,var(--navy2,#2A1B0C),var(--bg));
           height:130px;display:flex;align-items:center;justify-content:center;
           overflow:hidden;border-bottom:1px solid var(--border)
         ">${iconHtml}</div>
@@ -4975,7 +4975,7 @@ function renderAuditsLanding(el) {
   // Audit row helper: onclick, iconHtml, name, sub, badge html
   const auditRow = (onclick, iconHtml, name, sub, badgeHtml, extra='') =>
     `<div onclick="${onclick}" style="margin:0 16px 8px;background:var(--glass2);border:1px solid var(--border2)${extra};border-radius:12px;display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent">
-       <div style="width:44px;height:44px;border-radius:10px;background:var(--navy2,#0B1628);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">${iconHtml}</div>
+       <div style="width:44px;height:44px;border-radius:10px;background:var(--navy2,#241A0C);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">${iconHtml}</div>
        <div style="flex:1;min-width:0">
          <div style="font-size:14px;font-weight:700;color:var(--t1);margin-bottom:2px">${name}</div>
          <div style="font-size:11px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</div>
@@ -4997,19 +4997,19 @@ function renderAuditsLanding(el) {
   const metroDone  = _metroRegs.filter(r=>acIsDone(r,'metro')).length;
   const metroBadge = _metroDone ? badge('Done','#0F3020','#2ECC71')
     : metroDone>0 ? badge(`${_metroRegs.length-metroDone} left`,'#2A1010','#E74C3C')
-    : badge('New','#0F1E40','#4A90D9');
+    : badge('New','#402E0F','#E8A33D');
   const metroSub = `${_metroRegs.join(', ')} · ${metroMonth}`;
 
   const wwDone = _wwRegs.filter(r=>acIsDone(r,'westwind')).length;
   const wwBadge = _wwDone ? badge('Done','#0F3020','#2ECC71')
     : wwDone>0 ? badge(`${_wwRegs.length-wwDone} left`,'#2A1010','#E74C3C')
-    : badge('New','#0F1E40','#4A90D9');
+    : badge('New','#402E0F','#E8A33D');
   const wwSub = `${_wwRegs.join(', ')} · ${metroMonth}`;
 
   const astraDoneCount = _astraRegs.filter(r=>acIsDone(r,'astra')).length;
   const astraBadge = _astraDone ? badge('Done','#0F3020','#2ECC71')
     : astraDoneCount>0 ? badge(`${_astraRegs.length-astraDoneCount} left`,'#2A1010','#E74C3C')
-    : badge('New','#0F1E40','#4A90D9');
+    : badge('New','#402E0F','#E8A33D');
   const astraBorder = !_astraDone && astraDoneCount===0 ? ';border-color:#2E5080' : '';
   const astraSub = `${_astraRegs.map(r=>'C-'+r).join(', ')} · ${_astraDone?'Last: '+metroMonth:'Not yet completed'}`;
 
@@ -5018,7 +5018,7 @@ function renderAuditsLanding(el) {
     const regs = ct.regs.filter(r=>!isAcDisabled(r));
     const done = regs.filter(r=>acIsDone(r,ct.id)).length;
     const allD = regs.length>0 && done===regs.length;
-    const b = allD ? badge('Done','#0F3020','#2ECC71') : done>0 ? badge(`${regs.length-done} left`,'#2A1010','#E74C3C') : badge('New','#0F1E40','#4A90D9');
+    const b = allD ? badge('Done','#0F3020','#2ECC71') : done>0 ? badge(`${regs.length-done} left`,'#2A1010','#E74C3C') : badge('New','#402E0F','#E8A33D');
     return auditRow(`S.acCustomTypeView='${ct.id}';render()`, `<span style="font-size:26px">🛫</span>`, ct.name, `${regs.join(', ')} · ${metroMonth}`, b);
   }).join('');
 
@@ -5028,7 +5028,7 @@ function renderAuditsLanding(el) {
       ? `<img src="${t.iconImg}" style="width:38px;height:38px;object-fit:cover;border-radius:6px">`
       : `<span style="font-size:26px">${t.icon||'📋'}</span>`;
     const onclick = `S.auditTileView='${key}';render()" onpointerdown="auditTileLongPress(event,'${key}')" onpointerup="auditTileCancelPress()" onpointercancel="auditTileCancelPress()" onpointermove="auditTileCancelPress()`;
-    return auditRow(onclick, iconHtml, t.title, t.subtitle||'Tap to open', badge('Open','#1A2840','#4A90D9'));
+    return auditRow(onclick, iconHtml, t.title, t.subtitle||'Tap to open', badge('Open','#3A2A10','#E8A33D'));
   }).join('');
 
   // Crew House — live audit
@@ -5038,8 +5038,8 @@ function renderAuditsLanding(el) {
   const chComplete = !!chData.done;
   const chBadge = chComplete ? badge('Done','#0F3020','#2ECC71')
     : chDone>0 ? badge(`${chDone}/${chTotal}`,'#2A2010','#E8A000')
-    : badge('New','#0F1E40','#4A90D9');
-  const chIcon = `<svg width="28" height="28" viewBox="0 0 40 40" fill="none"><rect x="8" y="16" width="24" height="18" rx="2" fill="#3D5C8C" opacity="0.6"/><path d="M6 18L20 8l14 10" stroke="#5BA3F5" stroke-width="2" fill="none"/><rect x="15" y="24" width="10" height="10" rx="1" fill="#4A90D9" opacity="0.5"/></svg>`;
+    : badge('New','#402E0F','#E8A33D');
+  const chIcon = `<svg width="28" height="28" viewBox="0 0 40 40" fill="none"><rect x="8" y="16" width="24" height="18" rx="2" fill="#8C6A3D" opacity="0.6"/><path d="M6 18L20 8l14 10" stroke="#F0C070" stroke-width="2" fill="none"/><rect x="15" y="24" width="10" height="10" rx="1" fill="#E8A33D" opacity="0.5"/></svg>`;
   const crewHouseRow = auditRow('S.crewHouseView=true;render()', chIcon, 'Crew House', `220 Thomas Slee Dr. · ${chDone}/${chTotal} items`, chBadge);
 
   // MSDS — live audit
@@ -5049,8 +5049,8 @@ function renderAuditsLanding(el) {
   const msComplete = !!msAuditData.done;
   const msBadge = msComplete ? badge('Done','#0F3020','#2ECC71')
     : msDone>0 ? badge(`${msDone}/${MSDS_TOTAL}`,'#2A2010','#E8A000')
-    : badge('New','#0F1E40','#4A90D9');
-  const msIcon = `<svg width="28" height="28" viewBox="0 0 40 40" fill="none"><rect x="7" y="10" width="26" height="20" rx="3" fill="#3D5C8C" opacity="0.5"/><rect x="11" y="14" width="8" height="6" rx="1" fill="#4A90D9" opacity="0.6"/><rect x="21" y="14" width="8" height="6" rx="1" fill="#4A90D9" opacity="0.6"/><rect x="11" y="22" width="18" height="4" rx="1" fill="#5BA3F5" opacity="0.3"/></svg>`;
+    : badge('New','#402E0F','#E8A33D');
+  const msIcon = `<svg width="28" height="28" viewBox="0 0 40 40" fill="none"><rect x="7" y="10" width="26" height="20" rx="3" fill="#8C6A3D" opacity="0.5"/><rect x="11" y="14" width="8" height="6" rx="1" fill="#E8A33D" opacity="0.6"/><rect x="21" y="14" width="8" height="6" rx="1" fill="#E8A33D" opacity="0.6"/><rect x="11" y="22" width="18" height="4" rx="1" fill="#F0C070" opacity="0.3"/></svg>`;
   const msdsRow = auditRow('S.msdsView=true;render()', msIcon, 'MSDS', `Safety data sheets · ${msDone}/${MSDS_TOTAL} items`, msBadge);
 
   // Hangar & Office — live audit
@@ -5060,8 +5060,8 @@ function renderAuditsLanding(el) {
   const hoComplete = !!hoAuditData.done;
   const hoBadge = hoComplete ? badge('Done','#0F3020','#2ECC71')
     : hoDone>0 ? badge(`${hoDone}/${hoTotal}`,'#2A2010','#E8A000')
-    : badge('New','#0F1E40','#4A90D9');
-  const hoIcon = `<svg width="28" height="28" viewBox="0 0 40 40" fill="none"><path d="M6 22 Q20 10 34 22 L34 36 L6 36Z" fill="#3D5C8C" opacity="0.5"/><path d="M4 22 Q20 8 36 22" stroke="#5BA3F5" stroke-width="1.5" fill="none"/><rect x="14" y="26" width="12" height="10" rx="1" fill="#4A90D9" opacity="0.5"/></svg>`;
+    : badge('New','#402E0F','#E8A33D');
+  const hoIcon = `<svg width="28" height="28" viewBox="0 0 40 40" fill="none"><path d="M6 22 Q20 10 34 22 L34 36 L6 36Z" fill="#8C6A3D" opacity="0.5"/><path d="M4 22 Q20 8 36 22" stroke="#F0C070" stroke-width="1.5" fill="none"/><rect x="14" y="26" width="12" height="10" rx="1" fill="#E8A33D" opacity="0.5"/></svg>`;
   const hangarRow = auditRow('S.hangarView=true;render()', hoIcon, 'Hangar & Office', `YKF Base · ${hoDone}/${hoTotal} items`, hoBadge);
 
   // Parking Lot MX — live audit
@@ -5071,8 +5071,8 @@ function renderAuditsLanding(el) {
   const plComplete = !!plAuditData.done;
   const plBadge = plComplete ? badge('Done','#0F3020','#2ECC71')
     : plDone>0 ? badge(`${plDone}/${plTotal}`,'#2A2010','#E8A000')
-    : badge('New','#0F1E40','#4A90D9');
-  const plIcon = `<svg width="28" height="28" viewBox="0 0 40 40" fill="none"><rect x="6" y="28" width="28" height="6" rx="1" fill="#3D5C8C" opacity="0.6"/><rect x="10" y="18" width="6" height="10" rx="1" fill="#4A90D9" opacity="0.5"/><rect x="24" y="18" width="6" height="10" rx="1" fill="#4A90D9" opacity="0.5"/><rect x="8" y="14" width="24" height="6" rx="1" fill="#5BA3F5" opacity="0.3"/><circle cx="12" cy="34" r="3" fill="#4A90D9" opacity="0.7"/><circle cx="28" cy="34" r="3" fill="#4A90D9" opacity="0.7"/></svg>`;
+    : badge('New','#402E0F','#E8A33D');
+  const plIcon = `<svg width="28" height="28" viewBox="0 0 40 40" fill="none"><rect x="6" y="28" width="28" height="6" rx="1" fill="#8C6A3D" opacity="0.6"/><rect x="10" y="18" width="6" height="10" rx="1" fill="#E8A33D" opacity="0.5"/><rect x="24" y="18" width="6" height="10" rx="1" fill="#E8A33D" opacity="0.5"/><rect x="8" y="14" width="24" height="6" rx="1" fill="#F0C070" opacity="0.3"/><circle cx="12" cy="34" r="3" fill="#E8A33D" opacity="0.7"/><circle cx="28" cy="34" r="3" fill="#E8A33D" opacity="0.7"/></svg>`;
   const parkingRow = auditRow('S.parkingView=true;render()', plIcon, 'Parking Lot MX', `YKF Base · ${plDone}/${plTotal} items`, plBadge);
 
   // YKF Base — live audit
@@ -5081,8 +5081,8 @@ function renderAuditsLanding(el) {
   const ykfComplete = !!ykfAuditData.done;
   const ykfBadge = ykfComplete ? badge('Done','#0F3020','#2ECC71')
     : ykfDone>0 ? badge(`${ykfDone}/${YKF_TOTAL}`,'#2A2010','#E8A000')
-    : badge('New','#0F1E40','#4A90D9');
-  const ykfIcon = `<svg width="28" height="28" viewBox="0 0 40 40" fill="none"><path d="M20 8L8 16v18h24V16z" fill="#3D5C8C" opacity="0.5"/><path d="M14 34V24h12v10" fill="#4A90D9" opacity="0.4"/><path d="M8 16L20 8l12 8" stroke="#5BA3F5" stroke-width="1.5" fill="none"/></svg>`;
+    : badge('New','#402E0F','#E8A33D');
+  const ykfIcon = `<svg width="28" height="28" viewBox="0 0 40 40" fill="none"><path d="M20 8L8 16v18h24V16z" fill="#8C6A3D" opacity="0.5"/><path d="M14 34V24h12v10" fill="#E8A33D" opacity="0.4"/><path d="M8 16L20 8l12 8" stroke="#F0C070" stroke-width="1.5" fill="none"/></svg>`;
   const ykfBaseRow = auditRow('S.ykfBaseView=true;render()', ykfIcon, 'YKF Base', `Monthly checklist · ${ykfDone}/${YKF_TOTAL} items`, ykfBadge);
 
   const facilityPlaceholders = '';
@@ -5384,7 +5384,7 @@ function renderRecordsView(el) {
   const carNames      = Object.fromEntries(CREW_CARS.map(c=>[c.key,c.name]));
 
   const pdfLink = (rec) => rec.pdfUrl
-    ? `<a href="${rec.pdfUrl}" target="_blank" onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:7px;background:var(--navy2,#0B1628);border:1px solid var(--accent-border,#1a3050);font-size:10px;font-weight:700;color:var(--accent);text-decoration:none;flex-shrink:0">📄 PDF</a>`
+    ? `<a href="${rec.pdfUrl}" target="_blank" onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:7px;background:var(--navy2,#241A0C);border:1px solid var(--accent-border,#4a3010);font-size:10px;font-weight:700;color:var(--accent);text-decoration:none;flex-shrink:0">📄 PDF</a>`
     : `<span style="font-size:10px;font-weight:600;color:var(--t4);flex-shrink:0">${rec.done?'Done · no PDF':'Not done yet'}</span>`;
 
   let html = `<div style="padding:8px 0 40px">`;
@@ -5422,12 +5422,12 @@ function renderRecordsView(el) {
         if (summary) {
           html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 8px;border-radius:8px;margin-bottom:2px;background:var(--accent-dim)">
               <div style="font-size:12px;font-weight:700;color:var(--accent)">📋 Flagged Items Summary</div>
-              <a href="${summary.pdfUrl}" target="_blank" onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:7px;background:var(--navy2,#0B1628);border:1px solid var(--accent-border,#1a3050);font-size:10px;font-weight:700;color:var(--accent);text-decoration:none;flex-shrink:0">📄 PDF</a>
+              <a href="${summary.pdfUrl}" target="_blank" onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:7px;background:var(--navy2,#241A0C);border:1px solid var(--accent-border,#4a3010);font-size:10px;font-weight:700;color:var(--accent);text-decoration:none;flex-shrink:0">📄 PDF</a>
             </div>`;
         }
         if (monthLabel === auditMonth()) {
           html += `<div style="padding:0 8px 8px">
-              <button onclick="event.stopPropagation();shareAllRecords()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border-radius:8px;border:1px solid var(--accent-border,#1a3050);background:var(--accent);color:var(--navy2,#0B1628);font-size:12px;font-weight:700;cursor:pointer">📤 Share all</button>
+              <button onclick="event.stopPropagation();shareAllRecords()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border-radius:8px;border:1px solid var(--accent-border,#4a3010);background:var(--accent);color:var(--navy2,#241A0C);font-size:12px;font-weight:700;cursor:pointer">📤 Share all</button>
             </div>`;
         }
         html += `<div style="height:0.5px;background:var(--border2);margin:0 8px 2px"></div>`;
@@ -5459,7 +5459,7 @@ function renderRecordsView(el) {
             </div>`;
 
           if (isCarExp) {
-            html += `<div style="background:var(--navy2,#0B1628);border-radius:8px;margin:2px 4px 4px;padding:4px 6px">`;
+            html += `<div style="background:var(--navy2,#241A0C);border-radius:8px;margin:2px 4px 4px;padding:4px 6px">`;
             carDocs.sort((a,b)=>(carNames[a[1].carKey]||'').localeCompare(carNames[b[1].carKey]||'')).forEach(([,rec]) => {
               html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 6px;border-radius:7px">
                 <div style="display:flex;align-items:center;gap:8px">
@@ -5485,7 +5485,7 @@ function renderRecordsView(el) {
             </div>`;
 
           if (isAcExp) {
-            html += `<div style="background:var(--navy2,#0B1628);border-radius:8px;margin:2px 4px 4px;padding:4px 6px">`;
+            html += `<div style="background:var(--navy2,#241A0C);border-radius:8px;margin:2px 4px 4px;padding:4px 6px">`;
             aircraftDocs.sort((a,b)=>a[1].reg.localeCompare(b[1].reg)).forEach(([,rec]) => {
               const ct = (S.customAcTypesList||[]).find(t=>t.id===rec.acType);
               const tLabel = typeLabels[rec.acType] || (ct?ct.name:rec.acType);
@@ -6220,7 +6220,7 @@ function _wheelRender() {
       <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px 8px;border-bottom:1px solid #1c1e28">
         <div onclick="_wheelCancel()" style="font-size:13px;color:#555;cursor:pointer;padding:4px 0">Cancel</div>
         <div style="font-size:11px;font-weight:700;color:#888;max-width:180px;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${_wheelLabel}</div>
-        <div onclick="_wheelDone()" style="font-size:13px;font-weight:700;color:#4A90D9;cursor:pointer;padding:4px 0">Done</div>
+        <div onclick="_wheelDone()" style="font-size:13px;font-weight:700;color:#E8A33D;cursor:pointer;padding:4px 0">Done</div>
       </div>
 
       <div style="text-align:center;padding:14px 0 6px">
@@ -6245,7 +6245,7 @@ function _wheelRender() {
 
       <div style="padding:8px 18px 14px;display:flex;gap:8px">
         ${_wheelScore>0 ? `<div onclick="_wheelClear()" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(232,64,64,0.25);background:rgba(232,64,64,0.07);text-align:center;font-size:13px;font-weight:600;color:#E84040;cursor:pointer">Clear</div>` : ''}
-        <div onclick="_wheelDone()" style="flex:2;padding:11px;border-radius:10px;background:#1A3A6A;text-align:center;font-size:13px;font-weight:700;color:#5BA3F5;cursor:pointer">Confirm ${score}/10</div>
+        <div onclick="_wheelDone()" style="flex:2;padding:11px;border-radius:10px;background:#5C3A10;text-align:center;font-size:13px;font-weight:700;color:#F0C070;cursor:pointer">Confirm ${score}/10</div>
       </div>
     </div>`;
 
@@ -6641,9 +6641,9 @@ function _renderCal() {
     const isSelected = iso === _calSelected;
     const isToday    = iso === todayISO;
     const bg  = isSelected ? '#1A3A6A' : 'transparent';
-    const col = isSelected ? '#5BA3F5' : isToday ? '#4A90D9' : '#d8d8d8';
+    const col = isSelected ? '#F0C070' : isToday ? '#E8A33D' : '#d8d8d8';
     const fw  = isSelected || isToday ? '700' : '400';
-    const ring = isToday && !isSelected ? ';border:1px solid rgba(74,144,217,0.4);border-radius:50%' : isSelected ? ';border-radius:50%' : '';
+    const ring = isToday && !isSelected ? ';border:1px solid rgba(232,163,61,0.4);border-radius:50%' : isSelected ? ';border-radius:50%' : '';
     cells += `<div onclick="_calSelect('${iso}')" style="display:flex;align-items:center;justify-content:center;height:34px;cursor:pointer;background:${bg}${ring};border-radius:${isSelected?'50%':'4px'};font-size:13px;font-weight:${fw};color:${col}">${d}</div>`;
   }
 
@@ -6657,7 +6657,7 @@ function _renderCal() {
       <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px 8px;border-bottom:1px solid #1c1e28">
         <div onclick="_calCancel()" style="font-size:13px;color:#555;cursor:pointer;padding:4px 0">Cancel</div>
         <div style="font-size:12px;font-weight:700;color:#888">${selLabel}</div>
-        <div onclick="_calDone()" style="font-size:13px;font-weight:700;color:#4A90D9;cursor:pointer;padding:4px 0">Done</div>
+        <div onclick="_calDone()" style="font-size:13px;font-weight:700;color:#E8A33D;cursor:pointer;padding:4px 0">Done</div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px 4px">
         <div onclick="_calPrev()" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:8px;background:rgba(255,255,255,0.05);font-size:18px;color:#888">‹</div>
@@ -6670,7 +6670,7 @@ function _renderCal() {
       </div>
       <div style="padding:10px 18px 16px;display:flex;gap:8px">
         ${_calSelected ? `<div onclick="_calClear()" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(232,64,64,0.25);background:rgba(232,64,64,0.07);text-align:center;font-size:13px;font-weight:600;color:#E84040;cursor:pointer">Clear</div>` : ''}
-        <div onclick="_calDone()" style="flex:2;padding:11px;border-radius:10px;background:#1A3A6A;text-align:center;font-size:13px;font-weight:700;color:#5BA3F5;cursor:pointer">Confirm</div>
+        <div onclick="_calDone()" style="flex:2;padding:11px;border-radius:10px;background:#5C3A10;text-align:center;font-size:13px;font-weight:700;color:#F0C070;cursor:pointer">Confirm</div>
       </div>
     </div>`;
   ovl.style.display = 'flex';
@@ -6826,7 +6826,7 @@ function renderYkfBaseChecklist(el) {
         return `<div style="margin:0 14px 5px;background:var(--glass2);border:1px solid var(--border2);border-radius:9px;padding:10px 12px">
           <div style="display:flex;align-items:center;gap:10px">
             <div style="flex:1;font-size:13px;color:var(--t1);line-height:1.35;font-weight:500">${item.label}</div>
-            <div ${locked?'':`onclick="openCalPicker('${expVal}',ykfSetExpiry)"`} style="flex-shrink:0;padding:5px 10px;border-radius:8px;cursor:${locked?'default':'pointer'};background:rgba(255,255,255,0.04);border:1px solid ${hasVal?'rgba(74,144,217,0.5)':'rgba(255,255,255,0.1)'};font-size:11px;font-weight:700;color:${hasVal?'#5BA3F5':'#444'};white-space:nowrap">${expLabel}</div>
+            <div ${locked?'':`onclick="openCalPicker('${expVal}',ykfSetExpiry)"`} style="flex-shrink:0;padding:5px 10px;border-radius:8px;cursor:${locked?'default':'pointer'};background:rgba(255,255,255,0.04);border:1px solid ${hasVal?'rgba(232,163,61,0.5)':'rgba(255,255,255,0.1)'};font-size:11px;font-weight:700;color:${hasVal?'#F0C070':'#444'};white-space:nowrap">${expLabel}</div>
           </div>
         </div>`;
       }
@@ -8175,7 +8175,7 @@ function renderAircraftChecklist(el, reg, type) {
           : `<div style="font-size:15px;font-weight:700;color:var(--t1);line-height:1.35">${lbl.label}</div>
              ${lbl.sub?`<div style="font-size:10px;color:var(--t3);margin-top:-4px;line-height:1.35">${lbl.sub}</div>`:''}`;
         return `
-        <div style="display:flex;border-bottom:1px solid var(--border)${editMode?';background:rgba(74,144,217,0.03)':''}">
+        <div style="display:flex;border-bottom:1px solid var(--border)${editMode?';background:rgba(232,163,61,0.03)':''}">
           <div style="width:4px;flex-shrink:0;background:${stripColor}"></div>
           <div style="flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:8px">
             ${labelHtml}
@@ -8210,7 +8210,7 @@ function renderAircraftChecklist(el, reg, type) {
        </div>`;
 
   const editBanner = editMode
-    ? `<div style="margin:8px 14px 0;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(74,144,217,0.12);border:1px solid var(--accent-border);display:flex;align-items:center;gap:8px">
+    ? `<div style="margin:8px 14px 0;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(232,163,61,0.12);border:1px solid var(--accent-border);display:flex;align-items:center;gap:8px">
         <span style="font-size:12px;color:var(--accent);font-weight:600;flex:1">✏️ Tap any label to edit it. Changes sync to all devices.</span>
         <button onclick="S.acEditLabelsMode=false;render()" style="font-size:11px;font-weight:700;color:var(--accent);border:1px solid var(--accent-border);background:transparent;border-radius:20px;padding:3px 10px;cursor:pointer">Done</button>
       </div>` : '';
