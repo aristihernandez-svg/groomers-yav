@@ -22,7 +22,10 @@ const BASE_CONFIG = {
     messagingSenderId: "309421655672",
     appId: "1:309421655672:web:47dfdb7d5c7cf4d6dd8f8d"
   },
-  vapidPublicKey: "", // TODO: generate YAV's own VAPID keypair before push notifications will work
+  vapidPublicKey: "BPeoEM6LmjhAtmQBBXwCuzaccbYpRPPk--YlvjXw9mjqpVGg1xeTXzBusCTM-z-8ijVopMqLxZQEGnFpD16vL-E",
+  // Matching private key is NOT here — it's a real secret, save it in a
+  // password manager. Needed later for YAV's notification workflow
+  // (GitHub Actions secret), which doesn't exist yet.
 
   crewCars: [], // TODO: YAV's real fleet — empty until supplied
 
