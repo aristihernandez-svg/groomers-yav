@@ -747,12 +747,7 @@ body::before{
   const planes={0:'cars/Westwind-removebg-preview.png',2:'cars/Metroliner_logo-removebg-preview.png',4:'cars/Navajo_logo-removebg-preview.png',6:'cars/Astra-removebg-preview.png'};
   const names={0:'Westwind',2:'Metroliner',4:'Navajo',6:'Astra'};
   const hero=document.getElementById('spHero');
-  if(day===3){
-    hero.innerHTML=`<div class="hp-portrait-wrap">
-      <img src="Emerson/emerson.gif" alt="Emerson" style="width:160px;height:160px;border-radius:50%;object-fit:cover;border:2px solid rgba(200,168,75,0.4)">
-      <div class="hp-nameplate">Emerson</div>
-    </div>`;
-  } else if(planes[day]){
+  if(planes[day]){
     hero.innerHTML=`<div class="splash-ring"><div class="sp-plane">
       <img src="${planes[day]}" alt="${names[day]}" style="width:90px;height:90px;object-fit:contain;filter:drop-shadow(0 4px 16px rgba(200,168,75,0.5))">
     </div></div>`;
