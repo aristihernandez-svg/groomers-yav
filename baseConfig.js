@@ -29,6 +29,8 @@ const BASE_CONFIG = {
     {key:'caravan', name:'Dodge Caravan', fuel:'gasoline', color:'#D8CBB0', color2:'#EDE4D0', label:'Minivan', img:'cars/Dodge_caravan_2008_YAV-removebg-preview.png', plate:'HVA 763'},
   ],
 
+  bouncieWorkerUrl: 'https://bouncie-proxy-yav.skycare.workers.dev',
+
   aircraftFleet: {
     metro: [], westwind: [], astra: [],
   }, // TODO: Phase 3 replaces this with the shared registry claim mechanism anyway
