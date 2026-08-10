@@ -1,16 +1,14 @@
 // Per-base configuration for YAV. Mirrors YKF's baseConfig.js shape exactly —
 // see that file's comment for what each field does.
 //
-// PLACEHOLDER VALUES BELOW — this is Phase 1 (infrastructure only). Real
-// crew cars, aircraft fleet, address, and PINs come in Phase 2 once
-// supplied. Left empty/placeholder rather than reusing YKF's real car
-// names, since that would be actively wrong data, not just incomplete.
+// Phase 2 in progress: crew cars are real (single Dodge Caravan). Aircraft
+// fleet, address, and PINs are still placeholders pending Phase 2/3 content.
 const BASE_CONFIG = {
   baseId: 'yav',
   baseName: 'Skycare YAV',
   baseAddress: 'St. Andrews, MB', // TODO: confirm real address
   companyName: 'Skycare Aviation Services',
-  themeColor: '#1A3A5C',
+  themeColor: '#171310',
   pinCorrect: '0801',  // TODO: placeholder — pick YAV's real PIN
   adminPin: '0001',    // TODO: placeholder — pick YAV's real admin PIN
 
@@ -27,7 +25,9 @@ const BASE_CONFIG = {
   // password manager. Needed later for YAV's notification workflow
   // (GitHub Actions secret), which doesn't exist yet.
 
-  crewCars: [], // TODO: YAV's real fleet — empty until supplied
+  crewCars: [
+    {key:'caravan', name:'Dodge Caravan', fuel:'gasoline', color:'#D8CBB0', color2:'#EDE4D0', label:'Minivan', img:'cars/Dodge_caravan_2008_YAV-removebg-preview.png', plate:'HVA 763'},
+  ],
 
   aircraftFleet: {
     metro: [], westwind: [], astra: [],
