@@ -243,7 +243,7 @@ body::before{
   100% {transform:translate(82px,-60px)  rotate(-20deg); opacity:0}
 }
 .sp-title{color:#E8C86A;font-size:26px;font-weight:700;letter-spacing:4px;text-transform:uppercase}
-.sp-sub{color:#7890A8;font-size:12px;letter-spacing:3px;margin-top:6px;font-weight:300}
+.sp-sub{color:#A8946E;font-size:12px;letter-spacing:3px;margin-top:6px;font-weight:300}
 .sp-divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,#C8A84B,transparent);margin:18px auto;opacity:0.5}
 .sp-bar{width:160px;height:1px;background:rgba(255,255,255,0.08);border-radius:1px;margin-top:8px;overflow:hidden}
 .sp-fill{height:100%;background:linear-gradient(90deg,#C8A84B,#E8C86A);animation:prog 2s ease forwards;box-shadow:0 0 8px #C8A84B}
@@ -340,7 +340,7 @@ body::before{
 
 /* NAV */
 .nav{
-  background:rgba(11,17,32,0.95);
+  background:rgba(23,19,16,0.95);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-top:1px solid var(--border);
   display:flex;overflow-x:auto;scrollbar-width:none;
@@ -354,8 +354,8 @@ body::before{
 .nb.on{border-top-color:#E8A33D}
 .nb.on .ni{color:#E8A33D}
 .nb.on .nl{color:#E8A33D;font-weight:700}
-.ni{font-size:21px;color:#607080;margin-bottom:2px;transition:color 0.2s;display:flex;align-items:center;justify-content:center;height:25px}
-.nl{font-size:10px;color:#607080;white-space:nowrap;font-weight:500;letter-spacing:0.3px;transition:color 0.2s}
+.ni{font-size:21px;color:var(--t3);margin-bottom:2px;transition:color 0.2s;display:flex;align-items:center;justify-content:center;height:25px}
+.nl{font-size:10px;color:var(--t3);white-space:nowrap;font-weight:500;letter-spacing:0.3px;transition:color 0.2s}
 
 /* SPINNER */
 .spin-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;gap:12px}
@@ -547,8 +547,8 @@ body::before{
 .green-step .stxt{color:var(--green);font-weight:500}
 .proc-actions{display:flex;gap:8px;margin-top:12px}
 .proc-act-btn{flex:1;padding:10px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--glass2);color:var(--t2)}
-.video-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(64,144,255,0.06);border:1px solid rgba(64,144,255,0.15);border-radius:var(--radius-sm);margin:10px 0;cursor:pointer;text-decoration:none}
-.video-btn span{font-size:13px;color:#6EB0FF;font-weight:500}
+.video-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(232,163,61,0.06);border:1px solid rgba(232,163,61,0.15);border-radius:var(--radius-sm);margin:10px 0;cursor:pointer;text-decoration:none}
+.video-btn span{font-size:13px;color:#F0C070;font-weight:500}
 .vicon{font-size:20px}
 .dmg-section{margin-top:12px;background:var(--red-dim);border-radius:var(--radius-sm);border:1px solid rgba(232,64,64,0.15);overflow:hidden}
 .dmg-hdr{background:rgba(232,64,64,0.08);color:var(--red);padding:8px 14px;font-size:11px;font-weight:600;letter-spacing:0.5px}
@@ -568,9 +568,9 @@ body::before{
 .crow{padding:14px 16px}
 .cname{font-size:14px;font-weight:700;color:var(--t1)}
 .caddr{font-size:12px;color:var(--t2);margin-top:5px;line-height:1.5;cursor:pointer;display:flex;align-items:flex-start;gap:6px}
-.caddr-text{flex:1;color:#6EB0FF;text-decoration:underline;font-weight:500}
+.caddr-text{flex:1;color:#F0C070;text-decoration:underline;font-weight:500}
 .cnote{font-size:12px;color:var(--t2);margin-top:5px;line-height:1.5}
-.maps-btn{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:7px 14px;border-radius:20px;background:rgba(64,144,255,0.10);color:#6EB0FF;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(64,144,255,0.20);text-decoration:none}
+.maps-btn{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:7px 14px;border-radius:20px;background:rgba(232,163,61,0.10);color:#F0C070;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(232,163,61,0.20);text-decoration:none}
 
 /* BORED */
 .bored-list{padding:0;display:flex;flex-direction:column;gap:0}
@@ -762,7 +762,7 @@ body::before{
 <!-- PIN gate — shown on first visit, never again once unlocked -->
 <div id="pinGate" style="display:none;position:fixed;inset:0;z-index:99999;background:#171310;align-items:center;justify-content:center;flex-direction:column;gap:20px">
   <img src="cars/Skycare_logo-removebg-preview.png" style="height:48px;filter:brightness(0) invert(1);margin-bottom:8px" alt="Skycare">
-  <div style="font-size:18px;font-weight:700;color:#f0f4ff">Enter PIN to continue</div>
+  <div style="font-size:18px;font-weight:700;color:#F5EFE6">Enter PIN to continue</div>
   <div style="display:flex;gap:10px;margin:8px 0" id="pinDots">
     <div style="width:14px;height:14px;border-radius:50%;border:2px solid #E8A33D;background:transparent" id="pd0"></div>
     <div style="width:14px;height:14px;border-radius:50%;border:2px solid #E8A33D;background:transparent" id="pd1"></div>
@@ -770,17 +770,17 @@ body::before{
     <div style="width:14px;height:14px;border-radius:50%;border:2px solid #E8A33D;background:transparent" id="pd3"></div>
   </div>
   <div style="display:grid;grid-template-columns:repeat(3,72px);gap:12px">
-    <button onclick="pinKey('1')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#f0f4ff;font-size:24px;font-weight:600;cursor:pointer">1</button>
-    <button onclick="pinKey('2')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#f0f4ff;font-size:24px;font-weight:600;cursor:pointer">2</button>
-    <button onclick="pinKey('3')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#f0f4ff;font-size:24px;font-weight:600;cursor:pointer">3</button>
-    <button onclick="pinKey('4')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#f0f4ff;font-size:24px;font-weight:600;cursor:pointer">4</button>
-    <button onclick="pinKey('5')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#f0f4ff;font-size:24px;font-weight:600;cursor:pointer">5</button>
-    <button onclick="pinKey('6')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#f0f4ff;font-size:24px;font-weight:600;cursor:pointer">6</button>
-    <button onclick="pinKey('7')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#f0f4ff;font-size:24px;font-weight:600;cursor:pointer">7</button>
-    <button onclick="pinKey('8')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#f0f4ff;font-size:24px;font-weight:600;cursor:pointer">8</button>
-    <button onclick="pinKey('9')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#f0f4ff;font-size:24px;font-weight:600;cursor:pointer">9</button>
-    <button onclick="pinKey('del')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#9aa5be;font-size:20px;cursor:pointer">⌫</button>
-    <button onclick="pinKey('0')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#f0f4ff;font-size:24px;font-weight:600;cursor:pointer">0</button>
+    <button onclick="pinKey('1')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#F5EFE6;font-size:24px;font-weight:600;cursor:pointer">1</button>
+    <button onclick="pinKey('2')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#F5EFE6;font-size:24px;font-weight:600;cursor:pointer">2</button>
+    <button onclick="pinKey('3')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#F5EFE6;font-size:24px;font-weight:600;cursor:pointer">3</button>
+    <button onclick="pinKey('4')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#F5EFE6;font-size:24px;font-weight:600;cursor:pointer">4</button>
+    <button onclick="pinKey('5')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#F5EFE6;font-size:24px;font-weight:600;cursor:pointer">5</button>
+    <button onclick="pinKey('6')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#F5EFE6;font-size:24px;font-weight:600;cursor:pointer">6</button>
+    <button onclick="pinKey('7')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#F5EFE6;font-size:24px;font-weight:600;cursor:pointer">7</button>
+    <button onclick="pinKey('8')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#F5EFE6;font-size:24px;font-weight:600;cursor:pointer">8</button>
+    <button onclick="pinKey('9')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#F5EFE6;font-size:24px;font-weight:600;cursor:pointer">9</button>
+    <button onclick="pinKey('del')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#8A7860;font-size:20px;cursor:pointer">⌫</button>
+    <button onclick="pinKey('0')" style="height:72px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#F5EFE6;font-size:24px;font-weight:600;cursor:pointer">0</button>
     <div></div>
   </div>
   <div id="pinError" style="font-size:13px;color:#E74C3C;min-height:18px"></div>
@@ -2347,7 +2347,7 @@ function renderFlightLog(tabName) {
     <div style="background:var(--card);border-bottom:2px solid var(--border2)">
       <div style="padding:7px 14px 4px;font-size:10px;font-weight:800;letter-spacing:1.5px;color:var(--t3);text-transform:uppercase">✈ Flight Log</div>
       ${section('arr','Arrivals','🛬','#1A7A40')}
-      ${section('dep','Departures','🛫','#1A4A8A')}
+      ${section('dep','Departures','🛫','#8B5A2B')}
       ${section('grm','Cleaned','🧹','#8B4A00')}
       ${section('o2','O2 Check & Fill-up','🫁','#6A1A8A')}
     </div>`;
@@ -2660,7 +2660,7 @@ function saveCarStatus(key, val) {
 
 function openStatusDrop(key, btn) {
   document.querySelectorAll('.status-drop').forEach(d=>d.remove());
-  const SC={'CR':'#27AE60','MX':'#E8A000','N/A':'#5a6478','OUT':'#E74C3C'};
+  const SC={'CR':'#27AE60','MX':'#E8A000','N/A':'#78705E','OUT':'#E74C3C'};
   const d=carData(key);
   const rect=btn.getBoundingClientRect();
   const drop=document.createElement('div');
@@ -3146,7 +3146,7 @@ function renderCrewCarsList(el) {
   if(isCarsTab) {
     // ── NEW CARD DESIGN ──
     const _spannerSvg=(color,sz=13)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>`;
-    const _fc=p=>p===null?'#2A4A6A':p<=0.15?'#EF4444':p<=0.25?'#F59E0B':'#22C55E';
+    const _fc=p=>p===null?'#8A7860':p<=0.15?'#EF4444':p<=0.25?'#F59E0B':'#22C55E';
     const _hasAlert=car=>{
       const d=carData(car.key),b=S.bouncieData[car.key];
       const bOk=BOUNCIE_WORKER_URL&&b&&b.status==='ok';
@@ -3173,12 +3173,12 @@ function renderCrewCarsList(el) {
       const anyAlert=oilWarn||fuelAlert||milAlert||battAlert||!!(d.regExpiry&&d.regExpiry<todayIso)||!!(d.insuranceExpiry&&d.insuranceExpiry<todayIso);
       const svcRemain=ckm>0&&nsKm>0?Math.max(0,nsKm-ckm):null;
       const svcPct=svcRemain!==null?Math.min(100,Math.max(0,Math.round((10000-(nsKm-ckm))/10000*100))):0;
-      const svcCol=svcRemain===null?'#2A4A6A':svcRemain<=500?'#EF4444':svcRemain<=2000?'#F59E0B':'#3B82F6';
+      const svcCol=svcRemain===null?'#8A7860':svcRemain<=500?'#EF4444':svcRemain<=2000?'#F59E0B':'#E8A33D';
       const trackPct=Math.min(Math.max(svcPct,4),92);
       const fc=_fc(fuelPct);
       const fpNum=fuelPctNum??0;
       const cardBorder=anyAlert?'rgba(239,68,68,.42)':'#3A2A10';
-      const cardBg=anyAlert?'linear-gradient(110deg,#160F14,#130C18)':'linear-gradient(110deg,#0D1828,#0B1625)';
+      const cardBg=anyAlert?'linear-gradient(110deg,#160F14,#130C18)':'linear-gradient(110deg,#1C140D,#160F0A)';
       const chip=milAlert||battAlert||fuelAlert?
         `<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(239,68,68,.18);color:#F87171;flex-shrink:0;margin-left:6px;white-space:nowrap">Alert</span>`:
         oilWarn?`<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(245,158,11,.18);color:#FBB040;flex-shrink:0;margin-left:6px;white-space:nowrap">Service</span>`:
@@ -3211,7 +3211,7 @@ function renderCrewCarsList(el) {
       }
       const fuelRail=`<div style="flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:12px 10px;border-left:1px solid ${fc}18;background:${fc}06">
         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-          <div style="position:relative;width:52px;height:52px;border-radius:14px;background:#111D2E;overflow:hidden;border:1px solid ${fc}25">
+          <div style="position:relative;width:52px;height:52px;border-radius:14px;background:#2E1D11;overflow:hidden;border:1px solid ${fc}25">
             <div style="position:absolute;bottom:0;left:0;right:0;height:${fpNum}%;background:${fc}28"></div>
             <div style="position:absolute;bottom:${fpNum}%;left:0;right:0;height:2px;background:${fc}55"></div>
             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
@@ -3238,7 +3238,7 @@ function renderCrewCarsList(el) {
         </div>
         <div style="position:relative;height:30px;display:flex;align-items:center">
           <div style="position:absolute;left:0;right:0;height:6px;background:#3A2A10;border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${svcPct}%;border-radius:3px;background:linear-gradient(90deg,#3B82F640,${svcCol})"></div>
+            <div style="height:100%;width:${svcPct}%;border-radius:3px;background:linear-gradient(90deg,#E8A33D40,${svcCol})"></div>
           </div>
           <div style="position:absolute;top:50%;transform:translate(-50%,-50%);left:${trackPct}%;pointer-events:none">
             <img src="${car.img}" style="width:26px;height:26px;object-fit:contain;transform:${car.facesRight?'none':'scaleX(-1)'};filter:drop-shadow(0 1px 4px rgba(0,0,0,.7))" onerror="this.style.display='none'">
@@ -3250,17 +3250,17 @@ function renderCrewCarsList(el) {
           <div style="width:62px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:12px 5px;background:linear-gradient(145deg,${car.color}28,${car.color}0E)">
             <img src="${car.img}" style="width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 1px 4px rgba(0,0,0,.6))" onerror="this.style.opacity='.3'">
             <div style="font-size:7px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;opacity:.75;color:${car.color}">${car.label}</div>
-            ${car.plate?`<div style="font-size:7px;font-weight:700;color:#2A4060;letter-spacing:.3px">${car.plate}</div>`:''}
+            ${car.plate?`<div style="font-size:7px;font-weight:700;color:#8A7860;letter-spacing:.3px">${car.plate}</div>`:''}
           </div>
           <div style="flex:1;min-width:0;padding:12px 8px;display:flex;flex-direction:column;justify-content:space-between">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px">
-              <div style="font-size:14px;font-weight:800;color:#EAF2FF;letter-spacing:-.2px">${car.name}</div>
+              <div style="font-size:14px;font-weight:800;color:#F5EFE6;letter-spacing:-.2px">${car.name}</div>
               ${chip}
             </div>
             <div style="display:flex;align-items:flex-end;justify-content:space-between">
               <div>
-                <div style="font-size:10px;color:#2A4A6A;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px">Odometer</div>
-                <div style="font-size:19px;font-weight:800;color:#C8DCF0;font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1">${ckm>0?Number(ckm).toLocaleString():'—'}<span style="font-size:10px;color:#2A4060;font-weight:600;margin-left:2px">km</span></div>
+                <div style="font-size:10px;color:#8A7860;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px">Odometer</div>
+                <div style="font-size:19px;font-weight:800;color:#E8DCC8;font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1">${ckm>0?Number(ckm).toLocaleString():'—'}<span style="font-size:10px;color:#8A7860;font-weight:600;margin-left:2px">km</span></div>
               </div>
               ${statusIcons}
             </div>
@@ -3311,7 +3311,7 @@ function renderCrewCarsList(el) {
       const inProcess=!auditCD.done&&!carDis&&!pendingUrgent&&carAuditStarted(car.key);
       const auditCol=carDis?'var(--t4)':auditCD.done?'#27AE60':pendingUrgent?'#E74C3C':inProcess?'#E8A000':'var(--t3)';
       const statusLabel=carDis?'Skipped':auditCD.done?'Completed':pendingUrgent?(overdue?'Overdue':'Urgent'):inProcess?'In Process':'Pending';
-      const dotCol=carDis?'var(--border2)':auditCD.done?'#27AE60':pendingUrgent?'#E74C3C':inProcess?'#E8A000':'#9CA3AF';
+      const dotCol=carDis?'var(--border2)':auditCD.done?'#27AE60':pendingUrgent?'#E74C3C':inProcess?'#E8A000':'#A89A80';
       const lp=`onpointerdown="carAuditLongPress(event,'${car.key}')" onpointerup="carAuditCancelPress()" onpointercancel="carAuditCancelPress()" onpointermove="carAuditCancelPress()"`;
       auditGridCards.push(`
         <div onclick="${carDis?'':'openCarDetail(\''+car.key+'\')'}" ${lp} class="${pendingUrgent?'audit-blink':''}"
@@ -5018,7 +5018,7 @@ function renderAuditsLanding(el) {
   const astraBadge = _astraDone ? badge('Done','#0F3020','#2ECC71')
     : astraDoneCount>0 ? badge(`${_astraRegs.length-astraDoneCount} left`,'#2A1010','#E74C3C')
     : badge('New','#402E0F','#E8A33D');
-  const astraBorder = !_astraDone && astraDoneCount===0 ? ';border-color:#2E5080' : '';
+  const astraBorder = !_astraDone && astraDoneCount===0 ? ';border-color:#5C3A10' : '';
   const astraSub = `${_astraRegs.map(r=>'C-'+r).join(', ')} · ${_astraDone?'Last: '+metroMonth:'Not yet completed'}`;
 
   // Custom aircraft types
@@ -5357,7 +5357,7 @@ async function chToggleDone() {
 function chScoreColor(s) {
   const colors=['','#E03030','#D85018','#CC7010','#C09010','#A8A818','#88B820','#60C030','#30C840','#20C850','#10CC60'];
   const bgs=   ['','#1E0808','#1E0E08','#1E1408','#1A1A08','#161A08','#101A08','#0C1C0C','#0A1E0E','#082010','#062012'];
-  return {color:colors[s]||'#6A80A0', bg:bgs[s]||'transparent'};
+  return {color:colors[s]||'#8A7860', bg:bgs[s]||'transparent'};
 }
 
 function renderRecordsView(el) {
@@ -9051,7 +9051,7 @@ function renderContactsList(q) {
           ${c.notes ? `<div style="font-size:11px;color:var(--t3);margin-bottom:6px;font-style:italic">${c.notes}</div>` : ''}
           <div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap">
             ${hasAddr ? `
-              <a href="${gMapsUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:16px;background:rgba(64,144,255,0.10);color:#6EB0FF;font-size:11px;font-weight:600;border:1px solid rgba(64,144,255,0.20);text-decoration:none">🗺 Google</a>
+              <a href="${gMapsUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:16px;background:rgba(232,163,61,0.10);color:#F0C070;font-size:11px;font-weight:600;border:1px solid rgba(232,163,61,0.20);text-decoration:none">🗺 Google</a>
               <a href="${wazeUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:16px;background:rgba(100,200,100,0.10);color:#5CCC70;font-size:11px;font-weight:600;border:1px solid rgba(100,200,100,0.20);text-decoration:none">🔵 Waze</a>
               <a href="${appleMapsUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:16px;background:rgba(255,100,50,0.10);color:#FF8A60;font-size:11px;font-weight:600;border:1px solid rgba(255,100,50,0.20);text-decoration:none">🍎 Apple</a>
             ` : ''}
@@ -9097,7 +9097,7 @@ function renderContactsList(q) {
 
   // ── SECTION: KEY CONTACTS ────────────────────────────────────
   if (persons.length) {
-    html += `<div style="padding:14px 16px 10px;font-size:15px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#6EB0FF;background:linear-gradient(90deg,rgba(64,144,255,0.1),transparent);border-left:4px solid #6EB0FF;border-bottom:1px solid var(--border);margin-top:4px">📞 &nbsp;Key Contacts</div>`;
+    html += `<div style="padding:14px 16px 10px;font-size:15px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#F0C070;background:linear-gradient(90deg,rgba(232,163,61,0.1),transparent);border-left:4px solid #F0C070;border-bottom:1px solid var(--border);margin-top:4px">📞 &nbsp;Key Contacts</div>`;
     persons.forEach(c => {
       // Extract phone from notes or phone field
       const phoneMatch = (c.notes||'').match(/(\d{3}[-.]?\d{3}[-.]?\d{4})/);
@@ -9109,20 +9109,20 @@ function renderContactsList(q) {
         <div style="padding:13px 16px;background:var(--glass);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
           <div style="
             width:44px;height:44px;border-radius:50%;
-            background:rgba(64,144,255,0.15);border:1.5px solid rgba(64,144,255,0.3);
+            background:rgba(232,163,61,0.15);border:1.5px solid rgba(232,163,61,0.3);
             display:flex;align-items:center;justify-content:center;
             font-size:18px;flex-shrink:0;
           ">👤</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:14px;font-weight:700;color:var(--t1)">${c.name}</div>
-            ${role ? `<div style="font-size:11px;color:#6EB0FF;font-weight:600;margin-top:2px">${role}</div>` : ''}
+            ${role ? `<div style="font-size:11px;color:#F0C070;font-weight:600;margin-top:2px">${role}</div>` : ''}
             ${phoneDisplay ? `<div style="font-size:12px;color:var(--t2);margin-top:4px">📱 ${phoneDisplay}</div>` : ''}
             ${otherNotes ? `<div style="font-size:11px;color:var(--t3);margin-top:2px;font-style:italic">${otherNotes}</div>` : ''}
           </div>
           ${phone ? `
             <a href="tel:+1${phone}" style="
               width:44px;height:44px;border-radius:50%;
-              background:rgba(64,144,255,0.15);border:1.5px solid rgba(64,144,255,0.3);
+              background:rgba(232,163,61,0.15);border:1.5px solid rgba(232,163,61,0.3);
               display:flex;align-items:center;justify-content:center;
               font-size:20px;flex-shrink:0;text-decoration:none;
             ">📞</a>` : ''}
@@ -10300,7 +10300,7 @@ function emojiPickerHtml(selected, existingImg) {
   const grid = PROC_EMOJIS.map(e =>
     `<button type="button" onclick="pickProcEmoji(this,'${e}')" style="
       font-size:22px;width:44px;height:44px;border-radius:10px;border:2px solid ${e===selected?'var(--accent)':'transparent'};
-      background:${e===selected?'rgba(37,99,235,0.15)':'var(--glass2)'};cursor:pointer;
+      background:${e===selected?'var(--accent-dim)':'var(--glass2)'};cursor:pointer;
       transition:border-color .1s,background .1s;-webkit-tap-highlight-color:transparent"
     >${e}</button>`
   ).join('');
@@ -10321,7 +10321,7 @@ function pickProcEmoji(btn, emoji) {
     b.style.background = 'var(--glass2)';
   });
   btn.style.borderColor = 'var(--accent)';
-  btn.style.background = 'rgba(37,99,235,0.15)';
+  btn.style.background = 'var(--accent-dim)';
   document.getElementById('pIcon').value = emoji;
   // Selecting an emoji clears the photo
   S.pendingProcPhoto = null;
