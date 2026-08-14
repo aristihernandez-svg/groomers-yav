@@ -29,7 +29,9 @@ const BASE_CONFIG = {
     {key:'caravan', name:'Dodge Caravan', fuel:'gasoline', color:'#D8CBB0', color2:'#EDE4D0', label:'Minivan', img:'cars/Dodge_caravan_2008_YAV-removebg-preview.png', plate:'HVA 763'},
   ],
 
-  bouncieWorkerUrl: 'https://bouncie-proxy-yav.skycare.workers.dev',
+  // Shared across all bases -- see bouncie-worker/index.js in the YKF repo
+  // for why this isn't a separate per-base Worker.
+  bouncieWorkerUrl: 'https://bouncie-proxy.skycare.workers.dev',
 
   aircraftFleet: {
     metro: [], westwind: [], astra: [],
