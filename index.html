@@ -1188,6 +1188,7 @@ const S = {
   dark: localStorage.getItem('gykf_dark')==='1',
   handoffNotes: [], // unresolved shift-handoff notes, shown as sticky notes
   pendingHandoffAudio: null,
+  masterTasks: [], // ongoing recurring checklist -- Firestore-only, no localStorage
   crewCarStatus: {}, // legacy — replaced by crewCarData
   bouncieData: {},   // {carKey: {lat,lng,speed,isMoving,updatedAt,status}}
   buyerOut: false,
@@ -1237,11 +1238,10 @@ const S = {
 
 const NAV_ITEMS = [
   {id:'home',        icon:'🏠', label:'Home'},
-  {id:'today',       icon:'📅', label:'Today'},
-  {id:'week',        icon:'🗓', label:'Week'},
+  {id:'mastertask',  icon:'✅', label:'Tasks'},
   {id:'shopping',    icon:'🛒', label:'Shopping'},
   {id:'procedures',  icon:'📋', label:'Procs'},
-  {id:'audits',      icon:'📒', label:'Audits'},
+  {id:'audits',      icon:'📒', label:'Audits', locked:true},
   {id:'cars',        icon:'🚗', label:'Crew Cars'},
   {id:'contacts',    icon:'📞', label:'Contacts'},
   {id:'fleet',       icon:'✈️',  label:'Fleet'},
@@ -1373,7 +1373,7 @@ async function bootApp() {
       : Promise.resolve();
 
     _bootTasksSource.then(() =>
-    Promise.all([fetchDay(DAYS[TODAY]),fetchShopping(),fetchContacts(),fetchBored()])
+    Promise.all([fetchDay(DAYS[TODAY]),fetchShopping(),fetchContacts()])
       .then(() => {
         if(S.tab==='home') renderHome(document.getElementById('content')); else render();
         setupLiveSync(); // attach Firestore listeners once we have the base data to merge into
@@ -1432,7 +1432,7 @@ function buildNav() {
     cars:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 012-2h1l3-6h10l3 6h1a2 2 0 012 2v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>`
   };
   document.getElementById('nav').innerHTML = NAV_ITEMS.map(n=>`
-    <div class="nb ${n.id==='home'?'on':''}" id="nb-${n.id}" onclick="goTab('${n.id}')">
+    <div class="nb ${n.id==='home'?'on':''}" id="nb-${n.id}" style="${n.locked?'opacity:0.4':''}" onclick="${n.locked?`toast('🔒 Not available yet')`:`goTab('${n.id}')`}">
       <div class="ni" style="display:flex;align-items:center;justify-content:center;height:24px">${navIcons[n.id]||n.icon}</div>
       <div class="nl">${n.label}</div>
     </div>`).join('');
@@ -1474,6 +1474,7 @@ function render() {
   const el=document.getElementById('content');
   switch(S.tab) {
     case 'home':       renderHome(el); break;
+    case 'mastertask': renderMasterTask(el); break;
     case 'today':      renderToday(el); break;
     case 'week':       S.inDay?renderDayDetail(el):renderWeek(el); break;
     case 'shopping':   renderShopping(el); break;
@@ -1482,6 +1483,7 @@ function render() {
       else renderProcs(el);
       break;
     case 'audits':
+      if(true) { renderAuditsLocked(el); break; } // audits disabled for YAV -- see renderAuditsLocked
       if(S.crewCarsView==='list') renderCrewCarsList(el);
       else if(S.crewCarsView==='past') renderPastAuditView(el,S.pastAuditView);
       else if(S.crewCarsView) renderCarAudit(el,S.crewCarsView);
@@ -1506,6 +1508,152 @@ function render() {
     case 'bored':        renderBored(el); break;
     case 'fleet':        renderFleet(el); if(!_fleetLastFetch) refreshFleet(); break;
   }
+}
+function renderAuditsLocked(el) {
+  setBar({title:'Audits'});
+  document.getElementById('fab').style.display='none';
+  el.innerHTML = `<div class="empty" style="padding-top:80px">
+    <div class="empty-icon">🔒</div>
+    <p>Audits aren't available yet for this base.</p>
+  </div>`;
+}
+
+// ── MASTER TASK ───────────────────────────────────────────────
+// Firestore-only, no localStorage -- same live-sync pattern as Shopping.
+// Pinned tasks (priorityRank set) sort first, most-recently-pinned on top.
+// Everything else sorts oldest-completed-first (never-completed first of all).
+// "Delete" is a soft delete (deleted:true) -- Firestore rules block real
+// document deletes app-wide by design, matching the project's standing
+// "nothing here ever hard-deletes a live doc" rule.
+const MT_FREQ_LABEL = {none:'', daily:'Daily', weekly:'Weekly', monthly:'Monthly'};
+
+function sortedMasterTasks() {
+  return [...S.masterTasks].sort((a,b) => {
+    const aPin = a.priorityRank != null, bPin = b.priorityRank != null;
+    if (aPin && bPin) return b.priorityRank - a.priorityRank; // most recently pinned on top
+    if (aPin) return -1;
+    if (bPin) return 1;
+    return (a.lastDoneAt ?? -1) - (b.lastDoneAt ?? -1); // never-done first, then oldest-done-first
+  });
+}
+
+function renderMasterTask(el) {
+  setBar({title:'Master Task'});
+  showFab(openAddMasterTask);
+  const tasks = sortedMasterTasks();
+  let html = '';
+  if (!tasks.length) {
+    html = `<div class="empty"><div class="empty-icon">✅</div><p>No tasks yet. Tap + to add.</p></div>`;
+  } else {
+    tasks.forEach(t => {
+      const freqLabel = MT_FREQ_LABEL[t.frequency] || '';
+      const doneLabel = t.lastDoneAt ? `Last done: ${new Date(t.lastDoneAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}` : 'Never completed';
+      const pinnedTag = t.priorityRank != null ? `<span style="color:var(--accent)">📌 </span>` : '';
+      html += `
+      <div class="swipe-wrap" data-id="${t.id}">
+        <div class="swipe-action-left">📌 Prioritize</div>
+        <div class="swipe-action-right" style="display:flex;padding:0;width:160px">
+          <div style="flex:1;background:#8B6F1A;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;cursor:pointer"
+               onclick="event.stopPropagation();this.closest('.swipe-wrap').classList.remove('open-left','open-right');editMasterTaskPrompt('${t.id}')">✏️ Edit</div>
+          <div style="flex:1;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;cursor:pointer"
+               onclick="event.stopPropagation();this.closest('.swipe-wrap').classList.remove('open-left','open-right');deleteMasterTaskPrompt('${t.id}')">🗑 Delete</div>
+        </div>
+        <div class="trow" onclick="toggleMasterTaskDone('${t.id}')">
+          <div class="tcb">✓</div>
+          <div class="tinfo">
+            <div class="ttxt">${pinnedTag}${t.task}</div>
+            <div class="tfreq">${[freqLabel,doneLabel].filter(Boolean).join(' · ')}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+  html += `<div style="height:80px"></div>`;
+  el.innerHTML = html;
+  el.querySelectorAll('.swipe-wrap[data-id]').forEach(w=>{
+    const id = w.dataset.id;
+    setupSwipeTwoWay(w, ()=>prioritizeMasterTask(id), ()=>{});
+  });
+}
+
+function openAddMasterTask() {
+  openModal('Add Task',
+    `<label>Task name</label>
+     <input id="mMT" placeholder="Task...">
+     <label>Frequency</label>
+     <select id="mMTF">
+       <option value="none">None</option>
+       <option value="daily">Daily</option>
+       <option value="weekly">Weekly</option>
+       <option value="monthly">Monthly</option>
+     </select>`,
+    ()=>{
+      const task=document.getElementById('mMT').value.trim();
+      if(!task) return;
+      const frequency=document.getElementById('mMTF').value;
+      closeModal();
+      if(!db) { toast('No connection — task not saved'); return; }
+      db.collection('masterTasks').add({
+        task, frequency, priorityRank:null, lastDoneAt:null, deleted:false,
+        createdAt: Date.now()
+      }).then(()=>toast('Task added ✓'))
+        .catch(e=>{ console.log('Add master task failed:',e); toast('⚠️ Failed to save — check connection'); });
+    });
+}
+
+function prioritizeMasterTask(id) {
+  haptic();
+  if(!db) { toast('No connection'); return; }
+  db.collection('masterTasks').doc(id).update({priorityRank: Date.now()})
+    .catch(e=>{ console.log('Prioritize failed:',e); toast('⚠️ Failed — check connection'); });
+}
+
+function toggleMasterTaskDone(id) {
+  haptic();
+  if(!db) { toast('No connection'); return; }
+  db.collection('masterTasks').doc(id).update({lastDoneAt: Date.now(), priorityRank: null})
+    .then(()=>toast('✅ Marked done today'))
+    .catch(e=>{ console.log('Complete task failed:',e); toast('⚠️ Failed — check connection'); });
+}
+
+function editMasterTaskPrompt(id) {
+  const t = S.masterTasks.find(x=>x.id===id);
+  if(!t) return;
+  openModal('✏️ Edit Task',
+    `<label>Task name</label>
+     <input id="eMT" value="${t.task}">
+     <label>Frequency</label>
+     <select id="eMTF">
+       <option value="none" ${!t.frequency||t.frequency==='none'?'selected':''}>None</option>
+       <option value="daily" ${t.frequency==='daily'?'selected':''}>Daily</option>
+       <option value="weekly" ${t.frequency==='weekly'?'selected':''}>Weekly</option>
+       <option value="monthly" ${t.frequency==='monthly'?'selected':''}>Monthly</option>
+     </select>`,
+    ()=>{
+      const task=document.getElementById('eMT').value.trim();
+      if(!task) return;
+      const frequency=document.getElementById('eMTF').value;
+      closeModal();
+      if(!db) { toast('No connection — change not saved'); return; }
+      db.collection('masterTasks').doc(id).update({task, frequency})
+        .then(()=>toast('Task updated ✓'))
+        .catch(e=>{ console.log('Edit master task failed:',e); toast('⚠️ Failed — check connection'); });
+    });
+}
+
+function deleteMasterTaskPrompt(id) {
+  const t = S.masterTasks.find(x=>x.id===id);
+  if(!t) return;
+  openModal('🗑 Delete Task?',
+    `<p style="font-size:14px;color:var(--t1);line-height:1.5;margin:0">Delete <strong>"${t.task}"</strong>? This can't be undone from the app.</p>`,
+    ()=>{
+      closeModal();
+      if(!db) { toast('No connection'); return; }
+      db.collection('masterTasks').doc(id).update({deleted:true})
+        .then(()=>toast('🗑 Task deleted'))
+        .catch(e=>{ console.log('Delete master task failed:',e); toast('⚠️ Failed — check connection'); });
+    });
+  document.getElementById('mSave').textContent = 'Delete';
 }
 
 // ── DARK MODE ──────────────────────────────────────────────────────
@@ -1873,8 +2021,8 @@ async function syncAll() {
   await Promise.all([
     // When on Firestore, task content is live via onSnapshot — no manual fetch needed.
     // When on Sheets, fetch the current day (and viewed day) fresh from the sheet.
-    S.tasksSource === 'firestore' ? Promise.resolve() : fetchDay(DAYS[getToday()]),
-    fetchBored()
+    // Bored is Firestore-only via onSnapshot -- nothing to manually fetch for it.
+    S.tasksSource === 'firestore' ? Promise.resolve() : fetchDay(DAYS[getToday()])
   ]);
   if(S.inDay && S.tasksSource !== 'firestore') await fetchDay(DAYS[S.dayView]);
   render();
@@ -1936,6 +2084,7 @@ const ICONS = {
   fleet: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19.5 2.5S18 2 16.5 3.5L13 7 4.8 5.2c-.5-.1-.9.1-1.1.5L3 7.1c-.2.4 0 .9.4 1.1L8 11 6 13H4l-1 1 1.5 1.5L6 17l1.5 1.5L9 17l-1-1v-2l2-2 2.9 4.8c.2.4.7.6 1.1.4z"/><path d="M4 6c1-1 2.5-1.5 4-1M18 20c1-1 1.5-2.5 1-4"/></svg>`,
   audits: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>`,
   cars:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 012-2h1l3-6h10l3 6h1a2 2 0 012 2v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>`,
+  mastertask: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 2v3M15 2v3"/><path d="M8 10l1.5 1.5L12 9"/><path d="M8 15.5l1.5 1.5L12 14.5"/><path d="M14 10.5h3M14 16h3"/></svg>`,
 };
 
 let _heroSlideTimer = null;
@@ -1958,14 +2107,13 @@ async function renderHome(el) {
   ];
 
   const HOME_TILES = [
-    {id:'today',      svg:ICONS.today,      label:'Today'},
+    {id:'mastertask', svg:ICONS.mastertask, label:'Master Task'},
     {id:'shopping',   svg:ICONS.shopping,   label:'Shopping'},
     {id:'fleet',      svg:ICONS.fleet,      label:'Fleet'},
     {id:'contacts',   svg:ICONS.contacts,   label:'Contacts'},
     {id:'procedures', svg:ICONS.procedures, label:'Procs'},
-    {id:'audits',     svg:ICONS.audits,     label:'Audits'},
+    {id:'audits',     svg:ICONS.audits,     label:'Audits', locked:true},
     {id:'cars',       svg:ICONS.cars,       label:'Crew Cars'},
-    {id:'week',       svg:ICONS.week,       label:'Week'},
   ].filter(item => item.id !== 'fleet' || BASE_CONFIG.features?.fleet !== false);
 
   el.innerHTML = `
@@ -1993,6 +2141,12 @@ async function renderHome(el) {
     </div>`;})()}
 
     ${renderHandoffNotesHtml()}
+
+    <div style="padding:0 14px;margin:${S.handoffNotes&&S.handoffNotes.length?'4px 0 12px':'14px 0 4px'}">
+      <button onclick="openHandoffNote()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:12px;background:var(--glass2);border:1px dashed var(--border2);color:var(--t2);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.2px">
+        📌 Leave a note for next shift
+      </button>
+    </div>
 
     <div style="padding:16px 14px 28px">
       <div id="homeTileWrap"></div>
@@ -2465,7 +2619,6 @@ function renderShopping(el) {
 
   const cartCount = items.filter(i=>i.checked).length;
   const storeActive = S.shopFilter!=='all';
-  const locActive = S.shopLocFilter!=='all';
   const storeCol = storeActive ? (STORE_COLORS[S.shopFilter]||'var(--accent)') : '';
   let html=`<div class="shop-filters">
     ${buyerBanner}
@@ -2483,15 +2636,6 @@ function renderShopping(el) {
         </select>
         ${storeActive
           ? `<span onclick="setSF('all');event.stopPropagation()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--t2);cursor:pointer;padding:4px">✕</span>`
-          : `<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--t3);pointer-events:none">▾</span>`}
-      </div>
-      <div style="flex:1;position:relative">
-        <select onchange="setSLF(this.value)" style="width:100%;background:${locActive?'var(--glass2)':'var(--glass2)'};border:1px solid ${locActive?'var(--accent)':'var(--border2)'};border-radius:8px;padding:9px 32px 9px 10px;color:${locActive?'var(--t1)':'var(--t2)'};font-size:13px;font-weight:${locActive?'600':'400'};appearance:none;cursor:pointer;outline:none">
-          <option value="all" ${!locActive?'selected':''}>📍 Location</option>
-          ${locs.map(l=>`<option value="${l.replace(/"/g,'&quot;')}" ${S.shopLocFilter===l?'selected':''}>${l}</option>`).join('')}
-        </select>
-        ${locActive
-          ? `<span onclick="setSLF('all');event.stopPropagation()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--t2);cursor:pointer;padding:4px">✕</span>`
           : `<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--t3);pointer-events:none">▾</span>`}
       </div>
     </div>
@@ -2526,7 +2670,6 @@ function renderShopping(el) {
             <div class="sname">${item.item}${item.url?` <a href="${item.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:5px;color:var(--accent);opacity:0.8;text-decoration:none" title="Open product page">🔗</a>`:''}</div>
             <div class="smeta">
               <span style="font-weight:600;color:var(--t1)"><span class="sdot" style="background:${dot}"></span>${item.store}</span>
-              <span style="color:var(--t2)">${item.cabinet}</span>
             </div>
           </div>
           <div onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:3px;padding:0 4px;flex-shrink:0">
@@ -2620,7 +2763,6 @@ function renderCart(el, items) {
           <div class="scb" style="background:${isCH?'var(--accent)':col};border-color:${isCH?'var(--accent)':col};color:#fff">✓</div>
           <div class="sinfo">
             <div class="sname" style="font-weight:600;color:var(--t1)">${item.item}${isCH?` <span style="background:rgba(232,163,61,0.25);color:var(--accent);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle">🏠 Crew House</span>`:''}${item.url?` <a href="${item.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:5px;color:var(--accent);opacity:0.8;text-decoration:none" title="Open product page">🔗</a>`:''}</div>
-            <div class="smeta"><span>${item.cabinet}</span></div>
             ${item.notes && String(item.notes)!=='false' && item.notes.trim() ? `<div style="font-size:11px;color:var(--t3);margin-top:2px;font-style:italic">${item.notes}</div>` : ''}
           </div>
           ${cqty>1?`<span style="background:${isCH?'var(--accent)':col};color:#fff;border-radius:10px;padding:2px 8px;font-size:12px;font-weight:700;flex-shrink:0">×${cqty}</span>`:''}
@@ -8754,12 +8896,13 @@ function _buildTileGridHtml() {
         <button onclick="exitTileEditMode()" style="padding:7px 20px;border-radius:20px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer">Done</button>
        </div>` : '';
   const tiles = (_tileOrder||[]).map((t,i)=>`
-    <div class="home-tile${_tileEditMode?' tile-wobble':' tile-anim'}"
+    <div class="home-tile${_tileEditMode?' tile-wobble':' tile-anim'}${t.locked?' tile-locked':''}"
          id="ht-${t.id}" data-tile-id="${t.id}"
-         style="${_tileEditMode?`animation-delay:${i*40}ms`:`animation-delay:${i*55}ms`};touch-action:none;position:relative"
-         ${_tileEditMode
+         style="${_tileEditMode?`animation-delay:${i*40}ms`:`animation-delay:${i*55}ms`};touch-action:none;position:relative${t.locked?';opacity:0.4':''}"
+         ${t.locked ? `onclick="toast('🔒 Not available yet')"` : _tileEditMode
            ? `ontouchstart="tileTouchStart(event,'${t.id}')" ontouchend="tileTouchEnd(event)"`
            : `onclick="goTab('${t.id}')" onpointerdown="tileLPStart('${t.id}')" onpointerup="tileLPCancel()" onpointerleave="tileLPCancel()"`}>
+      ${t.locked?'<div style="position:absolute;top:6px;right:8px;font-size:11px">🔒</div>':''}
       <div style="color:var(--t1);margin-bottom:10px;display:flex;justify-content:center;opacity:0.85">${t.svg}</div>
       <div style="font-size:11px;font-weight:700;color:var(--t1);letter-spacing:0.8px;text-transform:uppercase">${t.label}</div>
     </div>`).join('');
@@ -9201,14 +9344,14 @@ function renderBored(el) {
 }
 
 function toggleBoredById(id) {
-  const idx = S.bored.findIndex(b=>String(b.id)===String(id));
-  if(idx<0) return;
-  S.bored[idx].done=!S.bored[idx].done;
-  haptic(); api({action:'toggleBored',task:S.bored[idx].task});
-  fsSetBoredDone(S.bored[idx].task, S.bored[idx].done);
-  localStorage.setItem('gykf_bored',JSON.stringify(S.bored));
-  renderBored(document.getElementById('content'));
-  toast(S.bored[idx].done?'✓ Done!':'Unchecked');
+  const item = S.bored.find(b=>String(b.id)===String(id));
+  if(!item) return;
+  haptic();
+  if(!db) { toast('No connection'); return; }
+  const newDone = !item.done;
+  db.collection('boredBoard').doc(id).update({done:newDone})
+    .then(()=>toast(newDone?'✓ Done!':'Unchecked'))
+    .catch(e=>{ console.log('Toggle bored item failed:',e); toast('⚠️ Failed — check connection'); });
 }
 
 // ── RECENT DAY HELPERS ──────────────────────────────────────────────
@@ -10185,12 +10328,9 @@ async function autoFetchTitle(urlInputId, nameInputId) {
 }
 
 function openAddShopItem() {
-  const existingLocs = [...new Set(S.shopping.map(i=>i.cabinet).filter(Boolean))].sort();
   openModal('Add Shopping Item',
     `<label>Item name</label>
      <input id="mSI" placeholder="Item...">
-     <label>Location / Cabinet</label>
-     <select id="mSC"><option value="">— Select location —</option>${existingLocs.map(l=>`<option value="${l}">${l}</option>`).join('')}</select>
      <label>Store</label>
      <select id="mSS" onchange="onStoreChange(this)">${storeSelectHtml()}</select>
      <div id="mSSNewWrap" style="display:none"><input id="mSSNew" placeholder="New store name..." style="margin-top:6px"></div>
@@ -10198,7 +10338,6 @@ function openAddShopItem() {
      <input id="mSU" type="url" placeholder="https://..." oninput="autoFetchTitle('mSU','mSI')" onpaste="setTimeout(()=>autoFetchTitle('mSU','mSI'),100)" onchange="autoFetchTitle('mSU','mSI')">`,
     async()=>{
       const item=document.getElementById('mSI').value.trim();
-      const cabinet=document.getElementById('mSC').value.trim();
       let store=document.getElementById('mSS').value;
       if(store==='__new__') {
         store=document.getElementById('mSSNew').value.trim();
@@ -10208,12 +10347,12 @@ function openAddShopItem() {
       if(!item) return;
       const url=document.getElementById('mSU').value.trim();
       const id=fsDocId(item+'__'+store);
-      S.shopping.push({id,item,cabinet,store,status:'To Buy',checked:true,notes:'',url});
+      S.shopping.push({id,item,cabinet:'',store,status:'To Buy',checked:true,notes:'',url});
       _lastShopWrite = Date.now();
       fsSetShopState(item,true,'To Buy'); // it's a new item, default to "to buy"
       closeModal(); renderShopping(document.getElementById('content')); toast('Item added ✓');
       if(db) {
-        db.collection('shoppingCatalog').doc(id).set({item,cabinet,store,notes:'',url})
+        db.collection('shoppingCatalog').doc(id).set({item,cabinet:'',store,notes:'',url})
           .catch(e => { console.log('Add shopping item Firestore write failed:', e); toast('⚠️ Saved locally — will retry sync when online'); });
       }
     });
@@ -10422,13 +10561,14 @@ function deleteProcedure(key) {
 function openAddBored() {
   openModal('Add to Bored Board',
     `<label>Task or idea</label><textarea id="mBT" placeholder="Task..."></textarea>`,
-    async()=>{
+    ()=>{
       const task=document.getElementById('mBT').value.trim();
       if(!task) return;
-      S.bored.unshift({id:Date.now(),task,done:false});
-      localStorage.setItem('gykf_bored',JSON.stringify(S.bored));
-      closeModal(); renderBored(document.getElementById('content')); toast('Added ✓');
-      api({action:'addBored',task});
+      closeModal();
+      if(!db) { toast('No connection — not saved'); return; }
+      db.collection('boredBoard').add({task, done:false, deleted:false, createdAt:Date.now()})
+        .then(()=>toast('Added ✓'))
+        .catch(e=>{ console.log('Add bored item failed:',e); toast('⚠️ Failed to save — check connection'); });
     });
 }
 
@@ -10731,6 +10871,34 @@ async function runMigration() {
 }
 
 // ── END OF DAY ─────────────────────────────────────────────────────
+function openHandoffNote() {
+  const dateStr = new Date().toLocaleDateString('en-CA',{weekday:'long',month:'long',day:'numeric'});
+  const _todayNote = (S.handoffNotes||[]).find(n => n.date === dateStr) || null;
+  openModal('📌 Note for Next Shift',
+    `<label>What should the next shift know? (one point per line)</label>
+     <textarea id="hoNoteTxt" placeholder="Fuel truck low&#10;Restocked snacks&#10;Astra needs a wash" style="height:150px">${_todayNote ? _todayNote.text : ''}</textarea>`,
+    ()=>{
+      const noteText = document.getElementById('hoNoteTxt')?.value.trim() || '';
+      if(!noteText) { toast('Nothing to save'); return; }
+      if(!db) { toast('Not connected'); return; }
+      if(_todayNote) {
+        db.collection('handoffNotes').doc(_todayNote.id).update({
+          text:noteText, ts:firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(e=>console.log('Handoff note update failed:',e));
+      } else {
+        db.collection('handoffNotes').add({
+          text:noteText, audio:'', day:DAY_NAMES[getToday()], date:dateStr,
+          resolved:false, ts:firebase.firestore.FieldValue.serverTimestamp(),
+          expireAt: ttlTimestamp(120)
+        }).then(()=>broadcastNotif('📋 Handoff Note', noteText.split('\n')[0].slice(0,80),'handoff'))
+          .catch(e=>console.log('Handoff note save failed:',e));
+      }
+      toast('📌 Note saved for next shift');
+      closeModal();
+    });
+  document.getElementById('mSave').textContent='💾 Save';
+}
+
 function showEOD() {
   const tabName=DAYS[getToday()], tasks=S.tasks[tabName]||[];
   const visible=tasks.filter(t=>!t.hidden);
@@ -11001,8 +11169,6 @@ function editShopItem(idx) {
   openModal('✏️ Edit Item',
     `<label>Item name</label>
      <input id="eSI" value="${item.item}">
-     <label>Location / Cabinet</label>
-     <input id="eSC" value="${item.cabinet||''}">
      <label>Store</label>
      <select id="eSS" onchange="onStoreChange(this)">${storeSelectHtml(item.store)}</select>
      <div id="mSSNewWrap" style="display:none"><input id="mSSNew" placeholder="New store name..." style="margin-top:6px"></div>
@@ -11010,7 +11176,7 @@ function editShopItem(idx) {
      <input id="eSU" type="url" placeholder="https://..." value="${(item.url||'').replace(/"/g,'&quot;')}" oninput="autoFetchTitle('eSU','eSI')" onpaste="setTimeout(()=>autoFetchTitle('eSU','eSI'),100)" onchange="autoFetchTitle('eSU','eSI')">`,
     async ()=>{
       const newItem=document.getElementById('eSI').value.trim();
-      const newCab=document.getElementById('eSC').value.trim();
+      const newCab='';
       let newStore=document.getElementById('eSS').value;
       if(newStore==='__new__') {
         newStore=document.getElementById('mSSNew').value.trim();
@@ -11048,34 +11214,35 @@ function deleteShopItem(idx) {
 
 // ── EDIT BORED ITEM ───────────────────────────────────────────
 function editBoredItem(id) {
-  const idx = S.bored.findIndex(b=>String(b.id)===String(id));
-  if(idx===-1) return;
-  const item = S.bored[idx];
+  const item = S.bored.find(b=>String(b.id)===String(id));
+  if(!item) return;
   openModal('✏️ Edit Task',
     `<label>Task</label>
      <textarea id="eBT">${item.task}</textarea>`,
     ()=>{
       const task=document.getElementById('eBT').value.trim();
       if(!task) return;
-      S.bored[idx].task = task;
-      localStorage.setItem('gykf_bored', JSON.stringify(S.bored));
       closeModal();
-      renderBored(document.getElementById('content'));
-      toast('Task updated ✓');
+      if(!db) { toast('No connection — change not saved'); return; }
+      db.collection('boredBoard').doc(id).update({task})
+        .then(()=>toast('Task updated ✓'))
+        .catch(e=>{ console.log('Edit bored item failed:',e); toast('⚠️ Failed — check connection'); });
     });
 }
 
 function deleteBoredItem(id) {
-  const idx = S.bored.findIndex(b=>String(b.id)===String(id));
-  if(idx===-1) return;
-  if(!confirm(`Delete this task?`)) return;
-  const task = S.bored[idx].task;
-  // Call backend to delete from sheet
-  api({action:'deleteBoredItem', task});
-  S.bored.splice(idx,1);
-  localStorage.setItem('gykf_bored', JSON.stringify(S.bored));
-  renderBored(document.getElementById('content'));
-  toast('Task deleted');
+  const item = S.bored.find(b=>String(b.id)===String(id));
+  if(!item) return;
+  openModal('🗑 Delete Task?',
+    `<p style="font-size:14px;color:var(--t1);line-height:1.5;margin:0">Delete <strong>"${item.task}"</strong>? This can't be undone from the app.</p>`,
+    ()=>{
+      closeModal();
+      if(!db) { toast('No connection'); return; }
+      db.collection('boredBoard').doc(id).update({deleted:true})
+        .then(()=>toast('🗑 Task deleted'))
+        .catch(e=>{ console.log('Delete bored item failed:',e); toast('⚠️ Failed — check connection'); });
+    });
+  document.getElementById('mSave').textContent = 'Delete';
 }
 
 function saveShoppingState() {
@@ -11512,6 +11679,18 @@ function setupLiveSync() {
       }
       if(S.tab==='shopping') renderShopping(document.getElementById('content'));
     }, e => console.log('shoppingCatalog listener error:', e));
+
+    // Master Task -- live, Firestore-only, no localStorage
+    db.collection('masterTasks').onSnapshot(snap => {
+      S.masterTasks = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(t=>!t.deleted);
+      if(S.tab==='mastertask') renderMasterTask(document.getElementById('content'));
+    }, e => console.log('masterTasks listener error:', e));
+
+    // Bored board -- live, Firestore-only, no localStorage, no Sheets
+    db.collection('boredBoard').onSnapshot(snap => {
+      S.bored = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(b=>!b.deleted);
+      if(S.tab==='bored') renderBored(document.getElementById('content'));
+    }, e => console.log('boredBoard listener error:', e));
 
     // Contacts/locations catalog — live.
     db.collection('contacts').onSnapshot(snap => {
@@ -12132,16 +12311,21 @@ function fsSaveDayNote(isoDate, suppressRender) {
 // Sticky-note banner for unresolved handoff notes — shown on Home and Today.
 function renderHandoffNotesHtml() {
   if(!S.handoffNotes || !S.handoffNotes.length) return '';
-  return S.handoffNotes.map(n=>`
+  return S.handoffNotes.map(n=>{
+    const lines = (n.text||'').split('\n').map(l=>l.trim()).filter(Boolean);
+    const bodyHtml = lines.length > 1
+      ? `<ul style="margin:0 0 8px;padding-left:18px;color:#2a2200;font-size:14px;line-height:1.5">${lines.map(l=>`<li>${l}</li>`).join('')}</ul>`
+      : (lines.length===1 ? `<div style="font-size:14px;color:#2a2200;line-height:1.4;margin-bottom:8px">• ${lines[0]}</div>` : '');
+    return `
     <div style="margin:12px 14px;padding:14px 16px;background:#FFF4C2;border-radius:10px;
                 box-shadow:0 4px 14px rgba(0,0,0,0.25);transform:rotate(-1deg);
                 border:1px solid rgba(0,0,0,0.06)">
       <div style="font-size:11px;font-weight:700;color:#8a6d00;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px">📌 Handoff from ${n.day||'last shift'}</div>
-      ${n.text?`<div style="font-size:14px;color:#2a2200;line-height:1.4;margin-bottom:8px">${n.text}</div>`:''}
+      ${bodyHtml}
       ${n.audio?`<audio controls src="${n.audio}" style="width:100%;margin-bottom:8px;height:32px"></audio>`:''}
       <button onclick="markHandoffComplete('${n.id}')" style="padding:7px 14px;border-radius:20px;border:none;background:#2a2200;color:#FFF4C2;font-size:12px;font-weight:600;cursor:pointer">✅ Complete</button>
     </div>
-  `).join('');
+  `;}).join('');
 }
 
 // One-time bootstrap: if the procedures collection has never been seeded,
