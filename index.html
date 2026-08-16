@@ -1596,7 +1596,7 @@ function renderMasterTask(el) {
       <div class="swipe-wrap" data-id="${t.id}">
         <div class="swipe-action-left">📌 Prioritize</div>
         <div class="swipe-action-right" style="display:flex;padding:0;width:160px">
-          <div style="flex:1;background:#8B6F1A;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;cursor:pointer"
+          <div style="flex:1;background:#CA8A04;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;cursor:pointer"
                onclick="event.stopPropagation();this.closest('.swipe-wrap').classList.remove('open-left','open-right');editMasterTaskPrompt('${t.id}')">✏️ Edit</div>
           <div style="flex:1;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;cursor:pointer"
                onclick="event.stopPropagation();this.closest('.swipe-wrap').classList.remove('open-left','open-right');deleteMasterTaskPrompt('${t.id}')">🗑 Delete</div>
