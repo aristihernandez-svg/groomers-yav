@@ -1646,10 +1646,31 @@ function renderMasterTask(el) {
   });
 }
 
+function checkMtDup() {
+  const warn = document.getElementById('mMTWarn');
+  if (!warn) return;
+  const val = document.getElementById('mMT')?.value || '';
+  const {exact, matches} = findFuzzyDupes(val, S.masterTasks, t=>t.task);
+  warn.innerHTML = fuzzyDupWarningHtml(exact, matches, t=>t.task, t=>`goToMasterTask('${t.id}')`);
+}
+function goToMasterTask(id) {
+  const t = S.masterTasks.find(x=>x.id===id);
+  if (!t) return;
+  goToExistingRow(`.swipe-wrap[data-id="${id}"]`, () => {
+    if (t.priorityRank == null) {
+      const key = (t.frequency && t.frequency !== 'none') ? t.frequency : 'none';
+      if (S.mtCollapsed === undefined) S.mtCollapsed = {};
+      S.mtCollapsed[key] = false;
+    }
+    renderMasterTask(document.getElementById('content'));
+  });
+}
+
 function openAddMasterTask() {
   openModal('Add Task',
     `<label>Task name</label>
-     <input id="mMT" placeholder="Task...">
+     <input id="mMT" placeholder="Task..." oninput="checkMtDup()">
+     <div id="mMTWarn"></div>
      <label>Frequency</label>
      <select id="mMTF">
        <option value="none">None</option>
@@ -9257,7 +9278,7 @@ function renderContactsList(q) {
       const wazeUrl   = `https://waze.com/ul?q=${q}&navigate=yes`;
       const appleMapsUrl = `https://maps.apple.com/?q=${q}`;
       html += `
-        <div style="padding:13px 16px;background:var(--glass);border-bottom:1px solid var(--border)">
+        <div data-id="${c.id}" style="padding:13px 16px;background:var(--glass);border-bottom:1px solid var(--border)">
           <div style="font-size:14px;font-weight:700;color:var(--t1);margin-bottom:4px">${c.name}</div>
           ${c.address ? `
             <div style="font-size:12px;color:var(--t2);margin-bottom:6px;display:flex;align-items:flex-start;gap:5px">
@@ -9288,7 +9309,7 @@ function renderContactsList(q) {
       const hasAddr = c.address && c.address.length > 5 && /\d/.test(c.address);
       const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(c.address)}`;
       html += `
-        <div style="padding:13px 16px;background:var(--glass);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
+        <div data-id="${c.id}" style="padding:13px 16px;background:var(--glass);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
           <div style="flex:1">
             <div style="font-size:14px;font-weight:700;color:var(--t1);margin-bottom:4px">${c.name}</div>
             ${c.address ? `<div style="font-size:12px;color:var(--t2);margin-bottom:4px">📍 ${c.address}</div>` : ''}
@@ -9323,7 +9344,7 @@ function renderContactsList(q) {
       const role = c.role || '';
       const otherNotes = (c.notes||'').replace(/\d{3}[-.]?\d{3}[-.]?\d{4}/, '').replace(/^[·\s]+/, '').trim();
       html += `
-        <div style="padding:13px 16px;background:var(--glass);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
+        <div data-id="${c.id}" style="padding:13px 16px;background:var(--glass);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
           <div style="
             width:44px;height:44px;border-radius:50%;
             background:rgba(232,163,61,0.15);border:1.5px solid rgba(232,163,61,0.3);
@@ -10401,10 +10422,90 @@ async function autoFetchTitle(urlInputId, nameInputId) {
   } catch(_) {}
 }
 
+// ── Fuzzy duplicate detection, shared by every "add new item" flow ────────
+// (Shopping, Master Task, Contacts, Bored) so a near-duplicate is caught
+// before it's created and the user can jump straight to the existing
+// entry instead. Reuses the existing levenshtein() distance function.
+const FUZZY_STOPWORDS = new Set(['the','a','an','of','for','to','and']);
+function fuzzyNormalize(s) {
+  return (s||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').trim().split(/\s+/)
+    .filter(w=>w && !FUZZY_STOPWORDS.has(w)).sort().join(' ');
+}
+function fuzzySimilarity(a, b) {
+  const na = fuzzyNormalize(a), nb = fuzzyNormalize(b);
+  if (!na || !nb) return 0;
+  if (na === nb) return 1;
+  return 1 - levenshtein(na, nb) / Math.max(na.length, nb.length);
+}
+// existingItems: array; getLabel(item) -> comparable text. Returns
+// {exact:item|null, matches:item[]} -- matches excludes the exact hit,
+// top 3, similarity >= 0.72.
+function findFuzzyDupes(input, existingItems, getLabel) {
+  const val = (input||'').trim();
+  if (val.length < 3) return {exact:null, matches:[]};
+  let exact = null;
+  const scored = [];
+  existingItems.forEach(it => {
+    const label = getLabel(it);
+    if (!label) return;
+    if (label.trim().toLowerCase() === val.toLowerCase()) { exact = it; return; }
+    const sim = fuzzySimilarity(val, label);
+    if (sim >= 0.72) scored.push({item:it, sim});
+  });
+  scored.sort((a,b)=>b.sim-a.sim);
+  return {exact, matches: scored.slice(0,3).map(s=>s.item)};
+}
+// goToJs(item) must return a JS expression string safe to inline in an
+// onclick attribute -- it's what runs when the user taps a match instead
+// of adding a duplicate.
+function fuzzyDupWarningHtml(exact, matches, getLabel, goToJs) {
+  if (!exact && !matches.length) return '';
+  const rows = exact ? [exact] : matches;
+  const heading = exact
+    ? `<div style="font-size:12px;color:#E67E22;background:rgba(230,126,34,0.12);border-radius:8px;padding:8px 10px;margin-bottom:5px;line-height:1.4">⚠️ Already on the list</div>`
+    : `<div style="font-size:11px;color:var(--t2);margin-bottom:5px;font-weight:600">Similar to what's already there:</div>`;
+  return `<div style="margin-top:6px">${heading}${rows.map(it => `
+    <div onclick="${goToJs(it)}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;background:rgba(255,255,255,0.08);border-radius:8px;margin-bottom:4px;cursor:pointer;font-size:13px;color:var(--t1);border:1px solid var(--border2)">
+      <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getLabel(it)}</span>
+      <span style="font-size:11px;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0">Go to it &rarr;</span>
+    </div>`).join('')}</div>`;
+}
+// Closes the add modal, optionally reveals the target row (clears a
+// filter, expands a collapsed group), then scrolls to it and flashes a
+// highlight so it's obvious which existing item this is.
+function goToExistingRow(selector, reveal) {
+  closeModal();
+  if (reveal) reveal();
+  setTimeout(() => {
+    const row = document.querySelector(selector);
+    if (!row) return;
+    row.scrollIntoView({behavior:'smooth', block:'center'});
+    row.style.transition = 'box-shadow .3s ease';
+    row.style.boxShadow = '0 0 0 3px var(--accent)';
+    setTimeout(() => { row.style.boxShadow = ''; }, 1500);
+  }, 260);
+}
+
+function checkShopDup() {
+  const warn = document.getElementById('mSIWarn');
+  if (!warn) return;
+  const val = document.getElementById('mSI')?.value || '';
+  const {exact, matches} = findFuzzyDupes(val, S.shopping, i=>i.item);
+  warn.innerHTML = fuzzyDupWarningHtml(exact, matches, i=>i.item, i=>`goToShopItem(${S.shopping.indexOf(i)})`);
+}
+function goToShopItem(idx) {
+  if (!S.shopping[idx]) return;
+  goToExistingRow(`.swipe-wrap[data-idx="${idx}"]`, () => {
+    S.shopFilter = 'all'; S.shopSearch = '';
+    renderShopping(document.getElementById('content'));
+  });
+}
+
 function openAddShopItem() {
   openModal('Add Shopping Item',
     `<label>Item name</label>
-     <input id="mSI" placeholder="Item...">
+     <input id="mSI" placeholder="Item..." oninput="checkShopDup()">
+     <div id="mSIWarn"></div>
      <label>Store</label>
      <select id="mSS" onchange="onStoreChange(this)">${storeSelectHtml()}</select>
      <div id="mSSNewWrap" style="display:none"><input id="mSSNew" placeholder="New store name..." style="margin-top:6px"></div>
@@ -10432,9 +10533,24 @@ function openAddShopItem() {
     });
 }
 
+function checkContactDup() {
+  const warn = document.getElementById('mCNWarn');
+  if (!warn) return;
+  const val = document.getElementById('mCN')?.value || '';
+  const {exact, matches} = findFuzzyDupes(val, S.contacts, c=>c.name);
+  warn.innerHTML = fuzzyDupWarningHtml(exact, matches, c=>c.name, c=>`goToContact('${c.id}')`);
+}
+function goToContact(id) {
+  goToExistingRow(`#contactsList [data-id="${id}"]`, () => {
+    S.contactSearch = '';
+    renderContacts(document.getElementById('content'));
+  });
+}
+
 function openAddContact(defaultCategory) {
   openModal('Add Contact',
-    `<label>Name / Store</label><input id="mCN" placeholder="Name...">
+    `<label>Name / Store</label><input id="mCN" placeholder="Name..." oninput="checkContactDup()">
+     <div id="mCNWarn"></div>
      <label>Category</label>
      <select id="mCC">
        <option value="store" ${defaultCategory==='store'||!defaultCategory?'selected':''}>📍 Store or Supplier</option>
@@ -10646,9 +10762,21 @@ function deleteProcedure(key) {
   if(db) db.collection('procedures').doc(key).delete().catch(e => console.log('Delete procedure Firestore write failed:', e));
 }
 
+function checkBoredDup() {
+  const warn = document.getElementById('mBTWarn');
+  if (!warn) return;
+  const val = document.getElementById('mBT')?.value || '';
+  const {exact, matches} = findFuzzyDupes(val, S.bored, b=>b.task);
+  warn.innerHTML = fuzzyDupWarningHtml(exact, matches, b=>b.task, b=>`goToBoredItem('${b.id}')`);
+}
+function goToBoredItem(id) {
+  goToExistingRow(`[data-id="${id}"]`, null);
+}
+
 function openAddBored() {
   openModal('Add to Bored Board',
-    `<label>Task or idea</label><textarea id="mBT" placeholder="Task..."></textarea>`,
+    `<label>Task or idea</label><textarea id="mBT" placeholder="Task..." oninput="checkBoredDup()"></textarea>
+     <div id="mBTWarn"></div>`,
     ()=>{
       const task=document.getElementById('mBT').value.trim();
       if(!task) return;
