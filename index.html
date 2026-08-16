@@ -1536,6 +1536,14 @@ const MT_RING_STYLE = {
   neutral: {border:'var(--t3)',    glyph:'✓'},
   none:    {border:'var(--t4)',    glyph:'–'}
 };
+// One icon chip per section so Daily/Weekly/Monthly/One-time read apart
+// at a glance -- shape (icon) and color both differ, not just the label.
+const MT_GROUP_STYLE = {
+  daily:   {icon:'☀️', chip:'rgba(55,138,221,0.16)',  pill:'rgba(55,138,221,0.14)',  pillText:'#85B7EB'},
+  weekly:  {icon:'🔁', chip:'rgba(127,119,221,0.16)', pill:'rgba(127,119,221,0.14)', pillText:'#AFA9EC'},
+  monthly: {icon:'🗓️', chip:'rgba(29,158,117,0.16)',  pill:'rgba(29,158,117,0.14)',  pillText:'#5DCAA5'},
+  none:    {icon:'🏁', chip:'rgba(255,255,255,0.07)', pill:'rgba(255,255,255,0.08)', pillText:'var(--t2)'}
+};
 
 function mtDaysAgo(ts) {
   return Math.floor((Date.now() - ts) / 86400000);
@@ -1608,17 +1616,23 @@ function renderMasterTask(el) {
     html = `<div class="empty"><div class="empty-icon">✅</div><p>No tasks yet. Tap + to add.</p></div>`;
   } else {
     if (pinned.length) {
-      html += `<div style="padding:14px 16px 8px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--accent)">📌 Prioritized</div>`;
+      html += `
+      <div style="display:flex;align-items:center;gap:11px;padding:14px 16px 10px">
+        <div style="width:32px;height:32px;border-radius:9px;background:rgba(232,163,61,0.16);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📌</div>
+        <span style="font-size:17px;font-weight:700;color:var(--t1)">Prioritized</span>
+      </div>`;
       pinned.forEach(t => html += taskRow(t, 'background:var(--accent-dim);border-left:3px solid var(--accent)'));
     }
     groups.forEach(g => {
       const collapsed = !!S.mtCollapsed[g.key];
+      const gs = MT_GROUP_STYLE[g.key];
       html += `
       <div style="padding:14px 16px 4px">
-        <button onclick="toggleMtGroup('${g.key}')" style="width:100%;background:none;border:none;padding:6px 0;display:flex;align-items:center;gap:8px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">
-          <span style="font-size:12px;color:var(--t3);transition:transform .15s;display:inline-block;transform:rotate(${collapsed?'-90deg':'0deg'})">▾</span>
-          <span style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--t1)">${g.label}</span>
-          <span style="font-size:11px;color:var(--t3)">${g.tasks.length}</span>
+        <button onclick="toggleMtGroup('${g.key}')" style="width:100%;background:none;border:none;padding:6px 0;display:flex;align-items:center;gap:11px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">
+          <div style="width:32px;height:32px;border-radius:9px;background:${gs.chip};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">${gs.icon}</div>
+          <span style="font-size:17px;font-weight:700;color:var(--t1)">${g.label}</span>
+          <span style="margin-left:auto;font-size:12px;font-weight:600;color:${gs.pillText};background:${gs.pill};padding:3px 10px;border-radius:20px">${g.tasks.length}</span>
+          <span style="font-size:13px;color:var(--t3);transition:transform .15s;display:inline-block;transform:rotate(${collapsed?'-90deg':'0deg'})">▾</span>
         </button>
       </div>`;
       if (!collapsed) g.tasks.forEach(t => html += taskRow(t));
