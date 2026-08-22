@@ -9541,7 +9541,13 @@ function setBuyerOut(active) {
         .catch(e=>console.log('setBuyerOut failed:', e));
       toast('🚗 Marked as out shopping — others will be notified when adding items');
     } else {
-      db.collection('shopSession').doc('active').delete()
+      // Not a real delete: this project blocks hard deletes app-wide
+      // (allow delete: if false), so a .delete() call here would silently
+      // fail and leave the doc's active:true in place -- the listener
+      // would then just set S.buyerOut back to true on its next fire,
+      // making the banner look stuck. Writing active:false actually
+      // persists.
+      db.collection('shopSession').doc('active').set({active:false, ts:firebase.firestore.FieldValue.serverTimestamp()})
         .catch(e=>console.log('setBuyerOut clear failed:', e));
       toast('✅ Back from shopping');
     }
