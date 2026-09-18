@@ -11422,16 +11422,25 @@ function editShopItem(idx) {
     });
 }
 
+// Soft delete (deleted:true) -- Firestore rules block real document deletes
+// app-wide by design, same as Master Task (see comment at line ~1525). A
+// real .delete() here silently no-ops under those rules, which is why this
+// used to look like it worked (local state + UI updated) while the item
+// reappeared from Firestore on the next sync.
 function deleteShopItem(idx) {
   const item = S.shopping[idx];
-  if(!confirm(`Delete "${item.item}"?`)) return;
-  const id = item.id || fsDocId(item.item+'__'+item.store);
-  if(db) db.collection('shoppingCatalog').doc(id).delete().catch(e => console.log('Delete shopping item Firestore write failed:', e));
-  // Remove from local state and cache
-  S.shopping.splice(idx,1);
-  saveShoppingState();
-  renderShopping(document.getElementById('content'));
-  toast('Item deleted');
+  if(!item) return;
+  openModal('🗑 Delete Item?',
+    `<p style="font-size:14px;color:var(--t1);line-height:1.5;margin:0">Delete <strong>"${item.item}"</strong>? This can't be undone from the app.</p>`,
+    ()=>{
+      closeModal();
+      if(!db) { toast('No connection'); return; }
+      const id = item.id || fsDocId(item.item+'__'+item.store);
+      db.collection('shoppingCatalog').doc(id).update({deleted:true})
+        .then(()=>toast('🗑 Item deleted'))
+        .catch(e=>{ console.log('Delete shopping item failed:',e); toast('⚠️ Failed — check connection'); });
+    });
+  document.getElementById('mSave').textContent = 'Delete';
 }
 
 // ── EDIT BORED ITEM ───────────────────────────────────────────
@@ -11885,7 +11894,7 @@ function setupLiveSync() {
     db.collection('shoppingCatalog').onSnapshot(snap => {
       if(snap.empty) return; // nothing imported/added yet — keep Sheets-sourced fallback
       const prevChecked = {}; S.shopping.forEach(i=>prevChecked[i.item]={checked:i.checked,status:i.status,source:i.source||''});
-      S.shopping = snap.docs.map(d=>{
+      S.shopping = snap.docs.filter(d=>!d.data().deleted).map(d=>{
         const v=d.data();
         const prior = prevChecked[v.item];
         return {id:d.id, item:v.item, cabinet:v.cabinet||'', store:v.store||'', notes:v.notes||'', url:v.url||'',
