@@ -1,4 +1,4 @@
-const CACHE = 'skycare-yav-v22';
+const CACHE = 'skycare-yav-v23';
 const SHELL = ['./', './index.html', './manifest.json', './baseConfig.js'];
 
 self.addEventListener('install', e => {
@@ -13,7 +13,13 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  // "Network first" only means anything if the fetch actually reaches the
+  // network -- fetch() otherwise honors the browser's own HTTP cache first,
+  // and GitHub Pages sends Cache-Control: max-age=600, so a reload could
+  // silently reuse a 10-minute-old copy of index.html even right after a
+  // fresh deploy. cache:'no-store' forces a real network round-trip here;
+  // the offline fallback below still uses this worker's own cache.
+  e.respondWith(fetch(e.request, {cache: 'no-store'}).catch(() => caches.match(e.request)));
 });
 
 self.addEventListener('push', e => {
