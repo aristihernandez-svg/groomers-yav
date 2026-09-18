@@ -654,11 +654,11 @@ body::before{
 }
 .swipe-wrap.open-left .srow,
 .swipe-wrap.open-left .bitem,
-.swipe-wrap.open-left .trow{transform:translateX(90px)}
+.swipe-wrap.open-left .trow{transform:translateX(var(--swipe-l,90px))}
 .swipe-wrap.open-left .swipe-action-left{transform:translateX(0)}
 .swipe-wrap.open-right .srow,
 .swipe-wrap.open-right .bitem,
-.swipe-wrap.open-right .trow{transform:translateX(-90px)}
+.swipe-wrap.open-right .trow{transform:translateX(calc(-1 * var(--swipe-r,90px)))}
 .swipe-wrap.open-right .swipe-action-right{transform:translateX(0)}
 
 /* ── DRAGGABLE NAV ── */
@@ -11335,6 +11335,18 @@ function setupSwipeTwoWay(el, onLeft, onRight) {
   const inner = el.querySelector('.srow,.bitem,.trow');
   if(!inner) return;
 
+  // Panels are usually 90px, but some (e.g. Master Task's combined Edit+
+  // Delete panel) are wider -- measure the real width so the row shifts
+  // far enough to reveal the whole panel instead of clipping most of it
+  // behind the still-covering row (which used to hide almost all of the
+  // left half behind a hardcoded 90px shift).
+  const leftBtn0 = el.querySelector('.swipe-action-left');
+  const rightBtn0 = el.querySelector('.swipe-action-right');
+  const leftW = (leftBtn0 && Math.round(leftBtn0.getBoundingClientRect().width)) || 90;
+  const rightW = (rightBtn0 && Math.round(rightBtn0.getBoundingClientRect().width)) || 90;
+  el.style.setProperty('--swipe-l', leftW+'px');
+  el.style.setProperty('--swipe-r', rightW+'px');
+
   el.addEventListener('touchstart', e=>{
     // Close any other open swipes
     document.querySelectorAll('.swipe-wrap.open-left,.swipe-wrap.open-right').forEach(w=>{
@@ -11349,7 +11361,7 @@ function setupSwipeTwoWay(el, onLeft, onRight) {
     if(Math.abs(currentX) > 8) e.preventDefault();
     // Live feedback while dragging
     const inner = el.querySelector('.srow,.bitem,.trow');
-    if(inner) inner.style.transform = `translateX(${Math.max(-90,Math.min(90,currentX))}px)`;
+    if(inner) inner.style.transform = `translateX(${Math.max(-rightW,Math.min(leftW,currentX))}px)`;
   },{passive:false});
 
   el.addEventListener('touchend', ()=>{
