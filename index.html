@@ -622,21 +622,21 @@ body::before{
 .cg-filters::-webkit-scrollbar{display:none}
 .cg-filter-pill{flex-shrink:0;font-size:12px;font-weight:700;padding:7px 13px;border-radius:20px;background:var(--glass);border:1px solid var(--border2);color:var(--t2);cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
 .cg-filter-pill.on{background:var(--accent-dim);border-color:var(--accent-border);color:var(--accent)}
-.cg-glabel{position:sticky;top:0;z-index:3;margin:0 -16px 8px;padding:9px 16px;display:flex;align-items:baseline;justify-content:space-between;backdrop-filter:blur(6px);border-bottom:1px solid var(--border2)}
-.cg-glabel .cg-gleft{display:flex;align-items:baseline;gap:5px}
-.cg-glabel .cg-gname{font-size:12.5px;font-weight:800;letter-spacing:0.3px;text-transform:uppercase}
-.cg-glabel .cg-gdate{font-size:11px;font-weight:600;color:var(--t3)}
-.cg-glabel .cg-gcount{margin-left:auto;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:10px;font-variant-numeric:tabular-nums}
-.cg-glabel.overdue,.cg-glabel.today{background:rgba(232,64,64,0.16)}
+.cg-glabel{position:sticky;top:0;z-index:3;margin:0 -16px 10px;padding:13px 16px;display:flex;align-items:baseline;justify-content:space-between;backdrop-filter:blur(6px);border-bottom:2px solid transparent}
+.cg-glabel .cg-gleft{display:flex;align-items:baseline;gap:6px}
+.cg-glabel .cg-gname{font-size:13.5px;font-weight:800;letter-spacing:0.4px;text-transform:uppercase}
+.cg-glabel .cg-gdate{font-size:11.5px;font-weight:600;color:var(--t3)}
+.cg-glabel .cg-gcount{margin-left:auto;font-size:11px;font-weight:800;padding:3px 9px;border-radius:10px;font-variant-numeric:tabular-nums}
+.cg-glabel.overdue,.cg-glabel.today{background:rgba(232,64,64,0.22);border-bottom-color:rgba(232,64,64,0.45)}
 .cg-glabel.overdue .cg-gname,.cg-glabel.today .cg-gname{color:#FF8B8B}
 .cg-glabel.overdue .cg-gcount,.cg-glabel.today .cg-gcount{background:var(--red-dim);color:var(--red)}
-.cg-glabel.soon{background:rgba(232,163,61,0.16)}
+.cg-glabel.soon{background:rgba(232,163,61,0.22);border-bottom-color:rgba(232,163,61,0.45)}
 .cg-glabel.soon .cg-gname{color:var(--accent2)}
 .cg-glabel.soon .cg-gcount{background:var(--accent-dim);color:var(--accent2)}
-.cg-glabel.later{background:rgba(78,155,232,0.14)}
+.cg-glabel.later{background:rgba(78,155,232,0.20);border-bottom-color:rgba(78,155,232,0.4)}
 .cg-glabel.later .cg-gname{color:#8CBFF5}
 .cg-glabel.later .cg-gcount{background:rgba(78,155,232,0.14);color:#4E9BE8}
-.cg-glabel.delivered{background:var(--glass)}
+.cg-glabel.delivered{background:var(--glass2);border-bottom-color:var(--border2)}
 .cg-glabel.delivered .cg-gname{color:var(--t3)}
 .cg-glabel.delivered .cg-gcount{background:var(--glass2);color:var(--t3)}
 .cg-group{margin-bottom:4px}
@@ -1045,6 +1045,19 @@ function onStoreChange(sel) {
   if(sel.value==='__new__') { wrap.style.display=''; document.getElementById('mSSNew').focus(); }
   else wrap.style.display='none';
 }
+function checkStoreDup() {
+  const warn = document.getElementById('mSSWarn');
+  if (!warn) return;
+  const val = document.getElementById('mSSNew')?.value || '';
+  const { exact, matches } = findFuzzyDupes(val, getAllStores(), s => s);
+  warn.innerHTML = fuzzyDupWarningHtml(exact, matches, s => s, s => `selectExistingStore('${s.replace(/'/g, "\\'")}')`);
+}
+function selectExistingStore(store) {
+  const sel = document.getElementById('mSS') || document.getElementById('eSS');
+  if (sel) sel.value = store;
+  document.getElementById('mSSNewWrap').style.display = 'none';
+  document.getElementById('mSSWarn').innerHTML = '';
+}
 const PROC_VIDEOS = {
   o2:'',westwind:'',metro:'', // paste YouTube URLs here
 };
@@ -1289,6 +1302,7 @@ const S = {
   cargo: [],             // outbound cargo pieces -- Firestore-only, no localStorage
   cargoFilter: 'all',    // 'all' or a CARGO_LOCATIONS value
   cargoOpen: new Set(),  // ids of cargo cards currently expanded, survives live-sync re-renders
+  customCargoLocations: [], // user-added cargo locations, same pattern as customStores
 };
 
 const NAV_ITEMS = [
@@ -1397,7 +1411,7 @@ async function bootApp() {
 
     document.getElementById('barDay').textContent = DAY_NAMES[TODAY];
     updateThemeToggleBtn();
-    buildNav(); restoreNavOrder(); loadTaskCache(); loadDayNotes(); loadProcs(); loadDmg(); loadCrewCarData(); loadCarAudits(); loadCustomStores();
+    buildNav(); restoreNavOrder(); loadTaskCache(); loadDayNotes(); loadProcs(); loadDmg(); loadCrewCarData(); loadCarAudits(); loadCustomStores(); loadCustomCargoLocations();
     try { recoverDmgDraft(); } catch(e) { console.log('recoverDmgDraft error:', e); }
     setupPullToRefresh();
     setupSwipeBack();
@@ -1858,7 +1872,7 @@ function renderCargo(el) {
 
   let html = `<div class="cg-filters">
     <div class="cg-filter-pill ${S.cargoFilter === 'all' ? 'on' : ''}" onclick="setCargoFilter('all')">All</div>
-    ${CARGO_LOCATIONS.map(loc => `<div class="cg-filter-pill ${S.cargoFilter === loc ? 'on' : ''}" onclick="setCargoFilter('${loc.replace(/'/g, "\\'")}')">${loc}</div>`).join('')}
+    ${getAllCargoLocations().map(loc => `<div class="cg-filter-pill ${S.cargoFilter === loc ? 'on' : ''}" onclick="setCargoFilter('${loc.replace(/'/g, "\\'")}')">${loc}</div>`).join('')}
   </div>`;
 
   if (!groups.length) {
@@ -1935,27 +1949,44 @@ function toggleCargoItem(id) {
 function cargoFormFields(c) {
   c = c || {};
   const todayStr = new Date().toISOString().slice(0, 10);
+  const locIsCustom = c.location && !CARGO_LOCATIONS.includes(c.location);
   return `
     <label>Location</label>
-    <select id="cgLoc">
-      ${CARGO_LOCATIONS.map(loc => `<option ${c.location === loc ? 'selected' : ''}>${loc}</option>`).join('')}
-    </select>
-    <div style="display:grid;grid-template-columns:3fr 2fr;gap:10px">
-      <div><label>Ship date</label><input type="date" id="cgDate" value="${c.shipDate || todayStr}"></div>
-      <div><label>Destination</label><input id="cgDest" placeholder="ZFG" value="${(c.destination || '').replace(/"/g, '&quot;')}"></div>
+    <select id="cgLoc" onchange="onCargoLocChange(this)">${cargoLocSelectHtml(c.location)}</select>
+    <div id="cgLocNewWrap" style="display:${locIsCustom ? '' : 'none'}">
+      <input id="cgLocNew" placeholder="New location name..." oninput="checkCargoLocDup()" value="${locIsCustom ? c.location.replace(/"/g, '&quot;') : ''}" style="margin-top:6px">
+      <div id="cgLocWarn"></div>
     </div>
+    <label>Ship date</label>
+    <input type="date" id="cgDate" value="${c.shipDate || todayStr}">
+    <label>Destination</label>
+    <input id="cgDest" placeholder="ZFG" value="${(c.destination || '').replace(/"/g, '&quot;')}">
     <label>Client name</label>
     <input id="cgClient" placeholder="Who it's for" value="${(c.client || '').replace(/"/g, '&quot;')}">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div><label># of pieces</label><input type="tel" inputmode="numeric" id="cgPieces" placeholder="0" value="${c.pieces || ''}"></div>
-      <div><label>Weight</label><input type="tel" inputmode="numeric" id="cgWeight" placeholder="e.g. 262" value="${(c.weight || '').replace(/"/g, '&quot;')}"></div>
+      <div><label>Weight</label><input type="tel" inputmode="numeric" id="cgWeight" placeholder="e.g. 262" value="${(c.weight || '').replace(/"/g, '&quot;')}" onblur="cargoAutoLbs(this)"></div>
     </div>
     <label>Notes</label>
     <textarea id="cgNotes" placeholder="Flight info, special handling...">${c.notes || ''}</textarea>`;
 }
+// Bare number typed into Weight gets " lbs" appended automatically on blur --
+// only touches plain numeric values, never overwrites something like "37 lbs each".
+function cargoAutoLbs(input) {
+  const v = input.value.trim();
+  if (/^\d+(\.\d+)?$/.test(v)) input.value = v + ' lbs';
+}
 function cargoFormValues() {
+  let location = document.getElementById('cgLoc').value;
+  if (location === '__new__') {
+    location = document.getElementById('cgLocNew').value.trim();
+    if (location && !getAllCargoLocations().includes(location)) {
+      S.customCargoLocations.push(location);
+      saveCustomCargoLocations();
+    }
+  }
   return {
-    location: document.getElementById('cgLoc').value,
+    location,
     shipDate: document.getElementById('cgDate').value,
     destination: document.getElementById('cgDest').value.trim(),
     client: document.getElementById('cgClient').value.trim(),
@@ -1963,6 +1994,40 @@ function cargoFormValues() {
     weight: document.getElementById('cgWeight').value.trim(),
     notes: document.getElementById('cgNotes').value.trim(),
   };
+}
+
+// ── Cargo locations (custom, like Shopping's stores) ────────────────
+function getAllCargoLocations() {
+  return [...new Set([...CARGO_LOCATIONS, ...S.customCargoLocations])].sort();
+}
+function saveCustomCargoLocations() {
+  if (db) db.collection('appConfig').doc('cargoLocations').set({ custom: S.customCargoLocations }, { merge: true })
+    .catch(e => console.log('saveCustomCargoLocations failed:', e));
+}
+function loadCustomCargoLocations() {
+  try { S.customCargoLocations = JSON.parse(localStorage.getItem('gykf_custom_cargo_locations') || '[]'); } catch (e) { S.customCargoLocations = []; }
+}
+function cargoLocSelectHtml(selected = '') {
+  const locs = getAllCargoLocations();
+  return `${locs.map(l => `<option value="${l}" ${l === selected ? 'selected' : ''}>${l}</option>`).join('')}
+          <option value="__new__">➕ Add a location...</option>`;
+}
+function onCargoLocChange(sel) {
+  const wrap = document.getElementById('cgLocNewWrap');
+  if (sel.value === '__new__') { wrap.style.display = ''; document.getElementById('cgLocNew').focus(); }
+  else wrap.style.display = 'none';
+}
+function checkCargoLocDup() {
+  const warn = document.getElementById('cgLocWarn');
+  if (!warn) return;
+  const val = document.getElementById('cgLocNew')?.value || '';
+  const { exact, matches } = findFuzzyDupes(val, getAllCargoLocations(), l => l);
+  warn.innerHTML = fuzzyDupWarningHtml(exact, matches, l => l, l => `selectExistingCargoLoc('${l.replace(/'/g, "\\'")}')`);
+}
+function selectExistingCargoLoc(loc) {
+  document.getElementById('cgLoc').value = loc;
+  document.getElementById('cgLocNewWrap').style.display = 'none';
+  document.getElementById('cgLocWarn').innerHTML = '';
 }
 
 function openAddCargo() {
@@ -10790,7 +10855,10 @@ function openAddShopItem() {
      <div id="mSIWarn"></div>
      <label>Store</label>
      <select id="mSS" onchange="onStoreChange(this)">${storeSelectHtml()}</select>
-     <div id="mSSNewWrap" style="display:none"><input id="mSSNew" placeholder="New store name..." style="margin-top:6px"></div>
+     <div id="mSSNewWrap" style="display:none">
+       <input id="mSSNew" placeholder="New store name..." oninput="checkStoreDup()" style="margin-top:6px">
+       <div id="mSSWarn"></div>
+     </div>
      <label>Product URL <span style="font-weight:400;color:var(--t2)">(optional — paste to auto-fill name)</span></label>
      <input id="mSU" type="url" placeholder="https://..." oninput="autoFetchTitle('mSU','mSI')" onpaste="setTimeout(()=>autoFetchTitle('mSU','mSI'),100)" onchange="autoFetchTitle('mSU','mSI')">`,
     async()=>{
@@ -11681,7 +11749,10 @@ function editShopItem(idx) {
      <input id="eSI" value="${item.item}">
      <label>Store</label>
      <select id="eSS" onchange="onStoreChange(this)">${storeSelectHtml(item.store)}</select>
-     <div id="mSSNewWrap" style="display:none"><input id="mSSNew" placeholder="New store name..." style="margin-top:6px"></div>
+     <div id="mSSNewWrap" style="display:none">
+       <input id="mSSNew" placeholder="New store name..." oninput="checkStoreDup()" style="margin-top:6px">
+       <div id="mSSWarn"></div>
+     </div>
      <label>Product URL <span style="font-weight:400;color:var(--t2)">(optional)</span></label>
      <input id="eSU" type="url" placeholder="https://..." value="${(item.url||'').replace(/"/g,'&quot;')}" oninput="autoFetchTitle('eSU','eSI')" onpaste="setTimeout(()=>autoFetchTitle('eSU','eSI'),100)" onchange="autoFetchTitle('eSU','eSI')">`,
     async ()=>{
@@ -12295,6 +12366,12 @@ function setupLiveSync() {
       S.customStores = (data && Array.isArray(data.custom)) ? data.custom : [];
       localStorage.setItem('gykf_custom_stores', JSON.stringify(S.customStores));
     }, e => console.log('customStores listener error:', e));
+
+    db.collection('appConfig').doc('cargoLocations').onSnapshot(snap => {
+      const data = snap.data();
+      S.customCargoLocations = (data && Array.isArray(data.custom)) ? data.custom : [];
+      localStorage.setItem('gykf_custom_cargo_locations', JSON.stringify(S.customCargoLocations));
+    }, e => console.log('customCargoLocations listener error:', e));
 
     // Trip notes — live so whoever is shopping sees the latest plan
     db.collection('teamData').doc('trip').onSnapshot(snap => {
