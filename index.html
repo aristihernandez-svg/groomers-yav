@@ -668,6 +668,7 @@ body::before{
 .cg-dbtn{flex:1;padding:9px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--glass2);color:var(--t2);font-size:12px;font-weight:700;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent}
 .cg-dbtn.cg-done-btn{background:var(--green-dim);border-color:var(--green);color:var(--green)}
 .cg-dbtn.cg-del-btn{flex:0 0 44px;background:var(--red-dim);border-color:var(--red);color:var(--red)}
+#cgDate{font-size:17px;padding:14px;font-weight:600}
 
 /* TOAST */
 .toast{position:fixed;bottom:calc(76px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg3);color:var(--t1);border:1px solid var(--border2);padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap;z-index:400;box-shadow:0 8px 24px rgba(0,0,0,0.3);font-weight:500;display:flex;align-items:center;gap:10px}
@@ -2076,6 +2077,7 @@ function deleteCargoPrompt(id) {
 
 function markCargoDelivered(id) {
   haptic();
+  S.cargoOpen.delete(id); // collapse it -- an expanded card would otherwise carry over into Delivered
   if (!db) { toast('No connection'); return; }
   db.collection('cargoTracker').doc(id).update({ done: true, deliveredAt: Date.now() })
     .then(() => toast('✅ Marked delivered'))
@@ -10789,7 +10791,7 @@ function fuzzySimilarity(a, b) {
 // top 3, similarity >= 0.72.
 function findFuzzyDupes(input, existingItems, getLabel) {
   const val = (input||'').trim();
-  if (val.length < 3) return {exact:null, matches:[]};
+  if (val.length < 4) return {exact:null, matches:[]};
   let exact = null;
   const scored = [];
   existingItems.forEach(it => {
