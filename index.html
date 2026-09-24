@@ -617,6 +617,57 @@ body::before{
 .eod-fab{position:fixed;left:16px;bottom:calc(72px + var(--safe-b));width:52px;height:52px;border-radius:50%;background:var(--green-dim);color:var(--green);border:1px solid rgba(46,204,138,0.2);font-size:20px;box-shadow:0 4px 16px rgba(46,204,138,0.1);cursor:pointer;display:none;align-items:center;justify-content:center;z-index:50}
 .eod-fab.show{display:flex}
 
+/* CARGO */
+.cg-filters{display:flex;gap:8px;padding:12px 16px;overflow-x:auto}
+.cg-filters::-webkit-scrollbar{display:none}
+.cg-filter-pill{flex-shrink:0;font-size:12px;font-weight:700;padding:7px 13px;border-radius:20px;background:var(--glass);border:1px solid var(--border2);color:var(--t2);cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.cg-filter-pill.on{background:var(--accent-dim);border-color:var(--accent-border);color:var(--accent)}
+.cg-glabel{position:sticky;top:0;z-index:3;margin:0 -16px 8px;padding:9px 16px;display:flex;align-items:baseline;gap:9px;backdrop-filter:blur(6px);border-bottom:1px solid var(--border2)}
+.cg-glabel .cg-gname{font-size:12.5px;font-weight:800;letter-spacing:0.3px;text-transform:uppercase}
+.cg-glabel .cg-gdate{font-size:11px;font-weight:600;color:var(--t3)}
+.cg-glabel .cg-gcount{margin-left:auto;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:10px;font-variant-numeric:tabular-nums}
+.cg-glabel.overdue,.cg-glabel.today{background:rgba(232,64,64,0.16)}
+.cg-glabel.overdue .cg-gname,.cg-glabel.today .cg-gname{color:#FF8B8B}
+.cg-glabel.overdue .cg-gcount,.cg-glabel.today .cg-gcount{background:var(--red-dim);color:var(--red)}
+.cg-glabel.soon{background:rgba(232,163,61,0.16)}
+.cg-glabel.soon .cg-gname{color:var(--accent2)}
+.cg-glabel.soon .cg-gcount{background:var(--accent-dim);color:var(--accent2)}
+.cg-glabel.later{background:rgba(78,155,232,0.14)}
+.cg-glabel.later .cg-gname{color:#8CBFF5}
+.cg-glabel.later .cg-gcount{background:rgba(78,155,232,0.14);color:#4E9BE8}
+.cg-glabel.delivered{background:var(--glass)}
+.cg-glabel.delivered .cg-gname{color:var(--t3)}
+.cg-glabel.delivered .cg-gcount{background:var(--glass2);color:var(--t3)}
+.cg-group{margin-bottom:4px}
+.cg-item{border-radius:var(--radius);overflow:hidden;margin:0 16px 8px;background:var(--glass);border:1px solid var(--border)}
+.cg-item.open{border-color:var(--accent-border)}
+.cg-row{display:flex;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cg-bar{width:4px;flex-shrink:0}
+.cg-bar.overdue,.cg-bar.today{background:var(--red)}
+.cg-bar.soon{background:var(--accent)}
+.cg-bar.later{background:#4E9BE8}
+.cg-bar.done{background:var(--t4)}
+.cg-rbody{flex:1;padding:12px 13px;display:flex;justify-content:space-between;align-items:center;gap:10px;min-width:0}
+.cg-rmain{min-width:0}
+.cg-rmain .cg-l1{font-size:14px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cg-rmain .cg-l2{font-size:11px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cg-chev{color:var(--t4);font-size:11px;transition:transform .2s;flex-shrink:0}
+.cg-item.open .cg-chev{transform:rotate(180deg);color:var(--accent2)}
+.cg-item.done .cg-l1{text-decoration:line-through;color:var(--t4)}
+.cg-item.done .cg-l2{color:var(--t4)}
+.cg-detail{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.cg-item.open .cg-detail{max-height:340px}
+.cg-detail-in{padding:0 14px 14px;border-top:1px solid var(--border)}
+.cg-dgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px 14px;margin:12px 0;padding:11px 12px;background:var(--bg3);border-radius:var(--radius-sm)}
+.cg-dgrid .cg-f label{display:block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;color:var(--t3);margin-bottom:3px}
+.cg-dgrid .cg-f .cg-v{font-size:12.5px;font-weight:700;color:var(--t1)}
+.cg-dnotes label{display:block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;color:var(--t3);margin-bottom:4px}
+.cg-dnotes p{margin:0 0 12px;font-size:12px;color:var(--t2);line-height:1.5;white-space:pre-wrap}
+.cg-dactions{display:flex;gap:8px}
+.cg-dbtn{flex:1;padding:9px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--glass2);color:var(--t2);font-size:12px;font-weight:700;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent}
+.cg-dbtn.cg-done-btn{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.cg-dbtn.cg-del-btn{flex:0 0 44px;background:var(--red-dim);border-color:var(--red);color:var(--red)}
+
 /* TOAST */
 .toast{position:fixed;bottom:calc(76px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg3);color:var(--t1);border:1px solid var(--border2);padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap;z-index:400;box-shadow:0 8px 24px rgba(0,0,0,0.3);font-weight:500;display:flex;align-items:center;gap:10px}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
@@ -1234,12 +1285,16 @@ const S = {
   monthSummaries: {},    // {monthKey: {monthLabel, pdfUrl}} — flagged-items summary per month, loaded from Firestore
   dayNotes: {},         // {isoDate: {text, completed}} — per-day team sticky notes
   tasksSource: 'sheets', // 'sheets' | 'firestore' — controlled by appConfig/tasksSource
+  cargo: [],             // outbound cargo pieces -- Firestore-only, no localStorage
+  cargoFilter: 'all',    // 'all' or a CARGO_LOCATIONS value
+  cargoOpen: new Set(),  // ids of cargo cards currently expanded, survives live-sync re-renders
 };
 
 const NAV_ITEMS = [
   {id:'home',        icon:'🏠', label:'Home'},
   {id:'mastertask',  icon:'✅', label:'Tasks'},
   {id:'shopping',    icon:'🛒', label:'Shopping'},
+  {id:'cargo',       icon:'📦', label:'Cargo'},
   {id:'procedures',  icon:'📋', label:'Procs'},
   {id:'audits',      icon:'📒', label:'Audits', locked:true},
   {id:'cars',        icon:'🚗', label:'Crew Cars'},
@@ -1478,6 +1533,7 @@ function render() {
     case 'today':      renderToday(el); break;
     case 'week':       S.inDay?renderDayDetail(el):renderWeek(el); break;
     case 'shopping':   renderShopping(el); break;
+    case 'cargo':      renderCargo(el); break;
     case 'procedures':
       if(S.procView) renderProcDetail(el,S.procView);
       else renderProcs(el);
@@ -1745,6 +1801,223 @@ function deleteMasterTaskPrompt(id) {
         .catch(e=>{ console.log('Delete master task failed:',e); toast('⚠️ Failed — check connection'); });
     });
   document.getElementById('mSave').textContent = 'Delete';
+}
+
+// ── CARGO ──────────────────────────────────────────────────────────
+// Firestore-only, no localStorage -- same live-sync + soft-delete pattern as
+// Master Task. Grouped by ship date (not receipt date), so a piece logged
+// today for a future day shows up under that day, not under Today.
+const CARGO_LOCATIONS = ['704 Cargo Bay', 'Centric Aviation', "Dean's Office", 'Elsewhere'];
+
+function cargoDateOnly(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function cargoParseDate(str) {
+  const [y, m, d] = (str || '').split('-').map(Number);
+  return (y && m && d) ? new Date(y, m - 1, d) : cargoDateOnly(new Date());
+}
+// Buckets a ship date relative to today. diffDays<0 is genuinely overdue
+// (still pending past its own ship date) -- surfaced first, in red, so
+// nothing silently falls behind once the day it was meant for has passed.
+function cargoBucketFor(shipDateStr) {
+  const today = cargoDateOnly(new Date());
+  const ship = cargoParseDate(shipDateStr);
+  const diffDays = Math.round((ship - today) / 86400000);
+  if (diffDays < 0)  return { key: 'overdue',  cls: 'overdue', label: 'Overdue' };
+  if (diffDays === 0) return { key: 'today',    cls: 'today',   label: 'Today' };
+  if (diffDays === 1) return { key: 'tomorrow', cls: 'soon',    label: 'Tomorrow' };
+  if (diffDays <= 6)  return { key: 'd' + diffDays, cls: 'soon', label: ship.toLocaleDateString('en-US', { weekday: 'long' }) };
+  return { key: 'later', cls: 'later', label: 'Later' };
+}
+function cargoDateLabel(shipDateStr) {
+  return cargoParseDate(shipDateStr).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function groupedCargo() {
+  const filtered = S.cargo.filter(c => S.cargoFilter === 'all' || c.location === S.cargoFilter);
+  const pending = filtered.filter(c => !c.done).sort((a, b) => cargoParseDate(a.shipDate) - cargoParseDate(b.shipDate));
+  const delivered = filtered.filter(c => c.done).sort((a, b) => (b.deliveredAt || 0) - (a.deliveredAt || 0));
+
+  const order = [];
+  const byKey = {};
+  pending.forEach(c => {
+    const b = cargoBucketFor(c.shipDate);
+    if (!byKey[b.key]) { byKey[b.key] = { ...b, items: [] }; order.push(b.key); }
+    byKey[b.key].items.push(c);
+  });
+  const groups = order.map(k => byKey[k]);
+  if (delivered.length) groups.push({ key: 'delivered', cls: 'delivered', label: 'Delivered', items: delivered });
+  return groups;
+}
+
+function renderCargo(el) {
+  setBar({ title: 'Cargo' });
+  showFab(openAddCargo);
+
+  const pendingCount = S.cargo.filter(c => !c.done).length;
+  const groups = groupedCargo();
+
+  let html = `<div class="cg-filters">
+    <div class="cg-filter-pill ${S.cargoFilter === 'all' ? 'on' : ''}" onclick="setCargoFilter('all')">All</div>
+    ${CARGO_LOCATIONS.map(loc => `<div class="cg-filter-pill ${S.cargoFilter === loc ? 'on' : ''}" onclick="setCargoFilter('${loc.replace(/'/g, "\\'")}')">${loc}</div>`).join('')}
+  </div>`;
+
+  if (!groups.length) {
+    html += `<div class="empty"><div class="empty-icon">📦</div><p>No cargo logged. Tap + to add a piece.</p></div>`;
+  } else {
+    groups.forEach(g => {
+      html += `<div class="cg-group">
+        <div class="cg-glabel ${g.cls}">
+          <span class="cg-gname">${g.label}</span>
+          ${g.key !== 'delivered' && g.key !== 'later' ? `<span class="cg-gdate">${cargoDateLabel(g.items[0].shipDate)}</span>` : ''}
+          <span class="cg-gcount">${g.items.length}</span>
+        </div>`;
+      g.items.forEach(c => { html += cargoRowHtml(c, g.cls); });
+      html += `</div>`;
+    });
+  }
+  html += `<div style="height:80px"></div>`;
+  el.innerHTML = html;
+}
+
+function cargoRowHtml(c, barCls) {
+  const open = S.cargoOpen.has(c.id);
+  const metaParts = [c.location, c.destination].filter(Boolean);
+  if (c.pieces) metaParts.push(`${c.pieces} pcs`);
+  if (c.weight) metaParts.push(c.weight);
+  return `
+    <div class="cg-item ${open ? 'open' : ''} ${c.done ? 'done' : ''}" data-id="${c.id}">
+      <div class="cg-row" onclick="toggleCargoItem('${c.id}')">
+        <div class="cg-bar ${c.done ? 'done' : barCls}"></div>
+        <div class="cg-rbody">
+          <div class="cg-rmain">
+            <div class="cg-l1">${c.client || '(no client name)'}</div>
+            <div class="cg-l2">${metaParts.join(' · ')}</div>
+          </div>
+          <span class="cg-chev">▾</span>
+        </div>
+      </div>
+      <div class="cg-detail">
+        <div class="cg-detail-in">
+          <div class="cg-dgrid">
+            <div class="cg-f"><label>Location</label><div class="cg-v">${c.location || '—'}</div></div>
+            <div class="cg-f"><label>Destination</label><div class="cg-v">${c.destination || '—'}</div></div>
+            <div class="cg-f"><label># of Pieces</label><div class="cg-v">${c.pieces || '—'}</div></div>
+            <div class="cg-f"><label>Weight</label><div class="cg-v">${c.weight || '—'}</div></div>
+          </div>
+          ${c.notes ? `<div class="cg-dnotes"><label>Notes</label><p>${c.notes}</p></div>` : ''}
+          <div class="cg-dactions">
+            ${c.done
+              ? `<div class="cg-dbtn" onclick="event.stopPropagation();reopenCargo('${c.id}')">↺ Reopen</div>`
+              : `<div class="cg-dbtn cg-done-btn" onclick="event.stopPropagation();markCargoDelivered('${c.id}')">✓ Mark Delivered</div>`}
+            <div class="cg-dbtn" onclick="event.stopPropagation();editCargoPrompt('${c.id}')">✏️ Edit</div>
+            <div class="cg-dbtn cg-del-btn" onclick="event.stopPropagation();deleteCargoPrompt('${c.id}')">🗑</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function setCargoFilter(loc) {
+  S.cargoFilter = loc;
+  renderCargo(document.getElementById('content'));
+}
+
+function toggleCargoItem(id) {
+  const item = document.querySelector(`.cg-item[data-id="${id}"]`);
+  if (!item) return;
+  const willOpen = !item.classList.contains('open');
+  item.classList.toggle('open', willOpen);
+  if (willOpen) S.cargoOpen.add(id); else S.cargoOpen.delete(id);
+}
+
+function cargoFormFields(c) {
+  c = c || {};
+  const todayStr = new Date().toISOString().slice(0, 10);
+  return `
+    <label>Location</label>
+    <select id="cgLoc">
+      ${CARGO_LOCATIONS.map(loc => `<option ${c.location === loc ? 'selected' : ''}>${loc}</option>`).join('')}
+    </select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div><label>Ship date</label><input type="date" id="cgDate" value="${c.shipDate || todayStr}"></div>
+      <div><label>Destination</label><input id="cgDest" placeholder="ZFG" value="${(c.destination || '').replace(/"/g, '&quot;')}"></div>
+    </div>
+    <label>Client name</label>
+    <input id="cgClient" placeholder="Who it's for" value="${(c.client || '').replace(/"/g, '&quot;')}">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div><label># of pieces</label><input type="number" id="cgPieces" placeholder="0" value="${c.pieces || ''}"></div>
+      <div><label>Weight</label><input id="cgWeight" placeholder="e.g. 262 lbs" value="${(c.weight || '').replace(/"/g, '&quot;')}"></div>
+    </div>
+    <label>Notes</label>
+    <textarea id="cgNotes" placeholder="Flight info, special handling...">${c.notes || ''}</textarea>`;
+}
+function cargoFormValues() {
+  return {
+    location: document.getElementById('cgLoc').value,
+    shipDate: document.getElementById('cgDate').value,
+    destination: document.getElementById('cgDest').value.trim(),
+    client: document.getElementById('cgClient').value.trim(),
+    pieces: parseInt(document.getElementById('cgPieces').value, 10) || null,
+    weight: document.getElementById('cgWeight').value.trim(),
+    notes: document.getElementById('cgNotes').value.trim(),
+  };
+}
+
+function openAddCargo() {
+  openModal('📦 Log Cargo', cargoFormFields(),
+    () => {
+      const v = cargoFormValues();
+      if (!v.client) { toast('Enter a client name'); return; }
+      closeModal();
+      if (!db) { toast('No connection — cargo not saved'); return; }
+      db.collection('cargoTracker').add({
+        ...v, done: false, deliveredAt: null, deleted: false, createdAt: Date.now(),
+      }).then(() => toast('📦 Cargo logged ✓'))
+        .catch(e => { console.log('Add cargo failed:', e); toast('⚠️ Failed to save — check connection'); });
+    });
+}
+
+function editCargoPrompt(id) {
+  const c = S.cargo.find(x => x.id === id);
+  if (!c) return;
+  openModal('✏️ Edit Cargo', cargoFormFields(c),
+    () => {
+      const v = cargoFormValues();
+      if (!v.client) { toast('Enter a client name'); return; }
+      closeModal();
+      if (!db) { toast('No connection — change not saved'); return; }
+      db.collection('cargoTracker').doc(id).update(v)
+        .then(() => toast('Cargo updated ✓'))
+        .catch(e => { console.log('Edit cargo failed:', e); toast('⚠️ Failed — check connection'); });
+    });
+}
+
+function deleteCargoPrompt(id) {
+  const c = S.cargo.find(x => x.id === id);
+  if (!c) return;
+  openModal('🗑 Delete Cargo?',
+    `<p style="font-size:14px;color:var(--t1);line-height:1.5;margin:0">Delete <strong>"${c.client || 'this piece'}"</strong>? This can't be undone from the app.</p>`,
+    () => {
+      closeModal();
+      if (!db) { toast('No connection'); return; }
+      db.collection('cargoTracker').doc(id).update({ deleted: true })
+        .then(() => toast('🗑 Cargo deleted'))
+        .catch(e => { console.log('Delete cargo failed:', e); toast('⚠️ Failed — check connection'); });
+    });
+  document.getElementById('mSave').textContent = 'Delete';
+}
+
+function markCargoDelivered(id) {
+  haptic();
+  if (!db) { toast('No connection'); return; }
+  db.collection('cargoTracker').doc(id).update({ done: true, deliveredAt: Date.now() })
+    .then(() => toast('✅ Marked delivered'))
+    .catch(e => { console.log('Mark cargo delivered failed:', e); toast('⚠️ Failed — check connection'); });
+}
+function reopenCargo(id) {
+  haptic();
+  if (!db) { toast('No connection'); return; }
+  db.collection('cargoTracker').doc(id).update({ done: false, deliveredAt: null })
+    .catch(e => { console.log('Reopen cargo failed:', e); toast('⚠️ Failed — check connection'); });
 }
 
 // ── DARK MODE ──────────────────────────────────────────────────────
@@ -11928,6 +12201,12 @@ function setupLiveSync() {
       S.masterTasks = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(t=>!t.deleted);
       if(S.tab==='mastertask') renderMasterTask(document.getElementById('content'));
     }, e => console.log('masterTasks listener error:', e));
+
+    // Cargo -- live, Firestore-only, no localStorage
+    db.collection('cargoTracker').onSnapshot(snap => {
+      S.cargo = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(c=>!c.deleted);
+      if(S.tab==='cargo') renderCargo(document.getElementById('content'));
+    }, e => console.log('cargoTracker listener error:', e));
 
     // Bored board -- live, Firestore-only, no localStorage, no Sheets
     db.collection('boredBoard').onSnapshot(snap => {
