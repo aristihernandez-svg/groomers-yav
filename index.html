@@ -1050,7 +1050,7 @@ function checkStoreDup() {
   if (!warn) return;
   const val = document.getElementById('mSSNew')?.value || '';
   const { exact, matches } = findFuzzyDupes(val, getAllStores(), s => s);
-  warn.innerHTML = fuzzyDupWarningHtml(exact, matches, s => s, s => `selectExistingStore('${s.replace(/'/g, "\\'")}')`);
+  warn.innerHTML = fuzzyDupWarningHtml(exact, matches, s => s, s => `selectExistingStore('${s.replace(/'/g, "\\'")}')`, 'Use this');
 }
 function selectExistingStore(store) {
   const sel = document.getElementById('mSS') || document.getElementById('eSS');
@@ -2022,7 +2022,7 @@ function checkCargoLocDup() {
   if (!warn) return;
   const val = document.getElementById('cgLocNew')?.value || '';
   const { exact, matches } = findFuzzyDupes(val, getAllCargoLocations(), l => l);
-  warn.innerHTML = fuzzyDupWarningHtml(exact, matches, l => l, l => `selectExistingCargoLoc('${l.replace(/'/g, "\\'")}')`);
+  warn.innerHTML = fuzzyDupWarningHtml(exact, matches, l => l, l => `selectExistingCargoLoc('${l.replace(/'/g, "\\'")}')`, 'Use this');
 }
 function selectExistingCargoLoc(loc) {
   document.getElementById('cgLoc').value = loc;
@@ -10805,7 +10805,7 @@ function findFuzzyDupes(input, existingItems, getLabel) {
 // goToJs(item) must return a JS expression string safe to inline in an
 // onclick attribute -- it's what runs when the user taps a match instead
 // of adding a duplicate.
-function fuzzyDupWarningHtml(exact, matches, getLabel, goToJs) {
+function fuzzyDupWarningHtml(exact, matches, getLabel, goToJs, actionLabel = 'Go to it') {
   if (!exact && !matches.length) return '';
   const rows = exact ? [exact] : matches;
   const heading = exact
@@ -10814,7 +10814,7 @@ function fuzzyDupWarningHtml(exact, matches, getLabel, goToJs) {
   return `<div style="margin-top:6px">${heading}${rows.map(it => `
     <div onclick="${goToJs(it)}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;background:rgba(255,255,255,0.08);border-radius:8px;margin-bottom:4px;cursor:pointer;font-size:13px;color:var(--t1);border:1px solid var(--border2)">
       <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getLabel(it)}</span>
-      <span style="font-size:11px;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0">Go to it &rarr;</span>
+      <span style="font-size:11px;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0">${actionLabel} &rarr;</span>
     </div>`).join('')}</div>`;
 }
 // Closes the add modal, optionally reveals the target row (clears a
