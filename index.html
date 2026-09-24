@@ -622,7 +622,8 @@ body::before{
 .cg-filters::-webkit-scrollbar{display:none}
 .cg-filter-pill{flex-shrink:0;font-size:12px;font-weight:700;padding:7px 13px;border-radius:20px;background:var(--glass);border:1px solid var(--border2);color:var(--t2);cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
 .cg-filter-pill.on{background:var(--accent-dim);border-color:var(--accent-border);color:var(--accent)}
-.cg-glabel{position:sticky;top:0;z-index:3;margin:0 -16px 8px;padding:9px 16px;display:flex;align-items:baseline;gap:9px;backdrop-filter:blur(6px);border-bottom:1px solid var(--border2)}
+.cg-glabel{position:sticky;top:0;z-index:3;margin:0 -16px 8px;padding:9px 16px;display:flex;align-items:baseline;justify-content:space-between;backdrop-filter:blur(6px);border-bottom:1px solid var(--border2)}
+.cg-glabel .cg-gleft{display:flex;align-items:baseline;gap:5px}
 .cg-glabel .cg-gname{font-size:12.5px;font-weight:800;letter-spacing:0.3px;text-transform:uppercase}
 .cg-glabel .cg-gdate{font-size:11px;font-weight:600;color:var(--t3)}
 .cg-glabel .cg-gcount{margin-left:auto;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:10px;font-variant-numeric:tabular-nums}
@@ -1866,8 +1867,10 @@ function renderCargo(el) {
     groups.forEach(g => {
       html += `<div class="cg-group">
         <div class="cg-glabel ${g.cls}">
-          <span class="cg-gname">${g.label}</span>
-          ${g.key !== 'delivered' && g.key !== 'later' ? `<span class="cg-gdate">${cargoDateLabel(g.items[0].shipDate)}</span>` : ''}
+          <span class="cg-gleft">
+            <span class="cg-gname">${g.label}</span>
+            ${g.key !== 'delivered' && g.key !== 'later' ? `<span class="cg-gdate">${cargoDateLabel(g.items[0].shipDate)}</span>` : ''}
+          </span>
           <span class="cg-gcount">${g.items.length}</span>
         </div>`;
       g.items.forEach(c => { html += cargoRowHtml(c, g.cls); });
@@ -1937,15 +1940,15 @@ function cargoFormFields(c) {
     <select id="cgLoc">
       ${CARGO_LOCATIONS.map(loc => `<option ${c.location === loc ? 'selected' : ''}>${loc}</option>`).join('')}
     </select>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div style="display:grid;grid-template-columns:3fr 2fr;gap:10px">
       <div><label>Ship date</label><input type="date" id="cgDate" value="${c.shipDate || todayStr}"></div>
       <div><label>Destination</label><input id="cgDest" placeholder="ZFG" value="${(c.destination || '').replace(/"/g, '&quot;')}"></div>
     </div>
     <label>Client name</label>
     <input id="cgClient" placeholder="Who it's for" value="${(c.client || '').replace(/"/g, '&quot;')}">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div><label># of pieces</label><input type="number" id="cgPieces" placeholder="0" value="${c.pieces || ''}"></div>
-      <div><label>Weight</label><input id="cgWeight" placeholder="e.g. 262 lbs" value="${(c.weight || '').replace(/"/g, '&quot;')}"></div>
+      <div><label># of pieces</label><input type="tel" inputmode="numeric" id="cgPieces" placeholder="0" value="${c.pieces || ''}"></div>
+      <div><label>Weight</label><input type="tel" inputmode="numeric" id="cgWeight" placeholder="e.g. 262" value="${(c.weight || '').replace(/"/g, '&quot;')}"></div>
     </div>
     <label>Notes</label>
     <textarea id="cgNotes" placeholder="Flight info, special handling...">${c.notes || ''}</textarea>`;
