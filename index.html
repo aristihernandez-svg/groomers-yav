@@ -638,22 +638,20 @@ body::before{
 .cg-group{margin-bottom:4px}
 .cg-item{border-radius:var(--radius);overflow:hidden;margin:0 16px 8px;background:var(--glass);border:1px solid var(--border)}
 .cg-item.open{border-color:var(--accent-border)}
-.cg-row{display:flex;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.cg-bar{width:4px;flex-shrink:0}
-.cg-bar.overdue,.cg-bar.today{background:var(--red)}
-.cg-bar.soon{background:var(--accent)}
-.cg-bar.later{background:#4E9BE8}
-.cg-bar.done{background:var(--t4)}
-.cg-rbody{flex:1;padding:12px 13px;display:flex;justify-content:space-between;align-items:center;gap:10px;min-width:0}
-.cg-rmain{min-width:0}
-.cg-l1row{display:flex;align-items:baseline;gap:8px}
-.cg-rmain .cg-l1{font-size:14px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.cg-l1date{font-size:10.5px;font-weight:700;color:var(--t3);flex-shrink:0;margin-left:auto}
-.cg-rmain .cg-l2{font-size:11px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cg-row{display:flex;align-items:center;gap:12px;padding:12px 13px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cg-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.cg-icon.overdue,.cg-icon.today{background:var(--red-dim)}
+.cg-icon.soon{background:var(--accent-dim)}
+.cg-icon.later{background:var(--blue-dim)}
+.cg-icon.done{background:var(--glass2)}
+.cg-rmain{flex:1;min-width:0}
+.cg-client{font-size:13.5px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cg-sub{font-size:10.5px;color:var(--t3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cg-destchip{font-size:11px;font-weight:800;padding:5px 10px;border-radius:8px;background:var(--bg3);color:var(--accent2);flex-shrink:0}
 .cg-chev{color:var(--t4);font-size:11px;transition:transform .2s;flex-shrink:0}
 .cg-item.open .cg-chev{transform:rotate(180deg);color:var(--accent2)}
-.cg-item.done .cg-l1{text-decoration:line-through;color:var(--t4)}
-.cg-item.done .cg-l2{color:var(--t4)}
+.cg-item.done .cg-client{text-decoration:line-through;color:var(--t4)}
+.cg-item.done .cg-sub{color:var(--t4)}
 .cg-detail{max-height:0;overflow:hidden;transition:max-height .25s ease}
 .cg-item.open .cg-detail{max-height:340px}
 .cg-detail-in{padding:0 14px 14px;border-top:1px solid var(--border)}
@@ -1891,27 +1889,21 @@ function renderCargo(el) {
 function cargoRowHtml(c, barCls) {
   const open = S.cargoOpen.has(c.id);
   // Today/Tomorrow/a specific weekday are single-date buckets -- the group
-  // header already says the date, so showing it again on every row is
-  // clutter. Overdue and Later can each span many different dates, so
-  // those rows need their own date to stay meaningful.
+  // header already says the date, so the sub-line shows piece count there
+  // instead. Overdue and Later can each span many different dates, so
+  // those rows swap in the date to stay meaningful.
   const showDate = barCls === 'later' || barCls === 'overdue';
-  const metaParts = [c.location, c.destination].filter(Boolean);
-  if (c.pieces) metaParts.push(`${c.pieces} pcs`);
-  if (c.weight) metaParts.push(c.weight);
+  const subParts = [c.location, showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean);
   return `
     <div class="cg-item ${open ? 'open' : ''} ${c.done ? 'done' : ''}" data-id="${c.id}">
       <div class="cg-row" onclick="toggleCargoItem('${c.id}')">
-        <div class="cg-bar ${c.done ? 'done' : barCls}"></div>
-        <div class="cg-rbody">
-          <div class="cg-rmain">
-            <div class="cg-l1row">
-              <div class="cg-l1">${c.client || '(no client name)'}</div>
-              ${showDate ? `<span class="cg-l1date">${cargoDateLabel(c.shipDate)}</span>` : ''}
-            </div>
-            <div class="cg-l2">${metaParts.join(' · ')}</div>
-          </div>
-          <span class="cg-chev">▾</span>
+        <div class="cg-icon ${c.done ? 'done' : barCls}">${c.done ? '✓' : '📦'}</div>
+        <div class="cg-rmain">
+          <div class="cg-client">${c.client || '(no client name)'}</div>
+          <div class="cg-sub">${subParts.join(' · ')}</div>
         </div>
+        <div class="cg-destchip">${c.destination || '—'}</div>
+        <span class="cg-chev">▾</span>
       </div>
       <div class="cg-detail">
         <div class="cg-detail-in">
