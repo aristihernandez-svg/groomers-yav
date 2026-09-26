@@ -41,6 +41,8 @@ body{display:grid;place-items:center}
 /* Today: heavy side rails + very faint breathing glow */
 .day.td,.row.td{position:relative}
 .day.td:after,.row.td:after{content:"";position:absolute;inset:0;border-left:1cqw solid #E8A33D;border-right:1cqw solid #E8A33D;pointer-events:none;animation:tdBreathe 4.2s ease-in-out infinite}
+.day.td:after{top:-.3cqw;bottom:-.1cqw}
+.row.td:after{top:-.1cqw}
 @keyframes tdBreathe{
   0%,100%{box-shadow:inset 2.2cqw 0 2.4cqw -1.8cqw rgba(232,163,61,.04),inset -2.2cqw 0 2.4cqw -1.8cqw rgba(232,163,61,.04)}
   50%{box-shadow:inset 2.2cqw 0 2.4cqw -1.4cqw rgba(232,163,61,.2),inset -2.2cqw 0 2.4cqw -1.4cqw rgba(232,163,61,.2)}}
