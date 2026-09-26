@@ -59,7 +59,6 @@ body{display:grid;place-items:center}
 .live:before{content:"";display:inline-block;width:.9cqw;height:.9cqw;margin-right:.7cqw;border-radius:50%;background:currentColor;animation:blink 1.6s ease-in-out infinite}
 .live.off{color:#FF6B5A}
 @keyframes blink{50%{opacity:.25}}
-#dim{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity 2s}
 @media (prefers-reduced-motion:reduce){.tile.go,.row.new,.live:before{animation:none}}
 </style>
 </head>
@@ -73,7 +72,6 @@ body{display:grid;place-items:center}
   <div class="body" id="board"></div>
   <div class="foot"><span class="live" id="live">Live</span><span id="upd"></span><span id="cnt"></span></div>
 </div>
-<div id="dim"></div>
 
 <script src="baseConfig.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -159,7 +157,12 @@ function rowHtml(c, b) {
   </div>`;
 }
 
-let pages = [], page = 0, lastKey = '', pageTimer = null;
+let pages = [], page = 0, lastKey = '', pageTimer = null, hidden = 0;
+function cntText() {
+  return `${items.length} piece${items.length === 1 ? '' : 's'} on the board`
+    + (hidden ? ` · ${hidden} later not shown` : '')
+    + (pages.length > 1 ? ` · page ${page + 1}/${pages.length}` : '');
+}
 function render(fromData) {
   const board = document.getElementById('board');
   if (!items.length) {
@@ -175,22 +178,34 @@ function render(fromData) {
     ? String(a.shipDate).localeCompare(String(b.shipDate))
     : String(a.aircraft || '~').localeCompare(String(b.aircraft || '~')) || String(a.client).localeCompare(String(b.client))));
 
-  // measure everything, then pack into pages so nothing is ever cut off
+  // Measure everything, then lay it out. Only Overdue and Today are allowed to
+  // spill onto extra pages (those pieces must be seen -- they load today).
+  // Tomorrow and later only ever fill whatever room is left on the last page;
+  // whatever doesn't fit there is simply not shown, and never triggers a page change.
   const parts = [];
   groups.forEach(g => { parts.push({ kind: 'band', g, html: bandHtml(g) }); g.rows.forEach(c => parts.push({ kind: 'row', g, html: rowHtml(c, g.b) })); });
   board.innerHTML = parts.map(p => p.html).join('');
   const avail = board.clientHeight, kids = [...board.children];
-  parts.forEach((p, i) => p.h = kids[i].getBoundingClientRect().height);
-  pages = [[]]; let used = 0;
-  parts.forEach((p, i) => {
-    const cur = pages[pages.length - 1];
-    const need = p.kind === 'band' ? p.h + (parts[i + 1] ? parts[i + 1].h : 0) : p.h;
-    if (cur.length && used + need > avail + 1) { pages.push([]); used = 0; if (p.kind === 'row') { const b = bandHtml(p.g); pages[pages.length - 1].push({ html: b }); used += kids[parts.findIndex(x => x.g === p.g && x.kind === 'band')].getBoundingClientRect().height; } }
-    pages[pages.length - 1].push(p); used += p.h;
-  });
+  parts.forEach((p, i) => { p.h = kids[i].getBoundingClientRect().height; if (p.kind === 'band') p.g.bandH = p.h; });
+  const mustSee = p => p.g.b.key === 'overdue' || p.g.b.key === 'today';
+  pages = [[]]; let used = 0; hidden = 0;
+  const pack = (list, canPage) => {
+    for (let i = 0; i < list.length; i++) {
+      const p = list[i], cur = pages[pages.length - 1];
+      const nxt = list[i + 1];
+      const need = p.kind === 'band' ? p.h + (nxt && nxt.g === p.g ? nxt.h : 0) : p.h;
+      if (cur.length && used + need > avail + 1) {
+        if (!canPage) { hidden += list.slice(i).filter(x => x.kind === 'row').length; return; }
+        pages.push([]); used = 0;
+        if (p.kind === 'row') { pages[pages.length - 1].push({ html: bandHtml(p.g) }); used += p.g.bandH; }
+      }
+      pages[pages.length - 1].push(p); used += p.h;
+    }
+  };
+  pack(parts.filter(mustSee), true);
+  pack(parts.filter(p => !mustSee(p)), false);
   if (page >= pages.length) page = 0;
   showPage(false);
-  document.getElementById('cnt').textContent = `${items.length} piece${items.length === 1 ? '' : 's'} on the board` + (pages.length > 1 ? ` · page ${page + 1}/${pages.length}` : '');
   clearInterval(pageTimer);
   if (pages.length > 1) pageTimer = setInterval(() => { page = (page + 1) % pages.length; showPage(true); }, PAGE_MS);
   stamp();
@@ -200,7 +215,7 @@ function render(fromData) {
 function showPage(flip) {
   const board = document.getElementById('board');
   board.innerHTML = pages[page].map(p => p.html).join('');
-  document.getElementById('cnt').textContent = `${items.length} piece${items.length === 1 ? '' : 's'} on the board` + (pages.length > 1 ? ` · page ${page + 1}/${pages.length}` : '');
+  document.getElementById('cnt').textContent = cntText();
   if (flip) flipAll();
 }
 function stamp() {
@@ -223,17 +238,6 @@ function tick() {
   const key = d.toDateString();
   if (lastKey && key !== lastKey) render(false); // midnight: Today becomes Overdue, Tomorrow becomes Today, etc.
   lastKey = key;
-  applyDim(d);
-}
-// Dim overnight so the screen isn't blazing in an empty hangar. ?dim=off disables, ?dim=21-7 sets the hours.
-function applyDim(d) {
-  const q = new URLSearchParams(location.search).get('dim');
-  let from = 22, to = 6, on = true;
-  if (q === 'off') on = false;
-  else if (q && /^\d{1,2}-\d{1,2}$/.test(q)) [from, to] = q.split('-').map(Number);
-  const h = d.getHours();
-  const night = from > to ? (h >= from || h < to) : (h >= from && h < to);
-  document.getElementById('dim').style.opacity = on && night ? '.65' : '0';
 }
 tick(); setInterval(tick, 1000);
 setInterval(() => { if (!document.hidden) { render(false); flipAll(); } }, FLIP_MS);
