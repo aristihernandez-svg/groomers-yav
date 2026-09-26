@@ -636,18 +636,18 @@ body::before{
 .cg-th h3{margin:0;font-size:23px;font-weight:800;letter-spacing:.2px;color:var(--tx)}
 .cg-th .cg-td{font-size:12px;font-weight:600;color:var(--t2)}
 .cg-th .cg-tn{margin-left:auto;font-size:12px;font-weight:800;color:var(--tx);border:1.5px solid var(--c);border-radius:12px;padding:2px 9px;font-variant-numeric:tabular-nums}
-.cg-grp.overdue,.cg-grp.today{--c:#E84040;--tx:#FF8B8B;--glow:rgba(232,64,64,.6)}
-.cg-grp.soon{--c:#E8A33D;--tx:#F0C070;--glow:rgba(232,163,61,.6)}
-.cg-grp.later{--c:#4E9BE8;--tx:#8CBFF5;--glow:rgba(78,155,232,.6)}
+.cg-grp.overdue{--c:#E84040;--tx:#FF8B8B;--glow:rgba(232,64,64,.6)}
+.cg-grp.today{--c:#2ECC8A;--tx:#6FE3B0;--glow:rgba(46,204,138,.55)}
+.cg-grp.soon,.cg-grp.later{--c:#E8A33D;--tx:#F0C070;--glow:rgba(232,163,61,.6)}
 .cg-grp.delivered{--c:#8A7860;--tx:#A89880;--glow:rgba(138,120,96,.4)}
 .cg-tl .cg-item{margin:0 0 8px}
 .cg-item{border-radius:var(--radius);overflow:hidden;margin:0 16px 8px;background:var(--glass);border:1px solid var(--border)}
 .cg-item.open{border-color:var(--accent-border)}
 .cg-row{display:flex;align-items:center;gap:12px;padding:12px 13px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .cg-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
-.cg-icon.overdue,.cg-icon.today{background:var(--red-dim)}
-.cg-icon.soon{background:var(--accent-dim)}
-.cg-icon.later{background:var(--blue-dim)}
+.cg-icon.overdue{background:var(--red-dim)}
+.cg-icon.today{background:var(--green-dim)}
+.cg-icon.soon,.cg-icon.later{background:var(--accent-dim)}
 .cg-icon.done{background:var(--glass2)}
 .cg-rmain{flex:1;min-width:0}
 .cg-client{font-size:13.5px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -712,6 +712,12 @@ body::before{
 .bd-rt{text-align:right;flex-shrink:0}
 .bd-rt em{display:block;font-style:normal;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#A88F58;font-weight:600}
 .bd-rt b{display:inline-block;margin-top:3px;font-size:13px;letter-spacing:1px;color:#0B0907;background:#E8A33D;border-radius:9px;padding:0 9px;font-weight:700}
+.bd-grp.overdue .bd-h{border-top-color:#E84040}
+.bd-grp.overdue .bd-flap.bd-ttl{color:#FF7A7A}
+.bd-grp.overdue .bd-rt b{background:#E84040;color:#fff}
+.bd-grp.today .bd-h{border-top-color:#2ECC8A}
+.bd-grp.today .bd-flap.bd-ttl{color:#5FE0A8}
+.bd-grp.today .bd-rt b{background:#2ECC8A}
 .bd-grp .bd-item:last-child{border-radius:0 0 4px 4px}
 .bd-item{background:#0E0B08;border-top:1px dashed #2a2114}
 .bd-h + .bd-item{border-top:none}
@@ -2062,7 +2068,7 @@ function cargoBoardHtml(groups) {
     const title = g.label.toUpperCase().split('').map(ch => ch === ' '
       ? '<span class="sp"></span>'
       : `<div class="bd-flap bd-ttl" data-ch="${ch}"><span>${ch}</span></div>`).join('');
-    html += `<div class="bd-grp">
+    html += `<div class="bd-grp ${g.cls}">
       <div class="bd-h"><div class="bd-tt">${title}</div><div class="bd-rt"><em>${sub}</em><b>${String(n).padStart(2, '0')}</b></div></div>`;
     g.items.forEach(c => { html += boardRowHtml(c, g.cls); });
     html += `</div>`;
