@@ -2190,7 +2190,10 @@ function toggleCargoItem(id) {
 
 function cargoFormFields(c) {
   c = c || {};
-  const todayStr = new Date().toISOString().slice(0, 10);
+  // Local date, not toISOString() -- that's UTC, which is already "tomorrow"
+  // for the evening hours and would default new pieces to the wrong day.
+  const _t = new Date();
+  const todayStr = `${_t.getFullYear()}-${String(_t.getMonth() + 1).padStart(2, '0')}-${String(_t.getDate()).padStart(2, '0')}`;
   const locIsCustom = c.location && !CARGO_LOCATIONS.includes(c.location);
   return `
     <label>Location</label>
