@@ -27,6 +27,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap');
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 
@@ -666,6 +667,45 @@ body::before{
 .cg-dbtn.cg-del-btn{flex:0 0 44px;background:var(--red-dim);border-color:var(--red);color:var(--red)}
 #cgDate{font-size:15px;padding:13px 12px;white-space:nowrap}
 
+/* CARGO -- design switch */
+.cg-modebar{display:flex;align-items:center;gap:8px;padding:12px 16px 4px}
+.cg-seg{display:flex;flex:1;background:var(--glass);border:1px solid var(--border2);border-radius:10px;padding:3px}
+.cg-seg button{flex:1;padding:8px 6px;border:none;background:transparent;color:var(--t2);font-family:inherit;font-size:12px;font-weight:700;border-radius:8px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cg-seg button.on{background:var(--accent-dim);color:var(--accent)}
+.cg-snd{width:40px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid var(--border2);background:var(--glass);font-size:16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+/* CARGO -- 1950s departure board */
+.bd-board{margin:10px 16px 0;border:1.5px solid #8A6A2F;border-radius:6px;background:#0B0907;overflow:hidden;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.bd-head{padding:10px 14px;background:linear-gradient(#1c1710,#120f0a);display:flex;justify-content:space-between;align-items:baseline;color:#E8C77A;font-size:15px;font-weight:700;letter-spacing:3px;text-transform:uppercase}
+.bd-head span{font-size:11px;font-weight:600;letter-spacing:2px;color:#A88F58}
+.bd-cols{padding:5px 14px;display:flex;justify-content:space-between;font-size:10px;letter-spacing:2px;font-weight:600;color:#7C6A44;text-transform:uppercase;background:#0E0B08}
+.bd-sec{padding:7px 14px;background:#15110B;font-size:12px;font-weight:700;letter-spacing:3px;color:#E8A33D;text-transform:uppercase;border-top:1px solid #2a2114;display:flex;justify-content:space-between}
+.bd-sec i{font-style:normal;color:#8A7550;letter-spacing:1px}
+.bd-item{background:#0E0B08;border-top:1px dashed #2a2114}
+.bd-row{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bd-who{min-width:0}
+.bd-who b{display:block;font-size:17px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;color:#EFE4CB;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-who em{display:block;font-style:normal;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#B58A3B;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-flaps{display:flex;gap:2px;flex-shrink:0;perspective:220px}
+.bd-flap{width:24px;height:34px;border-radius:3px;background:linear-gradient(#211C15 0 49%,#0B0907 49% 51%,#17130E 51% 100%);color:#F3E8CE;font-size:24px;font-weight:700;line-height:34px;text-align:center;box-shadow:inset 0 0 0 1px #2e261a;transform-origin:50% 50%}
+.bd-flaps.sm .bd-flap{width:19px;height:28px;line-height:28px;font-size:19px}
+.bd-flap.bd-go{animation:bdFlip .11s ease-in-out}
+@keyframes bdFlip{0%{transform:rotateX(0)}49%{transform:rotateX(88deg)}51%{transform:rotateX(-88deg)}100%{transform:rotateX(0)}}
+@media (prefers-reduced-motion:reduce){.bd-flap.bd-go{animation:none}}
+.bd-item.done .bd-row{opacity:.4}
+.bd-item.done .bd-who b{text-decoration:line-through}
+.bd-item.open{background:#120E09}
+.bd-detail{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.bd-item.open .bd-detail{max-height:360px}
+.bd-detail-in{padding:4px 14px 14px}
+.bd-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 14px;padding:10px 12px;border:1px solid #2a2114;border-radius:4px;background:#0B0907}
+.bd-grid label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7C6A44;font-weight:600}
+.bd-grid div div{font-size:16px;font-weight:600;letter-spacing:1px;color:#EFE4CB;text-transform:uppercase}
+.bd-notes{margin:10px 0 0;font-size:14px;letter-spacing:.6px;color:#B9A374;text-transform:uppercase;white-space:pre-wrap;line-height:1.3}
+.bd-actions{display:flex;gap:8px;margin-top:12px}
+.bd-btn{flex:1;padding:9px 6px;border:1px solid #8A6A2F;border-radius:4px;background:linear-gradient(#1c1710,#120f0a);color:#E8C77A;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bd-btn.bd-del{flex:0 0 44px;border-color:#7A2A2A;color:#E07A7A}
+
 /* TOAST */
 .toast{position:fixed;bottom:calc(76px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg3);color:var(--t1);border:1px solid var(--border2);padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap;z-index:400;box-shadow:0 8px 24px rgba(0,0,0,0.3);font-weight:500;display:flex;align-items:center;gap:10px}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
@@ -1298,6 +1338,8 @@ const S = {
   tasksSource: 'sheets', // 'sheets' | 'firestore' — controlled by appConfig/tasksSource
   cargo: [],             // outbound cargo pieces -- Firestore-only, no localStorage
   cargoOpen: new Set(),  // ids of cargo cards currently expanded, survives live-sync re-renders
+  cargoDesign: localStorage.getItem('gykf_cargo_design') === 'board' ? 'board' : 'classic', // per-phone display choice
+  cargoSound: localStorage.getItem('gykf_cargo_sound') !== '0', // flap clack sound, on unless muted
   customCargoLocations: [], // user-added cargo locations, same pattern as customStores
 };
 
@@ -1863,11 +1905,20 @@ function renderCargo(el) {
   showFab(openAddCargo);
 
   const groups = groupedCargo();
+  const board = S.cargoDesign === 'board';
 
-  let html = '';
+  let html = `<div class="cg-modebar">
+    <div class="cg-seg">
+      <button class="${board ? '' : 'on'}" onclick="setCargoDesign('classic')">Classic</button>
+      <button class="${board ? 'on' : ''}" onclick="setCargoDesign('board')">1950s Board</button>
+    </div>
+    ${board ? `<button class="cg-snd" onclick="toggleCargoSound()" aria-label="Flap sound">${S.cargoSound ? '🔊' : '🔇'}</button>` : ''}
+  </div>`;
 
   if (!groups.length) {
     html += `<div class="empty"><div class="empty-icon">📦</div><p>No cargo logged. Tap + to add a piece.</p></div>`;
+  } else if (board) {
+    html += cargoBoardHtml(groups);
   } else {
     groups.forEach(g => {
       html += `<div class="cg-group">
@@ -1884,6 +1935,150 @@ function renderCargo(el) {
   }
   html += `<div style="height:80px"></div>`;
   el.innerHTML = html;
+  if (board) bdStartTimer();
+}
+
+// ── Cargo: 1950s departure board ───────────────────────────────────
+function setCargoDesign(d) {
+  S.cargoDesign = d;
+  try { localStorage.setItem('gykf_cargo_design', d); } catch (e) {}
+  cargoUnlockAudio();
+  renderCargo(document.getElementById('content'));
+}
+function toggleCargoSound() {
+  S.cargoSound = !S.cargoSound;
+  try { localStorage.setItem('gykf_cargo_sound', S.cargoSound ? '1' : '0'); } catch (e) {}
+  cargoUnlockAudio();
+  renderCargo(document.getElementById('content'));
+  if (S.cargoSound) bdClack(true); // instant confirmation it's on
+}
+
+function bdTiles(dest) {
+  const letters = (dest || '').toUpperCase().replace(/\s+/g, '').slice(0, 7).split('');
+  const chars = letters.length ? letters : ['–'];
+  const sm = chars.length > 4 ? ' sm' : '';
+  return `<div class="bd-flaps${sm}">${chars.map(ch => `<div class="bd-flap" data-ch="${ch.replace(/"/g, '')}"><span>${ch}</span></div>`).join('')}</div>`;
+}
+
+function cargoBoardHtml(groups) {
+  let html = `<div class="bd-board">
+    <div class="bd-head"><b>Departures</b><span>YAV · Cargo</span></div>
+    <div class="bd-cols"><span>Consignee</span><span>To</span></div>`;
+  groups.forEach(g => {
+    const showDate = g.key !== 'delivered' && g.key !== 'later';
+    const n = g.items.length;
+    html += `<div class="bd-sec"><span>${g.label}</span><i>${showDate ? cargoDateLabel(g.items[0].shipDate) : `${n} piece${n === 1 ? '' : 's'}`}</i></div>`;
+    g.items.forEach(c => { html += boardRowHtml(c, g.cls); });
+  });
+  return html + `</div>`;
+}
+
+function boardRowHtml(c, grpCls) {
+  const open = S.cargoOpen.has(c.id);
+  const showDate = grpCls === 'later' || grpCls === 'overdue';
+  const sub = [c.location, showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean).join(' · ');
+  return `
+    <div class="bd-item ${open ? 'open' : ''} ${c.done ? 'done' : ''}" data-id="${c.id}">
+      <div class="bd-row" onclick="toggleCargoItem('${c.id}')">
+        <div class="bd-who"><b>${c.client || '(no client name)'}</b><em>${sub}</em></div>
+        ${bdTiles(c.destination)}
+      </div>
+      <div class="bd-detail"><div class="bd-detail-in">
+        <div class="bd-grid">
+          <div><label>Location</label><div>${c.location || '—'}</div></div>
+          <div><label>Destination</label><div>${c.destination || '—'}</div></div>
+          <div><label># of Pieces</label><div>${c.pieces || '—'}</div></div>
+          <div><label>Weight</label><div>${c.weight || '—'}</div></div>
+        </div>
+        ${c.notes ? `<p class="bd-notes">${c.notes}</p>` : ''}
+        <div class="bd-actions">
+          ${c.done
+            ? `<div class="bd-btn" onclick="event.stopPropagation();reopenCargo('${c.id}')">↺ Reopen</div>`
+            : `<div class="bd-btn" onclick="event.stopPropagation();markCargoDelivered('${c.id}')">✓ Delivered</div>`}
+          <div class="bd-btn" onclick="event.stopPropagation();editCargoPrompt('${c.id}')">Edit</div>
+          <div class="bd-btn bd-del" onclick="event.stopPropagation();deleteCargoPrompt('${c.id}')">🗑</div>
+        </div>
+      </div></div>
+    </div>`;
+}
+
+// Flip engine: each tile cycles a few random characters, squashing like a
+// real split-flap, then lands on its true letter.
+const BD_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+function bdMotionOK() {
+  return !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+function bdFlipTile(tile, delay, steps) {
+  const face = tile.firstElementChild;
+  const finalCh = tile.dataset.ch;
+  let n = 0;
+  const step = () => {
+    if (!tile.isConnected) return;
+    const last = n >= steps;
+    const ch = last ? finalCh : BD_CHARS[Math.floor(Math.random() * BD_CHARS.length)];
+    tile.classList.remove('bd-go'); void tile.offsetWidth; tile.classList.add('bd-go');
+    setTimeout(() => { if (tile.isConnected) face.textContent = ch; }, 50);
+    bdClack(last);
+    if (!last) { n++; setTimeout(step, 70 + Math.random() * 30); }
+  };
+  setTimeout(step, delay);
+}
+function bdFlipRow(itemEl, baseDelay = 0) {
+  if (!bdMotionOK()) return;
+  itemEl.querySelectorAll('.bd-flap').forEach((t, i) => bdFlipTile(t, baseDelay + i * 110, 4 + i));
+}
+function bdFlipAll() {
+  if (!bdMotionOK()) return;
+  document.querySelectorAll('.bd-item:not(.done)').forEach((it, r) => bdFlipRow(it, r * 160));
+}
+let _bdTimer = null;
+function bdStartTimer() {
+  if (_bdTimer) return;
+  _bdTimer = setInterval(() => {
+    if (S.tab !== 'cargo' || S.cargoDesign !== 'board') { clearInterval(_bdTimer); _bdTimer = null; return; }
+    if (!document.hidden) bdFlipAll();
+  }, 30000);
+}
+
+// Flap sound: synthesized (no audio files) -- a short filtered noise burst
+// plus a low thump. Browsers only allow audio after a tap, so the context is
+// created/resumed from the first tap inside the app.
+let _cgAudio = null, _cgNoise = null, _cgLastClack = 0;
+function cargoUnlockAudio() {
+  try {
+    if (S.cargoDesign !== 'board' || !S.cargoSound) return;
+    if (!_cgAudio) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      _cgAudio = new AC();
+    }
+    if (_cgAudio.state === 'suspended') _cgAudio.resume();
+  } catch (e) {}
+}
+document.addEventListener('pointerdown', cargoUnlockAudio, { passive: true });
+function bdClack(strong) {
+  try {
+    if (!S.cargoSound || !_cgAudio || _cgAudio.state !== 'running' || !bdMotionOK()) return;
+    const nowMs = performance.now();
+    if (nowMs - _cgLastClack < 28) return;
+    _cgLastClack = nowMs;
+    const t = _cgAudio.currentTime;
+    if (!_cgNoise) {
+      _cgNoise = _cgAudio.createBuffer(1, Math.floor(_cgAudio.sampleRate * 0.05), _cgAudio.sampleRate);
+      const d = _cgNoise.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    }
+    const src = _cgAudio.createBufferSource(); src.buffer = _cgNoise;
+    const bp = _cgAudio.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1400 + Math.random() * 900; bp.Q.value = 1.3;
+    const g = _cgAudio.createGain();
+    const vol = strong ? 0.28 : 0.13;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+    src.connect(bp); bp.connect(g); g.connect(_cgAudio.destination); src.start(t);
+    const o = _cgAudio.createOscillator(); const og = _cgAudio.createGain();
+    o.type = 'triangle'; o.frequency.setValueAtTime(190, t); o.frequency.exponentialRampToValueAtTime(90, t + 0.04);
+    og.gain.setValueAtTime(strong ? 0.12 : 0.05, t); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    o.connect(og); og.connect(_cgAudio.destination); o.start(t); o.stop(t + 0.06);
+  } catch (e) {}
 }
 
 function cargoRowHtml(c, barCls) {
@@ -1927,11 +2122,12 @@ function cargoRowHtml(c, barCls) {
 }
 
 function toggleCargoItem(id) {
-  const item = document.querySelector(`.cg-item[data-id="${id}"]`);
+  const item = document.querySelector(`.cg-item[data-id="${id}"], .bd-item[data-id="${id}"]`);
   if (!item) return;
   const willOpen = !item.classList.contains('open');
   item.classList.toggle('open', willOpen);
   if (willOpen) S.cargoOpen.add(id); else S.cargoOpen.delete(id);
+  if (willOpen && item.classList.contains('bd-item')) bdFlipRow(item);
 }
 
 function cargoFormFields(c) {
