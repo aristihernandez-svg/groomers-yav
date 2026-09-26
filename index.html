@@ -1368,6 +1368,7 @@ const S = {
   cargoDesign: localStorage.getItem('gykf_cargo_design') === 'board' ? 'board' : 'classic', // per-phone display choice
   cargoSound: localStorage.getItem('gykf_cargo_sound') !== '0', // flap clack sound, on unless muted
   customCargoLocations: [], // user-added cargo locations, same pattern as customStores
+  customAircraft: [],       // user-added aircraft tail numbers for cargo (never preloaded)
 };
 
 const NAV_ITEMS = [
@@ -1476,7 +1477,7 @@ async function bootApp() {
 
     document.getElementById('barDay').textContent = DAY_NAMES[TODAY];
     updateThemeToggleBtn();
-    buildNav(); restoreNavOrder(); loadTaskCache(); loadDayNotes(); loadProcs(); loadDmg(); loadCrewCarData(); loadCarAudits(); loadCustomStores(); loadCustomCargoLocations();
+    buildNav(); restoreNavOrder(); loadTaskCache(); loadDayNotes(); loadProcs(); loadDmg(); loadCrewCarData(); loadCarAudits(); loadCustomStores(); loadCustomCargoLocations(); loadCustomAircraft();
     try { recoverDmgDraft(); } catch(e) { console.log('recoverDmgDraft error:', e); }
     setupPullToRefresh();
     setupSwipeBack();
@@ -2030,7 +2031,7 @@ function cargoBoardHtml(groups) {
 function boardRowHtml(c, grpCls) {
   const open = S.cargoOpen.has(c.id);
   const showDate = grpCls === 'later' || grpCls === 'overdue';
-  const sub = [c.location, showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean).join(' · ');
+  const sub = [c.location, c.aircraft, showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean).join(' · ');
   return `
     <div class="bd-item ${open ? 'open' : ''} ${c.done ? 'done' : ''}" data-id="${c.id}">
       <div class="bd-row" onclick="toggleCargoItem('${c.id}')">
@@ -2040,6 +2041,7 @@ function boardRowHtml(c, grpCls) {
       <div class="bd-detail"><div class="bd-detail-in">
         <div class="bd-grid">
           <div><label>Location</label><div>${c.location || '—'}</div></div>
+          ${c.aircraft ? `<div><label>Aircraft</label><div>${c.aircraft}</div></div>` : ''}
           <div><label>Destination</label><div>${c.destination || '—'}</div></div>
           <div><label># of Pieces</label><div>${c.pieces || '—'}</div></div>
           <div><label>Weight</label><div>${c.weight || '—'}</div></div>
@@ -2143,7 +2145,7 @@ function cargoRowHtml(c, barCls) {
   // instead. Overdue and Later can each span many different dates, so
   // those rows swap in the date to stay meaningful.
   const showDate = barCls === 'later' || barCls === 'overdue';
-  const subParts = [c.location, showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean);
+  const subParts = [c.location, c.aircraft, showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean);
   return `
     <div class="cg-item ${open ? 'open' : ''} ${c.done ? 'done' : ''}" data-id="${c.id}">
       <div class="cg-row" onclick="toggleCargoItem('${c.id}')">
@@ -2159,6 +2161,7 @@ function cargoRowHtml(c, barCls) {
         <div class="cg-detail-in">
           <div class="cg-dgrid">
             <div class="cg-f"><label>Location</label><div class="cg-v">${c.location || '—'}</div></div>
+            ${c.aircraft ? `<div class="cg-f"><label>Aircraft</label><div class="cg-v">${c.aircraft}</div></div>` : ''}
             <div class="cg-f"><label>Destination</label><div class="cg-v">${c.destination || '—'}</div></div>
             <div class="cg-f"><label># of Pieces</label><div class="cg-v">${c.pieces || '—'}</div></div>
             <div class="cg-f"><label>Weight</label><div class="cg-v">${c.weight || '—'}</div></div>
@@ -2196,6 +2199,12 @@ function cargoFormFields(c) {
       <input id="cgLocNew" placeholder="New location name..." oninput="checkCargoLocDup()" value="${locIsCustom ? c.location.replace(/"/g, '&quot;') : ''}" style="margin-top:6px">
       <div id="cgLocWarn"></div>
     </div>
+    <label>Aircraft <span style="font-weight:400;color:var(--t2)">(optional)</span></label>
+    <select id="cgAc" onchange="onCargoAcChange(this)">${cargoAcSelectHtml(c.aircraft)}</select>
+    <div id="cgAcNewWrap" style="display:none">
+      <input id="cgAcNew" placeholder="Tail number, e.g. C-ABCD" oninput="checkCargoAcDup()" style="margin-top:6px;text-transform:uppercase">
+      <div id="cgAcWarn"></div>
+    </div>
     <label>Ship date</label>
     <input type="date" id="cgDate" value="${c.shipDate || todayStr}">
     <label>Destination</label>
@@ -2224,8 +2233,17 @@ function cargoFormValues() {
       saveCustomCargoLocations();
     }
   }
+  let aircraft = document.getElementById('cgAc').value;
+  if (aircraft === '__new__') {
+    aircraft = document.getElementById('cgAcNew').value.trim().toUpperCase();
+    if (aircraft && !getAllAircraft().includes(aircraft)) {
+      S.customAircraft.push(aircraft);
+      saveCustomAircraft();
+    }
+  }
   return {
     location,
+    aircraft,
     shipDate: document.getElementById('cgDate').value,
     destination: document.getElementById('cgDest').value.trim(),
     client: document.getElementById('cgClient').value.trim(),
@@ -2233,6 +2251,41 @@ function cargoFormValues() {
     weight: document.getElementById('cgWeight').value.trim(),
     notes: document.getElementById('cgNotes').value.trim(),
   };
+}
+
+// ── Cargo aircraft (optional, added by the team -- never preloaded) ──
+function getAllAircraft() {
+  const used = S.cargo.map(c => c.aircraft).filter(Boolean);
+  return [...new Set([...S.customAircraft, ...used])].sort();
+}
+function saveCustomAircraft() {
+  if (db) db.collection('appConfig').doc('cargoAircraft').set({ custom: S.customAircraft }, { merge: true })
+    .catch(e => console.log('saveCustomAircraft failed:', e));
+}
+function loadCustomAircraft() {
+  try { S.customAircraft = JSON.parse(localStorage.getItem('gykf_custom_aircraft') || '[]'); } catch (e) { S.customAircraft = []; }
+}
+function cargoAcSelectHtml(selected = '') {
+  return `<option value="">— None / ground —</option>
+    ${getAllAircraft().map(a => `<option value="${a}" ${a === selected ? 'selected' : ''}>${a}</option>`).join('')}
+    <option value="__new__">➕ Add an aircraft...</option>`;
+}
+function onCargoAcChange(sel) {
+  const wrap = document.getElementById('cgAcNewWrap');
+  if (sel.value === '__new__') { wrap.style.display = ''; document.getElementById('cgAcNew').focus(); }
+  else wrap.style.display = 'none';
+}
+function checkCargoAcDup() {
+  const warn = document.getElementById('cgAcWarn');
+  if (!warn) return;
+  const val = document.getElementById('cgAcNew')?.value || '';
+  const { exact, matches } = findFuzzyDupes(val, getAllAircraft(), a => a);
+  warn.innerHTML = fuzzyDupWarningHtml(exact, matches, a => a, a => `selectExistingCargoAc('${a.replace(/'/g, "\\'")}')`, 'Use this');
+}
+function selectExistingCargoAc(ac) {
+  document.getElementById('cgAc').value = ac;
+  document.getElementById('cgAcNewWrap').style.display = 'none';
+  document.getElementById('cgAcWarn').innerHTML = '';
 }
 
 // ── Cargo locations (custom, like Shopping's stores) ────────────────
@@ -12606,6 +12659,12 @@ function setupLiveSync() {
       S.customStores = (data && Array.isArray(data.custom)) ? data.custom : [];
       localStorage.setItem('gykf_custom_stores', JSON.stringify(S.customStores));
     }, e => console.log('customStores listener error:', e));
+
+    db.collection('appConfig').doc('cargoAircraft').onSnapshot(snap => {
+      const data = snap.data();
+      S.customAircraft = (data && Array.isArray(data.custom)) ? data.custom : [];
+      try { localStorage.setItem('gykf_custom_aircraft', JSON.stringify(S.customAircraft)); } catch (e) {}
+    }, e => console.log('customAircraft listener error:', e));
 
     db.collection('appConfig').doc('cargoLocations').onSnapshot(snap => {
       const data = snap.data();

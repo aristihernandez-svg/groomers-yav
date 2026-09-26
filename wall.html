@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Cargo Board</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Wall display for a TV/monitor: read-only, no controls. Everything is sized in
+   cqw (1% of the screen's width) so it scales to any display and fits without scrolling. */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;overflow:hidden;cursor:none}
+body{display:grid;place-items:center}
+.scr{width:min(100vw,177.78vh);height:min(100vh,56.25vw);container-type:inline-size;background:#0B0907;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',sans-serif;display:flex;flex-direction:column;position:relative;overflow:hidden;color:#EFE4CB}
+.top{display:flex;justify-content:space-between;align-items:center;padding:.9cqw 2.4cqw;background:linear-gradient(#1c1710,#120f0a);border-bottom:.25cqw solid #8A6A2F}
+.top h2{margin:0;font-size:3.2cqw;font-weight:700;letter-spacing:.7cqw;text-transform:uppercase;color:#E8C77A;line-height:1}
+.top h2 small{display:block;margin-top:.5cqw;font-size:1.3cqw;letter-spacing:.35cqw;color:#A88F58;font-weight:600}
+.clock{display:flex;align-items:center;gap:.9cqw}
+.clock .dt{text-align:right;font-size:1.35cqw;letter-spacing:.3cqw;color:#A88F58;text-transform:uppercase;line-height:1.25;font-weight:600}
+.clock .dt b{display:block;font-size:1.7cqw;color:#E8C77A;font-weight:700}
+.tl{display:flex;gap:.25cqw;perspective:40cqw}
+.tile{font-style:normal;display:block;text-align:center;font-weight:700;border-radius:.3cqw;background:linear-gradient(#211C15 0 49%,#0B0907 49% 51%,#17130E 51% 100%);color:#F3E8CE;box-shadow:inset 0 0 0 .1cqw #2e261a}
+.tile.amb{color:#F2B94F;background:linear-gradient(#2a2011 0 49%,#0B0907 49% 51%,#1d160b 51% 100%);box-shadow:inset 0 0 0 .1cqw #4a3818}
+.tile.amb.red{color:#FF7A6B;background:linear-gradient(#2c1512 0 49%,#0B0907 49% 51%,#1d0e0c 51% 100%);box-shadow:inset 0 0 0 .1cqw #5a2a24}
+.tile.go{animation:flip .11s ease-in-out}
+@keyframes flip{0%{transform:rotateX(0)}49%{transform:rotateX(88deg)}51%{transform:rotateX(-88deg)}100%{transform:rotateX(0)}}
+.tile.clk{width:2.2cqw;height:3.2cqw;line-height:3.2cqw;font-size:2.6cqw}
+.colon{font-size:2.6cqw;color:#E8C77A;font-weight:700;line-height:1;padding:0 .1cqw}
+.cols{display:grid;grid-template-columns:16cqw 1fr 10cqw 18cqw 19cqw;align-items:center;padding:.5cqw 2.4cqw;font-size:1.25cqw;letter-spacing:.35cqw;color:#7C6A44;text-transform:uppercase;font-weight:600;background:#0E0B08;border-bottom:.1cqw solid #2a2114}
+.body{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.day{display:flex;align-items:center;justify-content:space-between;padding:.5cqw 2.4cqw;background:#17120B;border-top:.3cqw solid #B8923F;border-bottom:.1cqw solid #3a2d14}
+.day.od{border-top-color:#C43A2B}
+.day .tt{display:flex;gap:.26cqw}
+.tile.dt{width:2cqw;height:3.1cqw;line-height:3.1cqw;font-size:2.5cqw}
+.tile.dt.sp{width:1cqw;background:none;box-shadow:none}
+.day em{font-style:normal;font-size:1.8cqw;letter-spacing:.3cqw;color:#A88F58;text-transform:uppercase;font-weight:600}
+.row{display:grid;grid-template-columns:16cqw 1fr 10cqw 18cqw 19cqw;align-items:center;padding:.75cqw 2.4cqw;border-top:.1cqw dashed #2a2114;background:#0E0B08}
+.row.new{animation:glow 1.5s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:inset 0 0 0 0 rgba(232,163,61,0)}50%{box-shadow:inset 0 0 4cqw rgba(232,163,61,.5)}}
+.tile.ac{width:1.6cqw;height:2.5cqw;line-height:2.5cqw;font-size:1.9cqw}
+.tile.ac.sm{width:1.3cqw;height:2.1cqw;line-height:2.1cqw;font-size:1.6cqw}
+.tile.ds{width:2.1cqw;height:3.1cqw;line-height:3.1cqw;font-size:2.5cqw}
+.tile.ds.sm{width:1.7cqw;height:2.6cqw;line-height:2.6cqw;font-size:2.1cqw}
+.who{min-width:0}
+.who b{display:block;font-size:2.3cqw;font-weight:600;letter-spacing:.2cqw;text-transform:uppercase;color:#EFE4CB;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row.od .who b{color:#F6D6CF}
+.who > span{display:block;margin-top:.2cqw;font-size:1.15cqw;letter-spacing:.2cqw;text-transform:uppercase;color:#B58A3B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.new-tag{display:inline-block;margin-left:1cqw;padding:0 .8cqw;border-radius:.6cqw;background:#E8A33D;color:#0B0907;font-size:1.3cqw;letter-spacing:.2cqw;vertical-align:middle;font-weight:700}
+.pcs{font-size:2cqw;font-weight:600;letter-spacing:.15cqw;text-transform:uppercase}
+.rm{min-width:0}
+.rm .note-t{font-size:1.6cqw;letter-spacing:.2cqw;text-transform:uppercase;font-weight:600;color:#C9A55E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm .late{display:flex;align-items:center;gap:.6cqw;font-size:1.5cqw;letter-spacing:.25cqw;text-transform:uppercase;font-weight:700;color:#FF6B5A;margin-bottom:.2cqw}
+.rm .late:before{content:"";width:1cqw;height:1cqw;border-radius:50%;background:currentColor}
+.ground{font-size:1.5cqw;letter-spacing:.3cqw;text-transform:uppercase;color:#7C6A44;font-weight:600}
+.empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:3cqw;letter-spacing:.8cqw;color:#5a4a2a;text-transform:uppercase}
+.foot{display:flex;justify-content:space-between;align-items:center;padding:.55cqw 2.4cqw;background:linear-gradient(#120f0a,#0e0b07);border-top:.15cqw solid #8A6A2F;font-size:1.3cqw;letter-spacing:.3cqw;color:#7C6A44;text-transform:uppercase;font-weight:600}
+.live{color:#5FD08F}
+.live:before{content:"";display:inline-block;width:.9cqw;height:.9cqw;margin-right:.7cqw;border-radius:50%;background:currentColor;animation:blink 1.6s ease-in-out infinite}
+.live.off{color:#FF6B5A}
+@keyframes blink{50%{opacity:.25}}
+#dim{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity 2s}
+@media (prefers-reduced-motion:reduce){.tile.go,.row.new,.live:before{animation:none}}
+</style>
+</head>
+<body>
+<div class="scr">
+  <div class="top">
+    <h2>Departures<small id="base"></small></h2>
+    <div class="clock"><div class="dt"><b id="cDay"></b><span id="cDate"></span></div><div class="tl" id="clk"></div></div>
+  </div>
+  <div class="cols"><span>Aircraft</span><span>Consignee</span><span>Pieces</span><span>To</span><span>Remarks</span></div>
+  <div class="body" id="board"></div>
+  <div class="foot"><span class="live" id="live">Live</span><span id="upd"></span><span id="cnt"></span></div>
+</div>
+<div id="dim"></div>
+
+<script src="baseConfig.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+const CH = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const NEW_MS = 5 * 60 * 1000;   // how long a fresh entry glows
+const PAGE_MS = 12000;          // when there are more rows than fit, rotate pages
+const FLIP_MS = 30000;          // whole-board flip
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+document.getElementById('base').textContent = (BASE_CONFIG.baseId || '').toUpperCase() + ' · Cargo';
+
+// ── dates ────────────────────────────────────────────────────────
+const dOnly = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const parseD = s => { const [y, m, d] = (s || '').split('-').map(Number); return (y && m && d) ? new Date(y, m - 1, d) : dOnly(new Date()); };
+const fmtD = d => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+function bucket(shipDate) {
+  const diff = Math.round((parseD(shipDate) - dOnly(new Date())) / 86400000);
+  if (diff < 0) return { k: -1, key: 'overdue', label: 'OVERDUE', diff };
+  if (diff === 0) return { k: 0, key: 'today', label: 'TODAY', diff };
+  if (diff === 1) return { k: 1, key: 'tomorrow', label: 'TOMORROW', diff };
+  if (diff <= 6) return { k: diff, key: 'd' + diff, label: parseD(shipDate).toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase(), diff };
+  return { k: 99, key: 'later', label: 'LATER', diff };
+}
+
+// ── data (live) ──────────────────────────────────────────────────
+firebase.initializeApp(BASE_CONFIG.firebaseConfig);
+const db = firebase.firestore();
+let items = [], known = null, online = navigator.onLine, lastSnap = null;
+const newAt = {}, flipped = new Set();
+db.collection('cargoTracker').onSnapshot(snap => {
+  // Delivered and deleted pieces never appear on the wall; overdue ones stay until delivered.
+  const next = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => !c.deleted && !c.done);
+  if (known) next.forEach(c => { if (!known.has(c.id)) newAt[c.id] = Date.now(); });
+  known = new Set(next.map(c => c.id));
+  items = next; online = true; lastSnap = new Date();
+  render(true);
+}, () => { online = false; setLive(); });
+
+// ── flip engine ──────────────────────────────────────────────────
+const motionOK = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+function flipTile(t, delay, steps) {
+  if (!motionOK) return;
+  let n = 0; const fin = t.dataset.ch;
+  const go = () => {
+    if (!t.isConnected) return;
+    const last = n >= steps;
+    const ch = last ? fin : CH[Math.floor(Math.random() * CH.length)];
+    t.classList.remove('go'); void t.offsetWidth; t.classList.add('go');
+    setTimeout(() => { if (t.isConnected) t.textContent = ch; }, 45);
+    if (!last) { n++; setTimeout(go, 70 + Math.random() * 30); }
+  };
+  setTimeout(go, delay);
+}
+function flipAll() {
+  document.querySelectorAll('#board .row, #board .day').forEach((r, i) =>
+    r.querySelectorAll('.tile[data-ch]').forEach((t, j) => flipTile(t, i * 140 + j * 100, 4 + j)));
+}
+function flipRow(r) { r.querySelectorAll('.tile[data-ch]').forEach((t, j) => flipTile(t, j * 110, 5 + j)); }
+
+// ── rendering ────────────────────────────────────────────────────
+const tiles = (s, cls) => `<div class="tl">${String(s).replace(/\s+/g, '').toUpperCase().split('').map(c => `<i class="tile ${cls}" data-ch="${esc(c)}">${esc(c)}</i>`).join('')}</div>`;
+const titleTiles = (t, red) => `<div class="tt">${t.split('').map(c => c === ' ' ? '<i class="tile dt sp"></i>' : `<i class="tile amb dt ${red ? 'red' : ''}" data-ch="${esc(c)}">${esc(c)}</i>`).join('')}</div>`;
+function bandHtml(g) {
+  const n = g.rows.length;
+  const right = g.b.key === 'later' ? `${n} piece${n === 1 ? '' : 's'}` : g.b.key === 'overdue' ? 'Was due earlier' : fmtD(parseD(g.rows[0].shipDate));
+  return `<div class="day ${g.b.key === 'overdue' ? 'od' : ''}" data-band="${g.b.key}">${titleTiles(g.b.label, g.b.key === 'overdue')}<em>${right}</em></div>`;
+}
+function rowHtml(c, b) {
+  const od = b.key === 'overdue';
+  const isNew = newAt[c.id] && Date.now() - newAt[c.id] < NEW_MS;
+  const sub = [c.location, c.weight].filter(Boolean).join(' · ');
+  const ac = String(c.aircraft || '').replace(/\s+/g, '');
+  const dest = String(c.destination || '—').replace(/\s+/g, '').slice(0, 7);
+  const note = String(c.notes || '').split('\n')[0];
+  return `<div class="row ${isNew ? 'new' : ''} ${od ? 'od' : ''}" data-id="${esc(c.id)}">
+    <div>${ac ? tiles(ac, 'ac' + (ac.length > 6 ? ' sm' : '')) : '<span class="ground">Ground</span>'}</div>
+    <div class="who"><b>${esc(c.client || '—')}${isNew ? '<span class="new-tag">NEW</span>' : ''}</b><span>${esc(sub)}</span></div>
+    <div class="pcs">${c.pieces ? esc(c.pieces) + ' pcs' : ''}</div>
+    <div>${tiles(dest, 'ds' + (dest.length > 4 ? ' sm' : ''))}</div>
+    <div class="rm">${od ? `<div class="late">${-b.diff} day${-b.diff > 1 ? 's' : ''} late</div>` : ''}<div class="note-t">${esc(note)}</div></div>
+  </div>`;
+}
+
+let pages = [], page = 0, lastKey = '', pageTimer = null;
+function render(fromData) {
+  const board = document.getElementById('board');
+  if (!items.length) {
+    board.innerHTML = '<div class="empty">No cargo on the board</div>';
+    pages = []; document.getElementById('cnt').textContent = '0 pieces on the board';
+    stamp(); return;
+  }
+  // group
+  const map = {};
+  items.forEach(c => { const b = bucket(c.shipDate); (map[b.key] = map[b.key] || { b, rows: [] }).rows.push(c); });
+  const groups = Object.values(map).sort((a, b) => a.b.k - b.b.k);
+  groups.forEach(g => g.rows.sort((a, b) => g.b.key === 'overdue'
+    ? String(a.shipDate).localeCompare(String(b.shipDate))
+    : String(a.aircraft || '~').localeCompare(String(b.aircraft || '~')) || String(a.client).localeCompare(String(b.client))));
+
+  // measure everything, then pack into pages so nothing is ever cut off
+  const parts = [];
+  groups.forEach(g => { parts.push({ kind: 'band', g, html: bandHtml(g) }); g.rows.forEach(c => parts.push({ kind: 'row', g, html: rowHtml(c, g.b) })); });
+  board.innerHTML = parts.map(p => p.html).join('');
+  const avail = board.clientHeight, kids = [...board.children];
+  parts.forEach((p, i) => p.h = kids[i].getBoundingClientRect().height);
+  pages = [[]]; let used = 0;
+  parts.forEach((p, i) => {
+    const cur = pages[pages.length - 1];
+    const need = p.kind === 'band' ? p.h + (parts[i + 1] ? parts[i + 1].h : 0) : p.h;
+    if (cur.length && used + need > avail + 1) { pages.push([]); used = 0; if (p.kind === 'row') { const b = bandHtml(p.g); pages[pages.length - 1].push({ html: b }); used += kids[parts.findIndex(x => x.g === p.g && x.kind === 'band')].getBoundingClientRect().height; } }
+    pages[pages.length - 1].push(p); used += p.h;
+  });
+  if (page >= pages.length) page = 0;
+  showPage(false);
+  document.getElementById('cnt').textContent = `${items.length} piece${items.length === 1 ? '' : 's'} on the board` + (pages.length > 1 ? ` · page ${page + 1}/${pages.length}` : '');
+  clearInterval(pageTimer);
+  if (pages.length > 1) pageTimer = setInterval(() => { page = (page + 1) % pages.length; showPage(true); }, PAGE_MS);
+  stamp();
+  // flip in any fresh entry
+  if (fromData) document.querySelectorAll('.row.new').forEach(r => { if (!flipped.has(r.dataset.id)) { flipped.add(r.dataset.id); flipRow(r); } });
+}
+function showPage(flip) {
+  const board = document.getElementById('board');
+  board.innerHTML = pages[page].map(p => p.html).join('');
+  document.getElementById('cnt').textContent = `${items.length} piece${items.length === 1 ? '' : 's'} on the board` + (pages.length > 1 ? ` · page ${page + 1}/${pages.length}` : '');
+  if (flip) flipAll();
+}
+function stamp() {
+  document.getElementById('upd').textContent = lastSnap ? 'Updated ' + lastSnap.toTimeString().slice(0, 5) : '';
+  setLive();
+}
+function setLive() {
+  const l = document.getElementById('live');
+  l.textContent = online ? 'Live' : 'Offline — showing last update';
+  l.classList.toggle('off', !online);
+}
+
+// ── clock (flap tiles) + day rollover ────────────────────────────
+function tick() {
+  const d = new Date(), s = d.toTimeString().slice(0, 5).replace(':', ''), c = document.getElementById('clk');
+  if (!c.children.length) c.innerHTML = s.split('').map((x, i) => (i === 2 ? '<span class="colon">:</span>' : '') + `<i class="tile clk" data-ch="${x}">${x}</i>`).join('');
+  else [...c.querySelectorAll('.tile')].forEach((t, i) => { if (s[i] !== t.dataset.ch) { t.dataset.ch = s[i]; flipTile(t, 0, 3); } });
+  document.getElementById('cDay').textContent = d.toLocaleDateString('en-GB', { weekday: 'long' }).toUpperCase();
+  document.getElementById('cDate').textContent = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+  const key = d.toDateString();
+  if (lastKey && key !== lastKey) render(false); // midnight: Today becomes Overdue, Tomorrow becomes Today, etc.
+  lastKey = key;
+  applyDim(d);
+}
+// Dim overnight so the screen isn't blazing in an empty hangar. ?dim=off disables, ?dim=21-7 sets the hours.
+function applyDim(d) {
+  const q = new URLSearchParams(location.search).get('dim');
+  let from = 22, to = 6, on = true;
+  if (q === 'off') on = false;
+  else if (q && /^\d{1,2}-\d{1,2}$/.test(q)) [from, to] = q.split('-').map(Number);
+  const h = d.getHours();
+  const night = from > to ? (h >= from || h < to) : (h >= from && h < to);
+  document.getElementById('dim').style.opacity = on && night ? '.65' : '0';
+}
+tick(); setInterval(tick, 1000);
+setInterval(() => { if (!document.hidden) { render(false); flipAll(); } }, FLIP_MS);
+window.addEventListener('online', () => { online = true; setLive(); setTimeout(() => location.reload(), 3000); });
+window.addEventListener('offline', () => { online = false; setLive(); });
+// Fresh start every 6 hours -- picks up new versions of the page and clears any stuck state.
+setTimeout(() => location.reload(), 6 * 3600 * 1000);
+</script>
+</body>
+</html>
