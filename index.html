@@ -28,6 +28,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&family=Sora:wght@400;600;700&family=Bricolage+Grotesque:wght@400;700;800&family=Manrope:wght@400;600;800&family=Audiowide&family=Exo+2:wght@400;600;700&display=swap');
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 
@@ -346,6 +347,162 @@ body::before{
 
 /* CONTENT */
 .content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(88px + var(--safe-b));background:var(--bg)}
+
+/* HOME DESIGNS — chosen with the 🎨 button on the home tab. Classic is the original layout. */
+.hero-img{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 0.6s ease}
+.hero-img.active{opacity:1}
+.hero-img.kb{animation:kenBurns 6s ease-out forwards}
+@keyframes kenBurns{from{transform:scale(1)}to{transform:scale(1.07)}}
+.hd{position:relative;overflow:hidden;isolation:isolate;min-height:calc(100vh - 150px);padding:18px 14px calc(100px + var(--safe-b));margin-bottom:calc(-88px - var(--safe-b))}
+.hd-notes{margin:0 -14px}
+.hd-top small{font-size:11px;font-weight:600;letter-spacing:1.6px;opacity:.65;text-transform:uppercase}
+.hd-top h2{font-size:26px;font-weight:800;line-height:1.1;margin-top:4px}
+.hd-foot{text-align:center;padding:14px 0 0;font-size:10px;font-weight:600;letter-spacing:.5px;opacity:.55}
+.hd-share{display:flex;justify-content:center;padding:10px 0 0}
+.hd-share button{display:flex;align-items:center;gap:8px;padding:10px 22px;border-radius:50px;background:rgba(128,128,128,.16);border:1px solid rgba(128,128,128,.3);color:inherit;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.3px}
+.hd svg{flex-shrink:0}
+/* 1 · Bento */
+.hd-bento{background:#0B1120;font-family:Figtree,sans-serif;color:#F0F4FF}
+.hd-bento .hd-top{padding:4px 4px 16px}
+.hd-bg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hd-bx{border-radius:24px;padding:14px;position:relative;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hd-bx:active{opacity:.85}
+.hd-bx.today{grid-column:1/-1;background:linear-gradient(135deg,#1c4fd6,#3a7bff 60%,#5fb0ff);display:flex;align-items:center;gap:16px;padding:18px;color:#fff}
+.hd-ring{--p:0;width:92px;height:92px;border-radius:50%;background:conic-gradient(#fff calc(var(--p)*1%),rgba(255,255,255,.22) 0);display:grid;place-items:center;flex-shrink:0}
+.hd-ring b{width:72px;height:72px;border-radius:50%;background:#2559e0;display:grid;place-items:center;font-weight:800;font-size:20px}
+.hd-bx.today h3{font-size:13px;font-weight:600;opacity:.85}
+.hd-bx.today p{font-size:18px;font-weight:800;line-height:1.15;margin:3px 0 10px}
+.hd-btn{display:inline-block;background:#fff;color:#1c4fd6;font-weight:800;font-size:12px;padding:7px 14px;border-radius:20px}
+.hd-bx.fleet{grid-row:span 2;background:#141F3A;border:1px solid rgba(255,255,255,.08);min-height:190px;display:flex;flex-direction:column;justify-content:space-between}
+.hd-bx.fleet img{position:absolute;left:-10px;bottom:34px;width:calc(100% + 20px);max-width:none;height:74px;object-fit:contain;object-position:center;transform:rotate(-6deg);pointer-events:none}
+.hd-bx.fleet small,.hd-bx.cal small,.hd-bx.shop small{display:block;font-size:10.5px;color:#8c9bb8;font-weight:700;letter-spacing:1px}
+.hd-bx.fleet b{font-size:19px;font-weight:800;display:block;margin-top:2px}
+.hd-bx.fleet em{font-style:normal;font-size:12px;font-weight:700;position:relative;color:#8c9bb8}
+.hd-bx.fleet em.go{color:#2ECC8A}
+.hd-bx.cal{background:#1d1636;border:1px solid rgba(180,130,255,.3)}
+.hd-bx.shop{background:#0f2a2a;border:1px solid rgba(60,200,170,.3)}
+.hd-bx.cal small{color:#c9a8ff}.hd-bx.shop small{color:#7fe0c8}
+.hd-bx.cal p,.hd-bx.shop p{font-size:13px;font-weight:700;margin-top:5px;line-height:1.25}
+.hd-bsm{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+.hd-bs{aspect-ratio:1;border-radius:18px;background:var(--c);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:9.5px;font-weight:800;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hd-bs svg{width:22px;height:22px}
+/* 2 · Aurora glass */
+.hd-aurora{background:#070914;font-family:Sora,sans-serif;color:#fff}
+.hd-blob{position:absolute;border-radius:50%;filter:blur(46px);opacity:.7;z-index:-1;animation:hdDrift 14s ease-in-out infinite alternate}
+.hd-blob.b1{width:260px;height:260px;background:#2f6bff;top:-60px;left:-70px}
+.hd-blob.b2{width:240px;height:240px;background:#12c6a8;top:340px;right:-90px;animation-delay:-4s}
+.hd-blob.b3{width:250px;height:250px;background:#8a3bff;bottom:60px;left:-60px;animation-delay:-8s}
+@keyframes hdDrift{to{transform:translate(30px,40px) scale(1.15)}}
+.hd-glass{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);border-radius:24px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.hd-ahero{height:170px;margin:12px 0;position:relative;overflow:hidden}
+.hd-ahero .cap{position:absolute;left:14px;right:14px;bottom:10px;display:flex;justify-content:space-between;align-items:center;font-size:12px;z-index:2;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.hd-ahero .cap b{font-size:13px}
+.hd-ahero .cap i{font-style:normal;background:rgba(46,204,138,.25);border:1px solid rgba(46,204,138,.5);color:#8ff0c6;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:600}
+.hd-arow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.hd-arow .hd-glass{padding:12px 14px;font-size:12px;cursor:pointer}
+.hd-arow small{opacity:.65;font-size:10px;letter-spacing:1px;font-weight:600}
+.hd-arow p{margin-top:4px;line-height:1.3}
+.hd-atg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hd-at{padding:15px 4px 12px;text-align:center;font-size:11px;font-weight:600;display:flex;flex-direction:column;gap:7px;align-items:center;cursor:pointer;color:#fff}
+.hd-at svg{width:26px;height:26px;color:var(--g);filter:drop-shadow(0 0 8px var(--g))}
+/* 3 · Neo-brutal */
+.hd-brutal{background:#FFF0B8;font-family:"Bricolage Grotesque",sans-serif;color:#111;padding-top:0}
+.hd-mq{margin:0 -14px 14px;background:#111;color:#FFF0B8;font-weight:800;font-size:12px;letter-spacing:1.5px;white-space:nowrap;overflow:hidden;padding:7px 0}
+.hd-mq span{display:inline-block;animation:hdMq 22s linear infinite}
+@keyframes hdMq{to{transform:translateX(-50%)}}
+.hd-brutal h2{font-size:44px;line-height:.92;font-weight:800;letter-spacing:-1.5px}
+.hd-brutal h2 em{font-style:normal;background:#FF5CA8;padding:0 8px;border:3px solid #111;display:inline-block;transform:rotate(-2deg);box-shadow:4px 4px 0 #111}
+.hd-brutal .sub{font-weight:700;font-size:13px;margin:10px 0 14px;text-transform:uppercase}
+.hd-bcard{border:3px solid #111;border-radius:14px;box-shadow:5px 5px 0 #111;padding:12px 14px;margin-bottom:14px;background:#fff;cursor:pointer}
+.hd-bcard.prog{background:#B6FF3B}
+.hd-bcard.prog b{font-size:15px}
+.hd-bcard .hd-pbar{height:22px;border:3px solid #111;border-radius:11px;background:#fff;margin-top:8px;overflow:hidden}
+.hd-bcard .hd-pbar i{display:block;height:100%;background:#111}
+.hd-bcard.fl{background:#7CB4FF;display:flex;align-items:center;gap:8px;overflow:hidden}
+.hd-bcard.fl .pl{width:96px;height:52px;background:center/contain no-repeat;flex-shrink:0;filter:drop-shadow(3px 3px 0 #111)}
+.hd-bcard.fl b{font-size:15px;display:block;line-height:1.1}
+.hd-bcard.fl small{font-weight:700;font-size:12px}
+.hd-btg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hd-bt{border:3px solid #111;border-radius:12px;box-shadow:4px 4px 0 #111;background:var(--c);padding:12px 4px 9px;text-align:center;font-weight:800;font-size:12px;cursor:pointer;color:#111}
+.hd-btg .hd-bt:nth-child(2n){rotate:1.4deg}.hd-btg .hd-bt:nth-child(3n){rotate:-1.2deg}
+.hd-bt svg{width:26px;height:26px;margin:0 auto 5px;display:block;stroke-width:2}
+.hd-brutal .hd-foot,.hd-brutal .hd-share button{color:#111}
+/* 4 · Sky + bottom sheet */
+.hd-sky{background:linear-gradient(#0d2a5a 0,#3c5fa8 110px,#f0a06a 200px,#ffd0a0 290px,#0f1729 290px);font-family:Manrope,sans-serif;color:#fff;padding:0 0 calc(100px + var(--safe-b))}
+.hd-skyarea{position:relative;height:300px;overflow:hidden}
+.hd-skyarea .dt{position:absolute;left:18px;top:16px;font-size:12px;font-weight:700;opacity:.9;letter-spacing:.5px;text-transform:uppercase;z-index:2}
+.hd-chip{position:absolute;left:16px;bottom:48px;z-index:2;background:rgba(10,20,45,.62);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:9px 13px;font-size:12px;line-height:1.35;cursor:pointer}
+.hd-chip b{display:block;font-size:14px}
+.hd-chip i{font-style:normal;color:#7dffc4;font-weight:800}
+.hd-sheet{position:relative;margin-top:-34px;background:#0f1729;border-radius:30px 30px 0 0;padding:10px 14px 10px;box-shadow:0 -14px 40px rgba(0,0,0,.35)}
+.hd-grab{width:42px;height:5px;border-radius:3px;background:rgba(255,255,255,.25);margin:0 auto 14px}
+.hd-sheet h3{font-size:19px;font-weight:800;padding:0 4px}
+.hd-sheet .pb{height:8px;border-radius:4px;background:rgba(255,255,255,.12);margin:9px 4px 5px;overflow:hidden}
+.hd-sheet .pb i{display:block;height:100%;background:linear-gradient(90deg,#ff9b5e,#ffcf7a);border-radius:4px}
+.hd-sheet .ps{font-size:12px;color:#9aa6c2;padding:0 4px;margin-bottom:6px}
+.hd-stg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.hd-st{background:#182241;border-radius:20px;padding:15px 4px 11px;text-align:center;font-size:11.5px;font-weight:700;color:#dfe6f7;cursor:pointer}
+.hd-st svg{margin:0 auto 7px;display:block;color:var(--c);width:26px;height:26px}
+.hd-mi{display:inline-block}.hd-mi svg{width:13px;height:13px;vertical-align:-2px}
+.hd-vis{width:92px;height:92px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;flex-shrink:0;overflow:hidden}
+.hd-vis svg{width:42px;height:42px}.hd-vis img{width:125%;max-width:none;height:64px;object-fit:contain}
+.hd-pb{height:10px;border-radius:5px;background:rgba(255,255,255,.14);overflow:hidden;position:relative}
+.hd-pb i{display:block;height:100%;background:linear-gradient(90deg,#3a7bff,#5fb0ff)}
+.hd-bigico{position:absolute;left:0;right:0;bottom:36px;display:grid;place-items:center}
+.hd-bigico svg{width:52px;height:52px;color:#5fb0ff;opacity:.9}
+.hd-aheroin{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.hd-aheroin .hd-mi svg{width:46px;height:46px;color:#8ff0c6;filter:drop-shadow(0 0 10px #5ff0d0)}
+.hd-aheroin b{font-size:22px}.hd-aheroin small{opacity:.7;font-size:12px}
+.hd-bsub{font-weight:700;font-size:12px;margin-top:2px}
+.hd-bcard.fl .pl.ico{display:grid;place-items:center;filter:none;background:none}
+.hd-bcard.fl .pl.ico svg{width:44px;height:44px;stroke-width:2}
+/* 5 · Neon night ops */
+.hd-neon{background:linear-gradient(#0a0518,#1a0838 55%,#2b0a4a);font-family:'Exo 2',sans-serif;color:#fff}
+.hd-sun{position:absolute;left:50%;top:70px;width:230px;height:230px;margin-left:-115px;border-radius:50%;background:linear-gradient(#ffe45c,#ff4fa8 60%,#a52dff);-webkit-mask:repeating-linear-gradient(#000 0 14px,transparent 14px 17px);mask:repeating-linear-gradient(#000 0 14px,transparent 14px 17px);opacity:.92;z-index:-1}
+.hd-gridf{position:absolute;left:-40%;right:-40%;bottom:0;height:300px;background:repeating-linear-gradient(90deg,rgba(255,79,168,.55) 0 1px,transparent 1px 40px),repeating-linear-gradient(0deg,rgba(255,79,168,.55) 0 1px,transparent 1px 30px);transform:perspective(220px) rotateX(58deg);transform-origin:bottom;z-index:-1;-webkit-mask:linear-gradient(transparent,#000 60%);mask:linear-gradient(transparent,#000 60%)}
+.hd-nhd{display:flex;justify-content:space-between;font-size:11px;letter-spacing:2px;color:#ff9be0;text-transform:uppercase}
+.hd-neon h2{font-family:Audiowide,sans-serif;font-weight:400;font-size:31px;line-height:1.05;text-align:center;margin-top:64px;text-shadow:0 0 12px #ff4fa8,0 0 28px #a52dff;letter-spacing:1px}
+.hd-neon h2 span{display:block;font-size:13px;letter-spacing:6px;color:#7df3ff;text-shadow:0 0 10px #29e0ff;margin-top:6px}
+.hd-npl{height:100px;margin:2px -10px 8px;background:center/contain no-repeat;filter:drop-shadow(0 0 14px rgba(255,79,168,.8));transform:scaleX(-1)}
+.hd-nbar{border:1px solid #ff4fa8;border-radius:12px;padding:9px 12px;background:rgba(255,79,168,.1);box-shadow:0 0 16px rgba(255,79,168,.35),inset 0 0 12px rgba(255,79,168,.15);margin-bottom:10px;font-size:12px;cursor:pointer}
+.hd-nbar.cy{border-color:#7df3ff;background:rgba(41,224,255,.08);box-shadow:0 0 16px rgba(41,224,255,.3),inset 0 0 12px rgba(41,224,255,.12)}
+.hd-nbar b{color:#7df3ff}
+.hd-nbar .p{height:8px;border-radius:4px;background:rgba(255,255,255,.14);margin-top:7px;overflow:hidden}
+.hd-nbar .p i{display:block;height:100%;background:linear-gradient(90deg,#29e0ff,#ff4fa8);box-shadow:0 0 10px #ff4fa8}
+.hd-ntg{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.hd-nt{border:1px solid var(--c);color:var(--c);border-radius:14px;text-align:center;padding:13px 4px 9px;font-size:11px;font-weight:700;letter-spacing:.8px;background:rgba(10,5,24,.55);box-shadow:0 0 12px color-mix(in srgb,var(--c) 45%,transparent),inset 0 0 10px color-mix(in srgb,var(--c) 18%,transparent);text-shadow:0 0 8px currentColor;cursor:pointer;text-transform:uppercase}
+.hd-nt svg{width:24px;height:24px;margin:0 auto 5px;display:block;filter:drop-shadow(0 0 5px currentColor)}
+/* long-press menu: which window a big card shows */
+.hs-veil{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:80;opacity:0;pointer-events:none;transition:opacity .2s}
+.hs-veil.show{opacity:1;pointer-events:auto}
+.hs-menu{position:fixed;left:0;right:0;bottom:0;z-index:81;background:var(--bg2);border-radius:24px 24px 0 0;padding:10px 16px calc(20px + var(--safe-b));border-top:1px solid var(--border2);transform:translateY(105%);transition:transform .25s ease;max-height:80vh;overflow-y:auto;box-shadow:0 -12px 40px rgba(0,0,0,.45)}
+.hs-menu.show{transform:none}
+.hs-grab{width:42px;height:5px;border-radius:3px;background:var(--border2);margin:0 auto 12px}
+.hs-menu h4{font-size:16px;font-weight:800;color:var(--t1)}
+.hs-menu p{font-size:12px;color:var(--t3);margin:3px 0 12px}
+.hs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.hs-w{border:1.5px solid var(--border2);background:var(--glass);border-radius:14px;padding:12px 4px 9px;text-align:center;cursor:pointer;color:var(--t1);-webkit-tap-highlight-color:transparent}
+.hs-w.on{border-color:var(--accent);background:var(--accent-dim)}
+.hs-w svg{width:24px;height:24px;margin:0 auto 5px;display:block;color:var(--accent2)}
+.hs-w b{display:block;font-size:12px;font-weight:700}
+.hs-w small{display:block;font-size:10px;color:var(--t3);margin-top:2px;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs-reset{text-align:center;margin-top:14px;font-size:12px;font-weight:700;color:var(--t3);cursor:pointer;padding:6px}
+/* design picker */
+.hp-veil{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:55;opacity:0;pointer-events:none;transition:opacity .2s}
+.hp-veil.show{opacity:1;pointer-events:auto}
+.hp-dial{position:fixed;left:16px;bottom:calc(72px + var(--safe-b));z-index:60}
+.hp-btn{width:52px;height:52px;border-radius:50%;border:1px solid var(--border2);background:var(--bg3);font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.hp-btn.open{background:var(--accent-dim);border-color:var(--accent-border)}
+.hp-fan{position:absolute;left:0;bottom:64px;width:224px;display:flex;flex-direction:column;gap:8px;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .22s ease,transform .22s ease}
+.hp-fan.show{opacity:1;transform:none;pointer-events:auto}
+.hp-pc{position:relative;display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:12px;border:1.5px solid var(--border2);background:var(--bg2);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hp-pc.on{border-color:var(--accent);background:var(--accent-dim)}
+.hp-pc.on:after{content:"✓";position:absolute;top:6px;right:9px;font-size:11px;font-weight:800;color:var(--accent2)}
+.hp-pc small{font-size:12.5px;font-weight:700;color:var(--t2)}
+.hp-pc.on small{color:var(--accent2)}
+.hp-mini{width:64px;height:44px;flex-shrink:0;border-radius:8px;position:relative;overflow:hidden}
+.hp-mini u{position:absolute;border-radius:3px;text-decoration:none}
+@media (prefers-reduced-motion:reduce){.hd-blob,.hd-mq span{animation:none}}
 
 /* NAV */
 .nav{
@@ -955,6 +1112,10 @@ body::before{
 <div class="cg-veil" id="cgVeil" onclick="closeCargoPicker()"></div>
 <div class="cg-dial" id="cgDial" style="display:none"><div class="cg-fan" id="cgFan"></div><button class="cg-dialbtn" id="cgDialBtn" onclick="toggleCargoPicker()" aria-label="Cargo design">🎨</button></div>
 <button class="eod-fab" id="eodFab" onclick="showEOD()">📋</button>
+<div class="hp-veil" id="hpVeil" onclick="closeHomePicker()"></div>
+<div class="hp-dial" id="hpDial" style="display:none"><div class="hp-fan" id="hpFan"></div><button class="hp-btn" id="hpBtn" onclick="toggleHomePicker()" aria-label="Home design">🎨</button></div>
+<div class="hs-veil" id="hsVeil" onclick="hdCloseSlotMenu(true)"></div>
+<div class="hs-menu" id="hsMenu"></div>
 <div class="toast" id="toast"></div>
 
 <!-- ── SHARE & INSTALL SHEET ── -->
@@ -1339,6 +1500,7 @@ const S = {
   mCtx:null, photoCtx:null,
   dmgReports:{}, // {procKey:[{text,photo,date}]}
   dark: localStorage.getItem('gykf_dark')==='1',
+  homeDesign: (()=>{ try { return localStorage.getItem('gyav_home_design') || 'classic'; } catch(e) { return 'classic'; } })(), // per-device home layout
   handoffNotes: [], // unresolved shift-handoff notes, shown as sticky notes
   pendingHandoffAudio: null,
   masterTasks: [], // ongoing recurring checklist -- Firestore-only, no localStorage
@@ -1632,6 +1794,12 @@ function updateThemeToggleBtn() {
 }
 function render() {
   const el=document.getElementById('content');
+  if(S.tab!=='home') {
+    S.homePickerOpen=false;
+    document.getElementById('hpDial').style.display='none';
+    document.getElementById('hpVeil').classList.remove('show');
+    document.getElementById('hsMenu').classList.remove('show'); document.getElementById('hsVeil').classList.remove('show');
+  }
   if(S.tab!=='cargo') { S.wallOpen=false; S.cargoPickerOpen=false; document.getElementById('cgDial').style.display='none'; document.getElementById('cgVeil').classList.remove('show'); }
   switch(S.tab) {
     case 'home':       renderHome(el); break;
@@ -2894,7 +3062,16 @@ async function renderHome(el) {
     {id:'cars',       svg:ICONS.cars,       label:'Crew Cars'},
   ].filter(item => item.id !== 'fleet' || BASE_CONFIG.features?.fleet !== false);
 
-  el.innerHTML = `
+  // Home design chosen with the 🎨 button. Anything going wrong falls back to Classic.
+  let _designHtml = null;
+  const _wantDesign = homeDesign();
+  if(_wantDesign !== 'classic') {
+    try { _designHtml = homeDesignHtml(_wantDesign, dateStr); }
+    catch(e) { console.log('Home design error, using Classic:', e); _designHtml = null; }
+  }
+  _homeActiveDesign = _designHtml ? _wantDesign : 'classic';
+
+  el.innerHTML = _designHtml ? _designHtml : `
     <style>
       @keyframes slideIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
       .tile-anim{animation:slideIn 0.3s ease both}
@@ -2943,17 +3120,22 @@ async function renderHome(el) {
   if(!_tileEditMode) _tileOrder = getOrderedHomeTiles(HOME_TILES);
   _refreshTileGrid();
 
-  // Cinematic slideshow
+  // Cinematic slideshow (Classic, Aurora and Sky have the aircraft images; the other designs don't)
   let _hIdx = 0;
   const _hImgs = HERO_IMGS.map((_,i) => document.getElementById('hImg'+i));
-  _heroSlideTimer = setInterval(() => {
-    _hImgs[_hIdx].classList.remove('active','kb');
-    _hIdx = (_hIdx + 1) % HERO_IMGS.length;
-    const next = _hImgs[_hIdx];
-    next.classList.add('active');
-    void next.offsetWidth; // force reflow for KB restart
-    next.classList.add('kb');
-  }, 2000);
+  if(_hImgs.every(Boolean)) {
+    _heroSlideTimer = setInterval(() => {
+      _hImgs[_hIdx].classList.remove('active','kb');
+      _hIdx = (_hIdx + 1) % HERO_IMGS.length;
+      const next = _hImgs[_hIdx];
+      next.classList.add('active');
+      void next.offsetWidth; // force reflow for KB restart
+      next.classList.add('kb');
+    }, 2000);
+  }
+
+  // Design picker
+  try { homeAfterRender(); } catch(e) { console.log('homeAfterRender error:', e); }
 
   // Audit reminder popup — fires on 8th, 9th, 10th if audits are pending
   const _popDay = new Date().getDate();
@@ -2977,6 +3159,364 @@ async function renderHome(el) {
     if(!ykfData().done) _pend.push('YKF Base');
     if(_pend.length) setTimeout(()=>showAuditReminderPopup(_pend,_popKey), 800);
   }
+}
+
+// ── HOME DESIGNS ───────────────────────────────────────────────────
+// The 🎨 button on the home tab picks a layout (saved on this device only). Only the home
+// page changes; every other tab is untouched. Classic is the original layout, in renderHome.
+// In Bento, Aurora, Neo-Brutal and Neon, holding a big card lets you choose which window it shows.
+const HOME_DESIGNS = [
+  {id:'classic', label:'Classic'},
+  {id:'bento',   label:'Bento'},
+  {id:'aurora',  label:'Aurora Glass'},
+  {id:'brutal',  label:'Neo-Brutal'},
+  {id:'neon',    label:'Neon Night Ops'},
+  {id:'sky',     label:'Sky + Sheet'},
+];
+const HOME_PLANE_IMGS = [
+  'cars/Westwind-removebg-preview.png',
+  'cars/Metroliner_logo-removebg-preview.png',
+  'cars/Navajo_logo-removebg-preview.png',
+  'cars/Astra-removebg-preview.png',
+];
+ICONS.cargo = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>`;
+// The windows a big card can show (Audits is locked, so it's left out)
+const HD_WINDOWS = [
+  {id:'mastertask',label:'Master Task'},{id:'shopping',label:'Shopping'},{id:'cargo',label:'Cargo'},
+  {id:'contacts',label:'Contacts'},{id:'procedures',label:'Procs'},{id:'cars',label:'Crew Cars'},
+];
+// Big cards per design: default window, shape, and the CSS class of the card
+const HD_SLOTS = {
+  bento:  [{id:'s1',def:'mastertask',size:'wide',    cls:'hd-bx today'},
+           {id:'s2',def:'cargo',     size:'tall',    cls:'hd-bx fleet'},
+           {id:'s3',def:'shopping',  size:'compact', cls:'hd-bx cal'},
+           {id:'s4',def:'cars',      size:'compact', cls:'hd-bx shop'}],
+  aurora: [{id:'a1',def:'cargo',     size:'hero',    cls:'hd-glass hd-ahero'},
+           {id:'a2',def:'mastertask',size:'card',    cls:'hd-glass'},
+           {id:'a3',def:'shopping',  size:'card',    cls:'hd-glass'}],
+  brutal: [{id:'b1',def:'mastertask',size:'bar',     cls:'hd-bcard prog'},
+           {id:'b2',def:'cargo',     size:'plane',   cls:'hd-bcard fl'}],
+  neon:   [{id:'n1',def:'mastertask',size:'bar',     cls:'hd-nbar'},
+           {id:'n2',def:'cargo',     size:'bar',     cls:'hd-nbar cy'}],
+};
+let _homeActiveDesign = 'classic';
+
+function homeDesign() { return HOME_DESIGNS.some(d=>d.id===S.homeDesign) ? S.homeDesign : 'classic'; }
+function _hdEsc(s) { return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function homeGreeting() { const h=new Date().getHours(); return h<12?'Good morning':h<18?'Good afternoon':'Good evening'; }
+function hdWindows() { return HD_WINDOWS; }
+
+// Master Task progress: how many tasks are up to date (done within their own frequency)
+function homeStats() {
+  const mts = S.masterTasks || [];
+  const cur = mts.filter(t=>{ const s=mtStatus(t); return s===MT_RING_STYLE.ok || s===MT_RING_STYLE.neutral; }).length;
+  return { cur, total: mts.length, pct: mts.length ? Math.round(cur/mts.length*100) : 0 };
+}
+// Cargo summary: overdue first, then what ships today, then everything pending
+function homeCargoStats() {
+  const pend = (S.cargo||[]).filter(c=>!c.done);
+  const od = pend.filter(c=>cargoBucketFor(c.shipDate).key==='overdue').length;
+  const td = pend.filter(c=>cargoBucketFor(c.shipDate).key==='today').length;
+  return { pend: pend.length, od, td, later: pend.length-od-td };
+}
+function homeFooterHtml() {
+  return `<div class="hd-foot"><span id="appVerChip" style="cursor:default;user-select:none" ontouchstart="startVerPress()" ontouchend="cancelVerPress()" onmousedown="startVerPress()" onmouseup="cancelVerPress()" onmouseleave="cancelVerPress()">Skycare ${APP_VERSION} · Tasks: <span id="tasksSourceBadge">${S.tasksSource==='firestore'?'🟢 Firestore':'📋 Sheets'}</span></span></div>
+    <div class="hd-share"><button onclick="openShareInstallSheet()">Share &amp; Install App</button></div>`;
+}
+// Handoff notes + the "Leave a note for next shift" button, as on the Classic home page
+function homeNotesHtml() {
+  return `<div class="hd-notes">${renderHandoffNotesHtml()}
+    <div style="padding:0 14px;margin:${S.handoffNotes&&S.handoffNotes.length?'4px 0 12px':'0 0 12px'}">
+      <button onclick="openHandoffNote()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:12px;background:rgba(128,128,128,.14);border:1px dashed rgba(128,128,128,.45);color:inherit;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.2px">📌 Leave a note for next shift</button>
+    </div></div>`;
+}
+function homePlaneImgsHtml(pad) {
+  return HOME_PLANE_IMGS.map((src,i)=>`<img class="hero-img${i===0?' active kb':''}" src="${src}" id="hImg${i}" style="object-fit:contain;padding:${pad};object-position:center" alt="">`).join('');
+}
+
+// ── which window each big card shows (saved per device) ──
+let _hdSlots = null;
+function hdSlots() {
+  if(!_hdSlots) { try { _hdSlots = JSON.parse(localStorage.getItem('gyav_home_slots')||'{}') || {}; } catch(e) { _hdSlots = {}; } }
+  return _hdSlots;
+}
+function hdSlotWin(design, slotId) {
+  const slot = HD_SLOTS[design].find(s=>s.id===slotId);
+  const w = (hdSlots()[design]||{})[slotId] || slot.def;
+  return hdWindows().some(x=>x.id===w) ? w : slot.def;
+}
+function hdSlotWins(design) { return (HD_SLOTS[design]||[]).map(s=>hdSlotWin(design,s.id)); }
+function hdSetSlotWin(design, slotId, win) {
+  const cur = hdSlotWin(design, slotId);
+  const other = HD_SLOTS[design].find(s=>s.id!==slotId && hdSlotWin(design,s.id)===win);
+  const m = {...(hdSlots()[design]||{})};
+  m[slotId] = win;
+  if(other) m[other.id] = cur; // picking a window that another card shows swaps the two
+  hdSlots()[design] = m;
+  try { localStorage.setItem('gyav_home_slots', JSON.stringify(hdSlots())); } catch(e) {}
+}
+
+// One summary per window, used by whichever card shows it
+function hdModel(w) {
+  const label = (HD_WINDOWS.find(x=>x.id===w)||{}).label || w;
+  const m = {id:w, label, svg:ICONS[w]||'', big:label, sub:'Tap to open', main:'Tap to open', pct:null};
+  if(w==='mastertask') {
+    const st = homeStats();
+    m.pct = st.pct; m.big = `${st.pct}%`;
+    m.sub = st.total ? `${st.cur} of ${st.total} up to date` : 'No tasks yet';
+    m.main = st.total ? `${st.cur} of ${st.total} tasks up to date` : 'No tasks yet';
+  } else if(w==='cargo') {
+    const c = homeCargoStats();
+    m.big = c.od ? `${c.od} overdue` : c.td ? `${c.td} today` : c.pend ? `${c.pend} pending` : 'All clear';
+    m.sub = c.pend ? [c.od&&c.td?`${c.td} today`:null, c.later?`${c.later} later`:null].filter(Boolean).join(' · ') || `${c.pend} in total` : 'Nothing to ship';
+    m.main = c.pend ? `${c.pend} piece${c.pend===1?'':'s'} pending${c.od?` · ${c.od} overdue`:''}${c.td?` · ${c.td} today`:''}` : 'No cargo pending';
+  } else if(w==='shopping') {
+    const n = (S.shopping||[]).filter(i=>i.checked).length;
+    m.big = n ? `${n} to buy` : 'All stocked'; m.sub = n ? 'on the list' : 'nothing needed';
+    m.main = n ? `${n} item${n===1?'':'s'} to buy` : 'Nothing to buy';
+  } else if(w==='contacts') {
+    const c = (S.contacts||[]).length;
+    m.big = c ? `${c} people` : 'Contacts'; m.sub = 'Directory'; m.main = c ? `${c} contacts` : 'Directory';
+  } else if(w==='procedures') { m.sub = 'How-tos'; m.main = 'Step-by-step procedures'; }
+  else if(w==='cars') {
+    const k = (CREW_CARS||[]).length, car = CREW_CARS[0], b = car && (S.bouncieData||{})[car.key];
+    m.big = k===1 ? car.name : k ? `${k} vehicles` : 'Crew Cars';
+    m.sub = k===1 && b ? (b.isMoving ? 'Moving' : 'Parked') : 'Crew car';
+    m.main = k===1 ? `${car.name}${b?' · '+(b.isMoving?'moving':'parked'):''}` : 'Crew cars';
+  }
+  return m;
+}
+
+// ── big cards ──
+function hdSlotCard(design, slot) {
+  const w = hdSlotWin(design, slot.id);
+  const key = `${design}:${slot.id}`;
+  return `<div class="${slot.cls}" data-hs="${key}"
+    onclick="hdSlotClick('${design}','${slot.id}')" onpointerdown="hdSlotDown(event,'${design}','${slot.id}')"
+    onpointermove="hdSlotMove(event)" onpointerup="hdSlotUp()" onpointercancel="hdSlotUp()" onpointerleave="hdSlotUp()"
+    oncontextmenu="return false">${hdCardInner(design, slot, w)}</div>`;
+}
+function hdCardInner(design, slot, w) {
+  const m = hdModel(w);
+  const U = m.label.toUpperCase();
+  const ico = `<span class="hd-mi">${m.svg}</span>`;
+  switch(design+':'+slot.size) {
+    case 'bento:wide': {
+      const vis = m.pct!=null ? `<div class="hd-ring" style="--p:${m.pct}"><b>${m.pct}%</b></div>` : `<div class="hd-vis">${m.svg}</div>`;
+      return `${vis}<div><h3>${_hdEsc(m.label)}</h3><p>${_hdEsc(m.main)}</p><span class="hd-btn">Open ${_hdEsc(m.label)}</span></div>`;
+    }
+    case 'bento:tall': {
+      const mid = m.pct!=null ? `<div class="hd-pb"><i style="width:${m.pct}%"></i></div>` : `<div class="hd-bigico">${m.svg}</div>`;
+      return `<div><small>${U}</small><b>${_hdEsc(m.big)}</b></div>${mid}<em>${_hdEsc(m.sub)}</em>`;
+    }
+    case 'bento:compact':
+      return `<small>${ico} ${U}</small><p>${_hdEsc(m.big)}<br>${_hdEsc(m.sub)}</p>`;
+    case 'aurora:hero':   // the aircraft slideshow always stays; the caption says what this card shows
+      return `${homePlaneImgsHtml('18px 30px 34px')}<div class="cap"><b>${_hdEsc(m.label)} · ${_hdEsc(m.big)}</b><i>${_hdEsc(m.sub)}</i></div>`;
+    case 'aurora:card':
+      return `<small>${U}</small><p><b style="font-size:24px">${_hdEsc(m.big)}</b><br>${_hdEsc(m.sub)}</p>`;
+    case 'brutal:bar':
+      return m.pct!=null ? `<b>${_hdEsc(m.main)}</b><div class="hd-pbar"><i style="width:${m.pct}%"></i></div>`
+                         : `<b>${_hdEsc(m.label)} · ${_hdEsc(m.big)}</b><div class="hd-bsub">${_hdEsc(m.sub)}</div>`;
+    case 'brutal:plane':
+      return `<div class="pl ico">${m.svg}</div><div><b>${_hdEsc(m.label)}</b><small>${_hdEsc(m.big)} · ${_hdEsc(m.sub)}</small></div>`;
+    case 'neon:bar':
+      return m.pct!=null ? `<b>${U}</b> · ${_hdEsc(m.main)}<div class="p"><i style="width:${m.pct}%"></i></div>`
+                         : `<b>${U}</b> · ${_hdEsc(m.main)}`;
+  }
+  return '';
+}
+function hdSkyChip() {
+  const m = hdModel('cargo');
+  return `<b>${_hdEsc(m.label)}</b><i>${_hdEsc(m.big)}</i> · ${_hdEsc(m.sub)}`;
+}
+// Numbers arrive after the page is drawn (live listeners): refresh the cards in place, so the
+// aircraft slideshow and any open menu aren't disturbed.
+function homeRefreshSoft() {
+  if(S.tab!=='home' || _homeActiveDesign==='classic') return;
+  document.querySelectorAll('[data-hs]').forEach(n=>{
+    const [design, slotId] = n.dataset.hs.split(':');
+    const slot = (HD_SLOTS[design]||[]).find(s=>s.id===slotId);
+    if(!slot) return;
+    const w = hdSlotWin(design, slotId), m = hdModel(w);
+    if(slot.size==='hero') { const cap = n.querySelector('.cap'); if(cap) cap.innerHTML = `<b>${_hdEsc(m.label)} · ${_hdEsc(m.big)}</b><i>${_hdEsc(m.sub)}</i>`; }
+    else n.innerHTML = hdCardInner(design, slot, w);
+  });
+  const chip = document.querySelector('.hd-chip'); if(chip) chip.innerHTML = hdSkyChip();
+  const st = homeStats(), sh = document.querySelector('.hd-sheet');
+  if(sh) { const pb = sh.querySelector('.pb i'); if(pb) pb.style.width = st.pct+'%'; const ps = sh.querySelector('.ps'); if(ps) ps.textContent = hdModel('mastertask').main; }
+}
+
+// Hold a big card to choose what it shows; a quick tap still opens the window it shows.
+let _hsTimer = null, _hsFired = false, _hsX = 0, _hsY = 0, _hsOpenAt = 0, _hsCtx = null;
+function hdSlotDown(e, design, slotId) {
+  _hsFired = false; _hsX = e.clientX; _hsY = e.clientY;
+  clearTimeout(_hsTimer);
+  _hsTimer = setTimeout(()=>{ _hsTimer=null; _hsFired=true; haptic('medium'); hdOpenSlotMenu(design, slotId); }, 600);
+}
+function hdSlotMove(e) {
+  if(_hsTimer && Math.hypot(e.clientX-_hsX, e.clientY-_hsY) > 10) { clearTimeout(_hsTimer); _hsTimer = null; }
+}
+function hdSlotUp() { clearTimeout(_hsTimer); _hsTimer = null; }
+function hdSlotClick(design, slotId) {
+  if(_hsFired) { _hsFired = false; return; }
+  goTab(hdSlotWin(design, slotId));
+}
+function hdOpenSlotMenu(design, slotId) {
+  _hsCtx = {design, slotId}; _hsOpenAt = Date.now();
+  const cur = hdSlotWin(design, slotId);
+  const slot = HD_SLOTS[design].find(s=>s.id===slotId);
+  document.getElementById('hsMenu').innerHTML = `<div class="hs-grab"></div>
+    <h4>Show in this card</h4><p>Pick a window. If another card already shows it, the two swap.</p>
+    <div class="hs-grid">${hdWindows().map(w=>`<div class="hs-w ${w.id===cur?'on':''}" onclick="hdPickWindow('${w.id}')">${ICONS[w.id]||''}<b>${w.label}</b><small>${_hdEsc(hdModel(w.id).sub)}</small></div>`).join('')}</div>
+    <div class="hs-reset" onclick="hdPickWindow('${slot.def}')">Reset this card to ${_hdEsc((HD_WINDOWS.find(x=>x.id===slot.def)||{}).label||slot.def)}</div>`;
+  document.getElementById('hsMenu').classList.add('show');
+  document.getElementById('hsVeil').classList.add('show');
+}
+function hdCloseSlotMenu(fromVeil) {
+  if(fromVeil && Date.now()-_hsOpenAt < 450) return; // the finger that opened it is still lifting
+  document.getElementById('hsMenu').classList.remove('show');
+  document.getElementById('hsVeil').classList.remove('show');
+  _hsCtx = null;
+}
+function hdPickWindow(win) {
+  if(!_hsCtx) return;
+  hdSetSlotWin(_hsCtx.design, _hsCtx.slotId, win);
+  hdCloseSlotMenu();
+  haptic('light');
+  if(S.tab==='home') renderHome(document.getElementById('content'));
+}
+
+// ── layouts ──
+function homeDesignHtml(d, dateStr) {
+  const st = homeStats();
+  const dt = _hdEsc(dateStr);
+  const mt = hdModel('mastertask');
+  const cards = design => HD_SLOTS[design].map(s=>hdSlotCard(design, s));
+  if(d==='bento') return `<div class="hd hd-bento">
+    <div class="hd-top"><small>${dt}</small><h2>${homeGreeting()},<br>YAV crew</h2></div>
+    ${homeNotesHtml()}
+    <div class="hd-bg">${cards('bento').join('')}</div>
+    <div id="homeTileWrap"></div>
+    ${homeFooterHtml()}</div>`;
+  if(d==='aurora') { const c = cards('aurora'); return `<div class="hd hd-aurora"><i class="hd-blob b1"></i><i class="hd-blob b2"></i><i class="hd-blob b3"></i>
+    <div class="hd-top"><small>${dt}</small><h2>Skycare YAV</h2></div>
+    ${homeNotesHtml()}
+    ${c[0]}
+    <div class="hd-arow">${c[1]}${c[2]}</div>
+    <div id="homeTileWrap"></div>
+    ${homeFooterHtml()}</div>`; }
+  if(d==='brutal') {
+    const bits = [], cg = homeCargoStats();
+    if(cg.od) bits.push(`📦 ${cg.od} CARGO OVERDUE`);
+    if(cg.td) bits.push(`📦 ${cg.td} CARGO SHIPPING TODAY`);
+    if((S.handoffNotes||[]).length) bits.push('📌 HANDOFF FROM '+String(S.handoffNotes[0].day||'LAST SHIFT').toUpperCase());
+    if(!bits.length) bits.push('✈ SKYCARE YAV', 'HAVE A GREAT SHIFT');
+    const mq = _hdEsc(bits.join(' • ') + ' • ');
+    const c = cards('brutal');
+    return `<div class="hd hd-brutal">
+    <div class="hd-mq"><span>${mq}${mq}</span></div>
+    <h2>YAV<br><em>SHIFT</em></h2>
+    <div class="sub">${dt}</div>
+    ${c[0]}
+    ${homeNotesHtml()}
+    ${c[1]}
+    <div id="homeTileWrap"></div>
+    ${homeFooterHtml()}</div>`;
+  }
+  if(d==='neon') { const c = cards('neon'); return `<div class="hd hd-neon"><div class="hd-sun"></div><div class="hd-gridf"></div>
+    <div class="hd-nhd"><span>${dt}</span><span>YAV · NIGHT OPS</span></div>
+    <h2>SKYCARE<span>GROOMERS YAV</span></h2>
+    <div class="hd-npl" style="background-image:url('${HOME_PLANE_IMGS[1]}')"></div>
+    ${homeNotesHtml()}
+    ${c[0]}${c[1]}
+    <div id="homeTileWrap"></div>
+    ${homeFooterHtml()}</div>`; }
+  if(d==='sky') return `<div class="hd hd-sky">
+    <div class="hd-skyarea"><div class="dt">${dt}</div>${homePlaneImgsHtml('44px 6px 60px')}<div class="hd-chip" onclick="goTab('cargo')">${hdSkyChip()}</div></div>
+    <div class="hd-sheet"><div class="hd-grab"></div>
+      <h3 onclick="goTab('mastertask')">Master Task</h3><div class="pb"><i style="width:${st.pct}%"></i></div><div class="ps">${_hdEsc(mt.main)}</div>
+      ${homeNotesHtml()}
+      <div id="homeTileWrap"></div>
+      ${homeFooterHtml()}
+    </div></div>`;
+  throw new Error('unknown home design '+d);
+}
+
+function _hdTileAttrs(t, i, extraStyle) {
+  return `id="ht-${t.id}" data-tile-id="${t.id}"
+    style="${_tileEditMode?`animation-delay:${i*40}ms`:`animation-delay:${i*55}ms`};touch-action:none;position:relative;${t.locked?'opacity:0.4;':''}${extraStyle||''}"
+    ${t.locked ? `onclick="toast('🔒 Not available yet')"` : _tileEditMode
+      ? `ontouchstart="tileTouchStart(event,'${t.id}')" ontouchend="tileTouchEnd(event)"`
+      : `onclick="goTab('${t.id}')" onpointerdown="tileLPStart('${t.id}')" onpointerup="tileLPCancel()" onpointerleave="tileLPCancel()"`}`;
+}
+// Tiles keep the same drag-to-reorder behaviour as Classic (long-press, drag, Done).
+function homeDesignTilesHtml(d) {
+  const cls = _tileEditMode ? 'tile-wobble' : 'tile-anim';
+  let list = _tileOrder || [];
+  const lock = t => t.locked ? '<span style="position:absolute;top:5px;right:7px;font-size:10px">🔒</span>' : '';
+  const pal = {
+    aurora:['#6fa8ff','#5ff0d0','#c79bff','#ffd27a','#ff8fb6'],
+    brutal:['#FF5CA8','#B6FF3B','#7CB4FF','#FF9A3C','#ffffff','#C7A6FF'],
+    neon:  ['#ff4fa8','#29e0ff','#ffe45c','#a52dff','#3dff8b'],
+    sky:   ['#7db8ff','#ffb86b','#ff8fb6','#7dffc4','#c79bff'],
+  };
+  if(d==='bento') {
+    const shown = hdSlotWins('bento');                    // windows already in a big card aren't repeated as small tiles
+    const colors = ['#5b46ff','#e0567a','#1aa58a','#d98a1c','#8a5cf6','#2d8fe0'];
+    list = list.filter(t=>!shown.includes(t.id));
+    if(!list.length) return '';
+    const cols = Math.min(list.length, 5);
+    return `<div class="hd-bsm" style="grid-template-columns:repeat(${cols},1fr)">${list.map((t,i)=>`<div class="hd-bs ${cls}" ${_hdTileAttrs(t,i,`--c:${colors[i%colors.length]}`)}>${lock(t)}${t.svg}${t.label==='Crew Cars'?'Cars':t.label}</div>`).join('')}</div>`;
+  }
+  const c = pal[d] || pal.aurora;
+  const grid = {aurora:'hd-atg', brutal:'hd-btg', neon:'hd-ntg', sky:'hd-stg'}[d];
+  const item = {aurora:'hd-at hd-glass', brutal:'hd-bt', neon:'hd-nt', sky:'hd-st'}[d];
+  const cvar = d==='aurora' ? '--g' : '--c';
+  return `<div class="${grid}">${list.map((t,i)=>`<div class="${item} ${cls}" ${_hdTileAttrs(t,i,`${cvar}:${c[i%c.length]}`)}>${lock(t)}${t.svg}${t.label}</div>`).join('')}</div>`;
+}
+
+// ── the 🎨 picker ──
+function homeMiniHtml(id) {
+  const m = {
+    classic:`<div class="hp-mini" style="background:#171310"><u style="left:0;right:0;top:0;height:18px;border-radius:0;background:linear-gradient(#3a2d20,#171310)"></u><u style="left:24px;top:6px;width:16px;height:7px;background:#cfd8e8"></u>${[0,1,2].map(i=>`<u style="left:${5+i*20}px;top:24px;width:16px;height:15px;background:rgba(255,255,255,.12)"></u>`).join('')}</div>`,
+    bento:`<div class="hp-mini" style="background:#0B1120"><u style="left:4px;right:4px;top:4px;height:13px;background:#3a7bff;border-radius:5px"></u><u style="left:4px;top:20px;width:26px;height:20px;background:#141F3A;border:1px solid #2a3a60"></u><u style="left:33px;top:20px;width:27px;height:9px;background:#5b46ff"></u><u style="left:33px;top:31px;width:27px;height:9px;background:#e0567a"></u></div>`,
+    aurora:`<div class="hp-mini" style="background:radial-gradient(circle at 20% 20%,#2f6bff,transparent 55%),radial-gradient(circle at 85% 80%,#8a3bff,transparent 55%),#070914"><u style="left:5px;right:5px;top:6px;height:15px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:6px"></u>${[0,1,2].map(i=>`<u style="left:${5+i*19}px;top:26px;width:15px;height:13px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:5px"></u>`).join('')}</div>`,
+    brutal:`<div class="hp-mini" style="background:#FFF0B8;border:2px solid #111"><u style="left:5px;top:5px;width:30px;height:9px;background:#FF5CA8;border:2px solid #111;border-radius:2px"></u><u style="left:5px;top:18px;right:5px;height:8px;background:#B6FF3B;border:2px solid #111;border-radius:3px"></u><u style="left:5px;top:30px;width:16px;height:9px;background:#7CB4FF;border:2px solid #111;border-radius:2px"></u><u style="left:25px;top:30px;width:16px;height:9px;background:#FF9A3C;border:2px solid #111;border-radius:2px"></u></div>`,
+    neon:`<div class="hp-mini" style="background:linear-gradient(#0a0518,#2b0a4a)"><u style="left:19px;top:5px;width:26px;height:18px;border-radius:50%;background:linear-gradient(#ffe45c,#ff4fa8)"></u><u style="left:4px;right:4px;top:27px;height:2px;background:#ff4fa8;box-shadow:0 0 5px #ff4fa8"></u>${[0,1,2].map(i=>`<u style="left:${5+i*19}px;top:32px;width:15px;height:9px;border:1px solid ${['#ff4fa8','#29e0ff','#ffe45c'][i]};border-radius:3px;box-shadow:0 0 4px ${['#ff4fa8','#29e0ff','#ffe45c'][i]}"></u>`).join('')}</div>`,
+    sky:`<div class="hp-mini" style="background:linear-gradient(#0d2a5a,#3c5fa8 30%,#f0a06a 60%)"><u style="left:14px;top:8px;width:36px;height:7px;background:#e8eef8;border-radius:4px"></u><u style="left:0;right:0;top:22px;bottom:0;background:#0f1729;border-radius:10px 10px 0 0"></u>${[0,1,2].map(i=>`<u style="left:${6+i*19}px;top:30px;width:15px;height:11px;background:#182241;border-radius:4px"></u>`).join('')}</div>`,
+  };
+  return m[id] || '';
+}
+function renderHomePicker() {
+  const cur = homeDesign();
+  document.getElementById('hpFan').innerHTML = HOME_DESIGNS.map(d=>
+    `<div class="hp-pc ${cur===d.id?'on':''}" onclick="setHomeDesign('${d.id}')">${homeMiniHtml(d.id)}<small>${d.label}</small></div>`).join('');
+  const open = !!S.homePickerOpen;
+  document.getElementById('hpFan').classList.toggle('show', open);
+  document.getElementById('hpVeil').classList.toggle('show', open);
+  document.getElementById('hpBtn').classList.toggle('open', open);
+}
+function toggleHomePicker() { S.homePickerOpen = !S.homePickerOpen; renderHomePicker(); }
+function closeHomePicker() { S.homePickerOpen = false; renderHomePicker(); }
+function setHomeDesign(d) {
+  if(!HOME_DESIGNS.some(x=>x.id===d)) return;
+  S.homeDesign = d;
+  S.homePickerOpen = false;
+  try { localStorage.setItem('gyav_home_design', d); } catch(e) {}
+  haptic('light');
+  _tileEditMode = false;
+  if(S.tab==='home') renderHome(document.getElementById('content'));
+  try {
+    if(HD_SLOTS[d] && !localStorage.getItem('gyav_home_tip')) {
+      localStorage.setItem('gyav_home_tip','1');
+      setTimeout(()=>toast('Tip: hold a big card to choose what it shows'), 500);
+    }
+  } catch(e) {}
+}
+function homeAfterRender() {
+  document.getElementById('hpDial').style.display = '';
+  renderHomePicker();
 }
 
 // ── TODAY ──────────────────────────────────────────────────────────
@@ -9673,6 +10213,7 @@ function _buildTileGridHtml() {
     ? `<div style="display:flex;justify-content:flex-end;margin-bottom:10px">
         <button onclick="exitTileEditMode()" style="padding:7px 20px;border-radius:20px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer">Done</button>
        </div>` : '';
+  if(_homeActiveDesign !== 'classic') return doneBtn + homeDesignTilesHtml(_homeActiveDesign);
   const tiles = (_tileOrder||[]).map((t,i)=>`
     <div class="home-tile${_tileEditMode?' tile-wobble':' tile-anim'}${t.locked?' tile-locked':''}"
          id="ht-${t.id}" data-tile-id="${t.id}"
@@ -12620,12 +13161,14 @@ function setupLiveSync() {
     db.collection('masterTasks').onSnapshot(snap => {
       S.masterTasks = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(t=>!t.deleted);
       if(S.tab==='mastertask') renderMasterTask(document.getElementById('content'));
+      else if(S.tab==='home') homeRefreshSoft();
     }, e => console.log('masterTasks listener error:', e));
 
     // Cargo -- live, Firestore-only, no localStorage
     db.collection('cargoTracker').onSnapshot(snap => {
       S.cargo = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(c=>!c.deleted);
       if(S.tab==='cargo') renderCargo(document.getElementById('content'));
+      else if(S.tab==='home') homeRefreshSoft();
     }, e => console.log('cargoTracker listener error:', e));
 
     // Bored board -- live, Firestore-only, no localStorage, no Sheets
