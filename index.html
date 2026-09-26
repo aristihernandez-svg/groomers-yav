@@ -663,33 +663,54 @@ body::before{
 .cg-dbtn.cg-del-btn{flex:0 0 44px;background:var(--red-dim);border-color:var(--red);color:var(--red)}
 #cgDate{font-size:15px;padding:13px 12px;white-space:nowrap}
 
-/* CARGO -- design switch */
-.cg-modebar{display:flex;align-items:center;gap:8px;padding:12px 16px 4px}
-.cg-seg{display:flex;flex:1;background:var(--glass);border:1px solid var(--border2);border-radius:10px;padding:3px}
-.cg-seg button{flex:1;padding:8px 6px;border:none;background:transparent;color:var(--t2);font-family:inherit;font-size:12px;font-weight:700;border-radius:8px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.cg-seg button.on{background:var(--accent-dim);color:var(--accent)}
-.cg-snd{width:40px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid var(--border2);background:var(--glass);font-size:16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+/* CARGO -- design picker (corner dial: a round button that fans out two previews) */
+.cg-veil{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:55;opacity:0;pointer-events:none;transition:opacity .2s}
+.cg-veil.show{opacity:1;pointer-events:auto}
+.cg-dial{position:fixed;left:16px;bottom:calc(72px + var(--safe-b));z-index:60}
+.cg-dialbtn{width:52px;height:52px;border-radius:50%;border:1px solid var(--border2);background:var(--bg3);font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.cg-dialbtn.open{background:var(--accent-dim);border-color:var(--accent-border)}
+.cg-fan{position:absolute;left:0;bottom:64px;width:224px;display:flex;flex-direction:column;gap:9px;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .22s ease,transform .22s ease}
+.cg-fan.show{opacity:1;transform:none;pointer-events:auto}
+.cg-pc{position:relative;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;border:1.5px solid var(--border2);background:var(--bg2);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cg-pc.on{border-color:var(--accent);background:var(--accent-dim)}
+.cg-pc.on:after{content:"✓";position:absolute;top:6px;right:9px;font-size:11px;font-weight:800;color:var(--accent2)}
+.cg-pc small{font-size:12.5px;font-weight:700;color:var(--t2)}
+.cg-pc.on small{color:var(--accent2)}
+.cg-mini{width:64px;height:46px;flex-shrink:0;border-radius:6px;background:#100c09;position:relative;overflow:hidden}
+.cg-mini.cl i{position:absolute;left:10px;top:0;bottom:0;width:2px;background:rgba(255,230,200,.14)}
+.cg-mini.cl b{position:absolute;left:5px;top:7px;width:11px;height:11px;border-radius:50%;background:#E84040}
+.cg-mini.cl u{position:absolute;left:24px;height:8px;border-radius:3px;background:rgba(255,255,255,.14)}
+.cg-mini.bd{border:1px solid #8A6A2F;background:#0B0907}
+.cg-mini.bd em{position:absolute;left:7px;top:7px;display:flex;gap:2px}
+.cg-mini.bd s{width:9px;height:13px;background:#2a2011;border-radius:1px;box-shadow:inset 0 0 0 1px #4a3818}
+.cg-mini.bd u{position:absolute;left:7px;height:6px;border-radius:2px;background:#5a4a2a}
+.cg-sndrow{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:12px;background:var(--bg2);border:1.5px solid var(--border2);font-size:12px;font-weight:700;color:var(--t2);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cg-sw{width:38px;height:22px;border-radius:11px;background:var(--accent);position:relative}
+.cg-sw:after{content:"";position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;background:#171310}
+.cg-sw.off{background:rgba(255,255,255,.14)}
+.cg-sw.off:after{right:auto;left:3px;background:var(--t3)}
 
 /* CARGO -- 1950s departure board */
-.bd-board{margin:10px 16px 0;border:1.5px solid #8A6A2F;border-radius:6px;background:#0B0907;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35)}
-.bd-head{padding:10px 14px;background:linear-gradient(#1c1710,#120f0a);display:flex;justify-content:space-between;align-items:baseline;color:#E8C77A;font-size:15px;font-weight:700;letter-spacing:3px;text-transform:uppercase}
+/* Each day is its own framed block with a generous gap between them; no
+   outer frame, and no column-label strip, to keep it from feeling crowded. */
+.bd-board{margin:10px 16px 0;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',sans-serif}
+.bd-head{margin-bottom:22px;padding:10px 14px;border:1.5px solid #8A6A2F;border-radius:6px;background:linear-gradient(#1c1710,#120f0a);display:flex;justify-content:space-between;align-items:baseline;color:#E8C77A;font-size:15px;font-weight:700;letter-spacing:3px;text-transform:uppercase}
 .bd-head span{font-size:11px;font-weight:600;letter-spacing:2px;color:#A88F58}
-.bd-cols{padding:5px 14px;display:flex;justify-content:space-between;font-size:10px;letter-spacing:2px;font-weight:600;color:#7C6A44;text-transform:uppercase;background:#0E0B08}
-.bd-head{border-radius:4px 4px 0 0}
-.bd-grp{margin-top:22px}
-.bd-h{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;background:#17120B;border-top:3px solid #B8923F;border-bottom:1px solid #3a2d14}
+.bd-grp{margin-bottom:28px;border:1.5px solid #8A6A2F;border-radius:6px;background:#0B0907;box-shadow:0 10px 26px rgba(0,0,0,.45)}
+.bd-h{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 16px;border-radius:5px 5px 0 0;background:#17120B;border-top:3px solid #B8923F;border-bottom:1px solid #3a2d14}
 .bd-tt{display:flex;gap:2px;min-width:0;perspective:220px}
 .bd-tt .sp{width:9px}
 .bd-flap.bd-ttl{width:22px;height:32px;line-height:32px;font-size:23px;color:#F2B94F;background:linear-gradient(#2a2011 0 49%,#0B0907 49% 51%,#1d160b 51% 100%);box-shadow:inset 0 0 0 1px #4a3818}
 .bd-rt{text-align:right;flex-shrink:0}
 .bd-rt em{display:block;font-style:normal;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#A88F58;font-weight:600}
 .bd-rt b{display:inline-block;margin-top:3px;font-size:13px;letter-spacing:1px;color:#0B0907;background:#E8A33D;border-radius:9px;padding:0 9px;font-weight:700}
-.bd-grp:last-child .bd-item:last-child{border-radius:0 0 4px 4px}
+.bd-grp .bd-item:last-child{border-radius:0 0 4px 4px}
 .bd-item{background:#0E0B08;border-top:1px dashed #2a2114}
-.bd-row{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bd-h + .bd-item{border-top:none}
+.bd-row{padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .bd-who{min-width:0}
 .bd-who b{display:block;font-size:17px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;color:#EFE4CB;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bd-who em{display:block;font-style:normal;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#B58A3B;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-who em{display:block;font-style:normal;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#B58A3B;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bd-flaps{display:flex;gap:2px;flex-shrink:0;perspective:220px}
 .bd-flap{width:24px;height:34px;border-radius:3px;background:linear-gradient(#211C15 0 49%,#0B0907 49% 51%,#17130E 51% 100%);color:#F3E8CE;font-size:24px;font-weight:700;line-height:34px;text-align:center;box-shadow:inset 0 0 0 1px #2e261a;transform-origin:50% 50%}
 .bd-flaps.sm .bd-flap{width:19px;height:28px;line-height:28px;font-size:19px}
@@ -909,6 +930,8 @@ body::before{
 </div>
 
 <button class="fab" id="fab" onclick="fabClick()">+</button>
+<div class="cg-veil" id="cgVeil" onclick="closeCargoPicker()"></div>
+<div class="cg-dial" id="cgDial" style="display:none"><div class="cg-fan" id="cgFan"></div><button class="cg-dialbtn" id="cgDialBtn" onclick="toggleCargoPicker()" aria-label="Cargo design">🎨</button></div>
 <button class="eod-fab" id="eodFab" onclick="showEOD()">📋</button>
 <div class="toast" id="toast"></div>
 
@@ -1584,6 +1607,7 @@ function updateThemeToggleBtn() {
 }
 function render() {
   const el=document.getElementById('content');
+  if(S.tab!=='cargo') { S.cargoPickerOpen=false; document.getElementById('cgDial').style.display='none'; document.getElementById('cgVeil').classList.remove('show'); }
   switch(S.tab) {
     case 'home':       renderHome(el); break;
     case 'mastertask': renderMasterTask(el); break;
@@ -1911,13 +1935,7 @@ function renderCargo(el) {
   const groups = groupedCargo();
   const board = S.cargoDesign === 'board';
 
-  let html = `<div class="cg-modebar">
-    <div class="cg-seg">
-      <button class="${board ? '' : 'on'}" onclick="setCargoDesign('classic')">Classic</button>
-      <button class="${board ? 'on' : ''}" onclick="setCargoDesign('board')">1950s Board</button>
-    </div>
-    ${board ? `<button class="cg-snd" onclick="toggleCargoSound()" aria-label="Flap sound">${S.cargoSound ? '🔊' : '🔇'}</button>` : ''}
-  </div>`;
+  let html = '';
 
   if (!groups.length) {
     html += `<div class="empty"><div class="empty-icon">📦</div><p>No cargo logged. Tap + to add a piece.</p></div>`;
@@ -1937,12 +1955,39 @@ function renderCargo(el) {
   }
   html += `<div style="height:80px"></div>`;
   el.innerHTML = html;
+  document.getElementById('cgDial').style.display = '';
+  renderCargoPicker();
   if (board) bdStartTimer();
 }
 
-// ── Cargo: 1950s departure board ───────────────────────────────────
+// ── Cargo: design picker (corner dial) ─────────────────────────────
+// The 🎨 button in the bottom-left fans out a preview of each design; the
+// flap-sound switch only appears once the board is the selected design.
+function renderCargoPicker() {
+  const board = S.cargoDesign === 'board';
+  document.getElementById('cgFan').innerHTML = `
+    <div class="cg-pc ${board ? '' : 'on'}" onclick="setCargoDesign('classic')">
+      <div class="cg-mini cl"><i></i><b></b><u style="top:8px;width:34px"></u><u style="top:24px;width:24px"></u></div><small>Classic</small></div>
+    <div class="cg-pc ${board ? 'on' : ''}" onclick="setCargoDesign('board')">
+      <div class="cg-mini bd"><em><s></s><s></s><s></s><s></s></em><u style="top:26px;width:34px"></u><u style="top:35px;width:22px"></u></div><small>1950s Board</small></div>
+    ${board ? `<div class="cg-sndrow" onclick="toggleCargoSound()"><span>🔊 Flap sound</span><div class="cg-sw ${S.cargoSound ? '' : 'off'}"></div></div>` : ''}`;
+  const open = !!S.cargoPickerOpen;
+  document.getElementById('cgFan').classList.toggle('show', open);
+  document.getElementById('cgVeil').classList.toggle('show', open);
+  document.getElementById('cgDialBtn').classList.toggle('open', open);
+}
+function toggleCargoPicker() {
+  S.cargoPickerOpen = !S.cargoPickerOpen;
+  cargoUnlockAudio();
+  renderCargoPicker();
+}
+function closeCargoPicker() {
+  S.cargoPickerOpen = false;
+  renderCargoPicker();
+}
 function setCargoDesign(d) {
   S.cargoDesign = d;
+  S.cargoPickerOpen = false;
   try { localStorage.setItem('gykf_cargo_design', d); } catch (e) {}
   cargoUnlockAudio();
   renderCargo(document.getElementById('content'));
@@ -1951,7 +1996,7 @@ function toggleCargoSound() {
   S.cargoSound = !S.cargoSound;
   try { localStorage.setItem('gykf_cargo_sound', S.cargoSound ? '1' : '0'); } catch (e) {}
   cargoUnlockAudio();
-  renderCargo(document.getElementById('content'));
+  renderCargoPicker(); // stays open, just flips the switch
   if (S.cargoSound) bdClack(true); // instant confirmation it's on
 }
 
@@ -1964,9 +2009,8 @@ function bdTiles(dest) {
 
 function cargoBoardHtml(groups) {
   let html = `<div class="bd-board">
-    <div class="bd-head"><b>Departures</b><span>YAV · Cargo</span></div>
-    <div class="bd-cols"><span>Consignee</span><span>To</span></div>`;
-  groups.forEach((g, i) => {
+    <div class="bd-head"><b>Departures</b><span>YAV · Cargo</span></div>`;
+  groups.forEach(g => {
     const showDate = g.key !== 'delivered' && g.key !== 'later';
     const n = g.items.length;
     const sub = showDate
@@ -1975,7 +2019,7 @@ function cargoBoardHtml(groups) {
     const title = g.label.toUpperCase().split('').map(ch => ch === ' '
       ? '<span class="sp"></span>'
       : `<div class="bd-flap bd-ttl" data-ch="${ch}"><span>${ch}</span></div>`).join('');
-    html += `<div class="bd-grp" ${i ? '' : 'style="margin-top:0"'}>
+    html += `<div class="bd-grp">
       <div class="bd-h"><div class="bd-tt">${title}</div><div class="bd-rt"><em>${sub}</em><b>${String(n).padStart(2, '0')}</b></div></div>`;
     g.items.forEach(c => { html += boardRowHtml(c, g.cls); });
     html += `</div>`;
