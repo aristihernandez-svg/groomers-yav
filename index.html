@@ -639,6 +639,15 @@ body::before{
 .cg-grp.overdue{--c:#E84040;--tx:#FF8B8B;--glow:rgba(232,64,64,.6)}
 .cg-grp.today{--c:#2ECC8A;--tx:#6FE3B0;--glow:rgba(46,204,138,.55)}
 .cg-grp.soon,.cg-grp.later{--c:#E8A33D;--tx:#F0C070;--glow:rgba(232,163,61,.6)}
+/* Today: heavy side rails with a very faint breathing glow (shared by Classic + 1950s board) */
+.cg-grp.today,.bd-grp.today{position:relative;--hcr:46,204,138}
+.bd-grp.today{--hcr:232,163,61}
+.cg-grp.today:after,.bd-grp.today:after{content:"";position:absolute;top:0;bottom:12px;left:-14px;right:-12px;border-left:8px solid rgb(var(--hcr));border-right:8px solid rgb(var(--hcr));border-radius:6px;pointer-events:none;z-index:4;animation:tdBreathe 4.2s ease-in-out infinite}
+.bd-grp.today:after{top:-1.5px;bottom:-1.5px;left:-1.5px;right:-1.5px;border-width:0 9px}
+@keyframes tdBreathe{
+  0%,100%{box-shadow:inset 14px 0 16px -12px rgba(var(--hcr),.04),inset -14px 0 16px -12px rgba(var(--hcr),.04)}
+  50%{box-shadow:inset 14px 0 16px -10px rgba(var(--hcr),.2),inset -14px 0 16px -10px rgba(var(--hcr),.2)}}
+@media (prefers-reduced-motion:reduce){.cg-grp.today:after,.bd-grp.today:after{animation:none}}
 .cg-grp.delivered{--c:#8A7860;--tx:#A89880;--glow:rgba(138,120,96,.4)}
 .cg-tl .cg-item{margin:0 0 8px}
 .cg-item{border-radius:var(--radius);overflow:hidden;margin:0 16px 8px;background:var(--glass);border:1px solid var(--border)}
