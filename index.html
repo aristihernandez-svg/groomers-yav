@@ -330,6 +330,14 @@ body::before{
   color:var(--accent);font-weight:500;letter-spacing:0.5px;
 }
 .bar-btn{background:none;border:none;color:var(--t3);font-size:18px;padding:4px 6px;cursor:pointer}
+/* Wall-display link (Cargo tab only) */
+.wall-btn{background:none;border:none;font-size:13px;line-height:1;padding:6px 2px;opacity:.4;cursor:pointer}
+.wall-btn:active,.wall-btn.on{opacity:.9}
+.wall-pop{position:absolute;top:100%;right:12px;margin-top:6px;z-index:70;width:min(300px,calc(100vw - 24px));background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.wall-pop-t{font-size:12px;font-weight:700;color:var(--t2);margin-bottom:8px}
+.wall-pop-u{font-size:12px;color:var(--t1);word-break:break-all;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;user-select:all;-webkit-user-select:all}
+.wall-pop-b{display:flex;gap:8px;margin-top:10px}
+.wall-pop-b button{flex:1;padding:9px 0;border-radius:10px;border:1px solid var(--accent-border);background:var(--accent-dim);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer}
 
 /* PULL TO REFRESH */
 .ptr{height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--bg);transition:height 0.2s;flex-shrink:0}
@@ -908,7 +916,13 @@ body::before{
     <span id="barBack" style="display:none;cursor:pointer;align-items:center;gap:2px;flex-shrink:0" onclick="_barBackClick()"><span style="color:var(--accent);font-size:24px;line-height:1">‹</span><span id="barBackLabel" style="font-size:13px;font-weight:600;color:var(--accent)"></span></span>
     <span style="font-size:22px;cursor:pointer;color:var(--gold)" id="planeIcon" onclick="planeIconTap()">✈</span>
     <span class="bar-title" id="barTitle" onclick="goTab('home')" style="cursor:pointer"><img src="cars/Skycare_logo-removebg-preview.png" style="height:26px;vertical-align:middle;filter:brightness(0) invert(1)" alt="SkyCare"></span>
+    <button class="wall-btn" id="wallBtn" onclick="toggleWallLink(event)" aria-label="Wall display link" style="display:none">📺</button>
     <span class="bar-pill" id="barDay"></span>
+    <div class="wall-pop" id="wallPop" style="display:none" onclick="event.stopPropagation()">
+      <div class="wall-pop-t">📺 Wall display</div>
+      <div class="wall-pop-u" id="wallUrl"></div>
+      <div class="wall-pop-b"><button onclick="copyWallLink()">Copy link</button><button onclick="openWallLink()">Open</button></div>
+    </div>
     <button class="bar-btn" id="notifBtn" onclick="toggleNotifications()" onpointerdown="_notifPressStart()" onpointerup="_notifPressEnd()" onpointerleave="_notifPressEnd()" title="Enable notifications — hold to test" style="font-size:20px">🔕</button>
     <button class="bar-btn" id="themeToggleBtn" onclick="toggleDayNight()" title="Toggle day/night" style="font-size:20px">🌙</button>
     <button class="bar-btn" id="syncBtn" onclick="syncAll()" title="Sync" style="font-size:18px">↻</button>
@@ -1029,6 +1043,8 @@ function setBar(config = {}) {
   const notifBtn = document.getElementById('notifBtn');
   const themeBtn = document.getElementById('themeToggleBtn');
   const syncBtn = document.getElementById('syncBtn');
+  document.getElementById('wallBtn').style.display = 'none';
+  document.getElementById('wallPop').style.display = 'none';
 
   if (home) {
     barEl.style.background = '';
@@ -1608,7 +1624,7 @@ function updateThemeToggleBtn() {
 }
 function render() {
   const el=document.getElementById('content');
-  if(S.tab!=='cargo') { S.cargoPickerOpen=false; document.getElementById('cgDial').style.display='none'; document.getElementById('cgVeil').classList.remove('show'); }
+  if(S.tab!=='cargo') { S.wallOpen=false; S.cargoPickerOpen=false; document.getElementById('cgDial').style.display='none'; document.getElementById('cgVeil').classList.remove('show'); }
   switch(S.tab) {
     case 'home':       renderHome(el); break;
     case 'mastertask': renderMasterTask(el); break;
@@ -1929,8 +1945,34 @@ function groupedCargo() {
   return groups;
 }
 
+function wallUrl() { return new URL('wall.html', location.href).href; }
+function syncWallLink() {
+  const btn = document.getElementById('wallBtn'), pop = document.getElementById('wallPop');
+  btn.style.display = '';
+  btn.classList.toggle('on', !!S.wallOpen);
+  pop.style.display = S.wallOpen ? '' : 'none';
+  document.getElementById('wallUrl').textContent = wallUrl();
+}
+function toggleWallLink(e) { if(e) e.stopPropagation(); S.wallOpen = !S.wallOpen; syncWallLink(); }
+function copyWallLink() {
+  const u = wallUrl();
+  const done = () => { toast('Wall link copied'); haptic && haptic(); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(u).then(done, () => { selectWallUrl(); toast('Press and hold the link to copy'); });
+  } else { selectWallUrl(); toast('Press and hold the link to copy'); }
+}
+function selectWallUrl() {
+  const r = document.createRange(); r.selectNodeContents(document.getElementById('wallUrl'));
+  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+}
+function openWallLink() { window.open(wallUrl(), '_blank', 'noopener'); }
+document.addEventListener('click', () => {
+  if (S.wallOpen) { S.wallOpen = false; if (S.tab === 'cargo') syncWallLink(); }
+});
+
 function renderCargo(el) {
   setBar({ title: 'Cargo' });
+  syncWallLink();
   showFab(openAddCargo);
 
   const groups = groupedCargo();
