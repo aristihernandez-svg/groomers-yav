@@ -2968,9 +2968,21 @@ function renderStandbyPass(cleared) {
       <option value="-1" ${!_sbp.ac ? 'selected' : ''}>Not sure yet</option>
       ${_sbp.acs.map((a, i) => `<option value="${i}" ${a === _sbp.ac ? 'selected' : ''}>${e(a)}</option>`).join('')}
     </select>
-    <div class="sb-acts ${cleared ? 'busy' : ''}"><div class="keep" onclick="closeModal()">Keep on standby</div><div class="go" onclick="confirmStandbySeat()">✈ Confirm seat</div></div>
+    <div class="sb-acts ${cleared ? 'busy' : ''}"><div class="keep" onclick="keepStandby()">Keep on standby</div><div class="go" onclick="confirmStandbySeat()">✈ Confirm seat</div></div>
     <div class="sb-links" style="${cleared ? 'opacity:.5;pointer-events:none' : ''}"><span onclick="sbGo('edit')">✏️ Edit details</span></div>`;
   if (_sbp.calOpen) cgCalMount('sbCal', _sbp.pick, { minIso: localDateISO(), onPick: d => { _sbp.pick = d; _sbp.calOpen = false; renderStandbyPass(false); } });
+}
+// Stays on standby but keeps what was changed on the pass (the aircraft;
+// "Not sure yet" clears it). Nothing changed -> just closes.
+function keepStandby() {
+  const c = _sbp && S.cargo.find(x => x.id === _sbp.id);
+  const id = _sbp && _sbp.id, ac = (_sbp && _sbp.ac) || '';
+  closeModal();
+  if (!c || (c.aircraft || '') === ac) return;
+  if (!db) { toast('No connection — change not saved'); return; }
+  db.collection('cargoTracker').doc(id).update({ aircraft: ac })
+    .then(() => toast('Kept on standby ✓'))
+    .catch(err => { console.log('Keep standby failed:', err); toast('⚠️ Failed — check connection'); });
 }
 function confirmStandbySeat() {
   const iso = sbFlightIso();
@@ -2978,7 +2990,7 @@ function confirmStandbySeat() {
   if (!db) { toast('No connection — seat not confirmed'); return; }
   haptic('strong');
   const id = _sbp.id, upd = { standby: false, shipDate: iso };
-  if (_sbp.ac) upd.aircraft = _sbp.ac;
+  upd.aircraft = _sbp.ac || ''; // "Not sure yet" clears it
   renderStandbyPass(true);
   setTimeout(() => {
     if (_sbp && _sbp.id === id) closeModal();
