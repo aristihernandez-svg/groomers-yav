@@ -631,6 +631,13 @@ body::before{
   box-shadow:0 0 10px var(--accent-dim);
 }
 .tinfo{flex:1;min-width:0}
+/* "DONE + date" rubber stamp (Master Task lines, Side Quests notes). Green = done today, brown = older. */
+.done-stamp{flex-shrink:0;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;text-transform:uppercase;text-align:center;line-height:1.02;
+  color:#2FAF73;border:2.5px solid #2FAF73;border-radius:6px;padding:2px 7px 3px;transform:rotate(-7deg);opacity:.92;
+  -webkit-mask-image:radial-gradient(circle at 30% 40%,#000 55%,rgba(0,0,0,.72) 75%,#000 90%);mask-image:radial-gradient(circle at 30% 40%,#000 55%,rgba(0,0,0,.72) 75%,#000 90%)}
+.done-stamp small{display:block;font-size:9px;letter-spacing:.18em;font-weight:600}
+.done-stamp b{display:block;font-size:15px;letter-spacing:.04em}
+.done-stamp.old{color:#8A7860;border-color:#8A7860;opacity:.8}
 .ttxt{font-size:14px;color:var(--t1);line-height:1.3;font-weight:600}
 .tfreq{font-size:11px;color:var(--t3);margin-top:2px}
 .trow.done .tfreq{color:var(--t4)}
@@ -1605,7 +1612,7 @@ const NAV_ITEMS = [
   {id:'cars',        icon:'🚗', label:'Crew Cars'},
   {id:'contacts',    icon:'📞', label:'Contacts'},
   {id:'fleet',       icon:'✈️',  label:'Fleet'},
-  {id:'bored',       icon:'💡', label:'Bored'},
+  {id:'bored',       icon:'💡', label:'Side Quests'},
 ].filter(item => item.id !== 'fleet' || BASE_CONFIG.features?.fleet !== false);
 
 // ── BOOT ───────────────────────────────────────────────────────────
@@ -1975,6 +1982,7 @@ function renderMasterTask(el) {
             <div class="ttxt">${t.task}</div>
             <div class="tfreq">${mtDoneLabel(t)}</div>
           </div>
+          ${doneStampHtml(t.lastDoneAt)}
         </div>
       </div>`;
   };
@@ -2067,8 +2075,44 @@ function prioritizeMasterTask(id) {
     .catch(e=>{ console.log('Prioritize failed:',e); toast('⚠️ Failed — check connection'); });
 }
 
+// ── "DONE" STAMP + CONFIRM-BEFORE-DONE (Master Task, Side Quests) ──
+const STAMP_MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+// ts: when it was done (ms). Green if today, brown if older. A done item with no date gets a plain DONE stamp.
+function doneStampHtml(ts, extraStyle, doneNoDate) {
+  if(ts == null && !doneNoDate) return '';
+  if(ts == null) return `<div class="done-stamp old" style="${extraStyle||''}"><b>DONE</b></div>`;
+  const d = new Date(ts), today = d.toDateString() === new Date().toDateString();
+  return `<div class="done-stamp${today?'':' old'}" style="${extraStyle||''}"><small>Done</small><b>${String(d.getDate()).padStart(2,'0')} ${STAMP_MON[d.getMonth()]}</b></div>`;
+}
+function _escHtml(s) { return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// Tapping a line asks first, so a stray tap while scrolling changes nothing.
+function confirmDoneModal({kicker, task, facts, preview, btn, onConfirm}) {
+  openModal(kicker,
+    `<div style="font-size:18px;font-weight:700;color:var(--t1);line-height:1.3;margin:-4px 0 14px">${_escHtml(task)}</div>
+     ${facts && facts.length ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">${facts.map(([k,v])=>`
+       <div style="background:var(--bg3);border-radius:12px;padding:9px 12px">
+         <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);font-weight:700">${k}</div>
+         <div style="font-size:14px;font-weight:600;color:var(--t1);margin-top:1px">${v}</div></div>`).join('')}</div>` : ''}
+     ${preview ? `<div style="display:flex;align-items:center;gap:10px;border:1px dashed var(--border2);border-radius:12px;padding:10px 14px;font-size:13px;color:var(--t2)">
+       <span>It will be stamped</span><span style="margin-left:auto">${preview}</span></div>` : ''}`,
+    ()=>{ closeModal(); onConfirm(); });
+  document.getElementById('mSave').textContent = btn || '✓ Mark done';
+}
+
 function toggleMasterTaskDone(id) {
+  const t = S.masterTasks.find(x=>x.id===id);
+  if(!t) return;
   haptic();
+  const freq = {daily:'Daily', weekly:'Weekly', monthly:'Monthly'}[t.frequency] || 'One-time';
+  let last = 'Never';
+  if(t.lastDoneAt != null) {
+    const d = new Date(t.lastDoneAt), ago = mtDoneLabel(t).replace('Done ','');
+    last = `${ago[0].toUpperCase()+ago.slice(1)} · ${String(d.getDate()).padStart(2,'0')} ${STAMP_MON[d.getMonth()]}`;
+  }
+  confirmDoneModal({kicker:'Mark as done?', task:t.task, facts:[['How often',freq],['Last done',last]],
+    preview:doneStampHtml(Date.now()), onConfirm:()=>masterTaskMarkDone(id)});
+}
+function masterTaskMarkDone(id) {
   if(!db) { toast('No connection'); return; }
   db.collection('masterTasks').doc(id).update({lastDoneAt: Date.now(), priorityRank: null})
     .then(()=>toast('✅ Marked done today'))
@@ -10686,11 +10730,11 @@ function renderContactsList(q) {
 
 // ── FLIGHTAWARE IN-APP ───────────────────────────────────────
 function renderBored(el) {
-  setBar({title:'Activity'});
+  setBar({title:'Side Quests'});
   showFab(openAddBored);
   if(!S.bored.length) {
     el.innerHTML=`<div class="empty"><div class="empty-icon">💡</div>
-      <p>No tasks yet. Tap + to add.</p></div>`; return;
+      <p>No side quests yet. Tap + to add one.</p></div>`; return;
   }
 
   const noteColors = [
@@ -10715,18 +10759,18 @@ function renderBored(el) {
         background-color:${bg};
         background-image:linear-gradient(225deg,${fold} ${FOLD}px,transparent ${FOLD}px);
         border-radius:4px 4px 0 4px;
-        padding:13px 11px ${FOLD+6}px 13px;
+        padding:13px 11px ${b.done ? FOLD+26 : FOLD+6}px 13px;
         min-height:96px;
         transform:rotate(${rot}deg);
         box-shadow:3px 4px 14px rgba(0,0,0,0.26);
         cursor:pointer;
         transition:transform 0.15s,box-shadow 0.15s;
-        ${b.done?'opacity:0.42':''}
       ">
       <div style="font-size:13px;font-weight:600;color:#1c1c1c;line-height:1.45;
-                  ${b.done?'text-decoration:line-through;color:#555':''}">
+                  ${b.done?'text-decoration:line-through;color:#555;opacity:0.5':''}">
         ${b.task}
       </div>
+      ${b.done ? doneStampHtml(b.doneAt, 'position:absolute;left:10px;bottom:5px', true) : ''}
       <div style="position:absolute;bottom:7px;right:9px;display:flex;gap:6px">
         <span onclick="event.stopPropagation();editBoredItem('${b.id}')"
               style="font-size:14px;opacity:0.35;cursor:pointer">✏️</span>
@@ -10740,14 +10784,22 @@ function renderBored(el) {
   el.innerHTML = html;
 }
 
+// Side Quests: tapping a note asks first, both to mark it done and to reopen it.
 function toggleBoredById(id) {
   const item = S.bored.find(b=>String(b.id)===String(id));
   if(!item) return;
   haptic();
-  if(!db) { toast('No connection'); return; }
   const newDone = !item.done;
-  db.collection('boredBoard').doc(id).update({done:newDone})
-    .then(()=>toast(newDone?'✓ Done!':'Unchecked'))
+  const when = item.doneAt ? (()=>{ const d=new Date(item.doneAt); return `${String(d.getDate()).padStart(2,'0')} ${STAMP_MON[d.getMonth()]}`; })() : null;
+  confirmDoneModal(newDone
+    ? {kicker:'Mark as done?', task:item.task, preview:doneStampHtml(Date.now()), onConfirm:()=>boredSetDone(id, true)}
+    : {kicker:'Reopen this side quest?', task:item.task, facts:when?[['Done on',when],['Will be','Not done']]:null,
+       btn:'↩ Reopen', onConfirm:()=>boredSetDone(id, false)});
+}
+function boredSetDone(id, done) {
+  if(!db) { toast('No connection'); return; }
+  db.collection('boredBoard').doc(id).update(done ? {done:true, doneAt:Date.now()} : {done:false, doneAt:null})
+    .then(()=>toast(done?'✓ Done!':'Reopened'))
     .catch(e=>{ console.log('Toggle bored item failed:',e); toast('⚠️ Failed — check connection'); });
 }
 
@@ -12085,7 +12137,7 @@ function goToBoredItem(id) {
 }
 
 function openAddBored() {
-  openModal('Add to Bored Board',
+  openModal('Add a Side Quest',
     `<label>Task or idea</label><textarea id="mBT" placeholder="Task..." oninput="checkBoredDup()"></textarea>
      <div id="mBTWarn"></div>`,
     ()=>{
@@ -12784,7 +12836,7 @@ function editBoredItem(id) {
 function deleteBoredItem(id) {
   const item = S.bored.find(b=>String(b.id)===String(id));
   if(!item) return;
-  openModal('🗑 Delete Task?',
+  openModal('🗑 Delete Side Quest?',
     `<p style="font-size:14px;color:var(--t1);line-height:1.5;margin:0">Delete <strong>"${item.task}"</strong>? This can't be undone from the app.</p>`,
     ()=>{
       closeModal();
