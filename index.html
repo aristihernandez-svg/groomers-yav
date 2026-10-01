@@ -27,7 +27,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&family=Sora:wght@400;600;700&family=Bricolage+Grotesque:wght@400;700;800&family=Manrope:wght@400;600;800&family=Audiowide&family=Exo+2:wght@400;600;700&family=Kalam:wght@400;700&display=swap');
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
@@ -877,6 +877,65 @@ body::before{
 .cg-dbtn.cg-done-btn{background:var(--green-dim);border-color:var(--green);color:var(--green)}
 .cg-dbtn.cg-del-btn{flex:0 0 44px;background:var(--red-dim);border-color:var(--red);color:var(--red)}
 #cgDate{font-size:15px;padding:13px 12px;white-space:nowrap}
+/* Standby cargo: no ship date, goes when a plane has room. Blue + dashed so it never reads as late. */
+.cg-grp.standby{--c:#6FA8E8;--tx:#8FBBEE;--glow:rgba(111,168,232,.5)}
+.cg-grp.standby .cg-th:before{background:var(--bg);border:3px dashed #6FA8E8;box-shadow:0 0 0 5px var(--bg)}
+.cg-grp.standby .cg-item{border:1px dashed rgba(111,168,232,.45);background:rgba(111,168,232,.05)}
+.cg-icon.standby{background:rgba(111,168,232,.14)}
+.cg-sbtag{font-size:9.5px;font-weight:800;letter-spacing:.12em;color:#8FBBEE;border:1px solid rgba(111,168,232,.45);border-radius:6px;padding:2px 6px;flex-shrink:0}
+.cg-item.cg-moved{animation:cgMoved 1.4s ease 2}
+@keyframes cgMoved{0%{box-shadow:0 0 0 0 rgba(46,204,138,.7)}100%{box-shadow:0 0 0 14px rgba(46,204,138,0)}}
+.bd-grp.standby .bd-h{border-top:3px dashed #6FA8E8}
+.bd-grp.standby .bd-flap.bd-ttl{color:#A9CBF2}
+.bd-grp.standby .bd-rt b{background:#6FA8E8;color:#0B0907}
+.bd-grp.standby .bd-rt em{color:#8DB4E0}
+/* Add/Edit form: standby switch + date trigger */
+.cg-sbtgl{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border2);background:var(--glass2);cursor:pointer;margin:6px 0 10px}
+.cg-sbtgl.on{border-color:rgba(111,168,232,.5);background:rgba(111,168,232,.12)}
+.cg-sbtgl b{display:block;font-size:14px;color:var(--t1)}
+.cg-sbtgl small{display:block;font-size:12px;color:var(--t2)}
+.cg-sbsw{margin-left:auto;width:42px;height:24px;border-radius:12px;background:var(--border2);position:relative;flex-shrink:0}
+.cg-sbsw:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--t3);transition:left .15s}
+.cg-sbtgl.on .cg-sbsw{background:#6FA8E8}
+.cg-sbtgl.on .cg-sbsw:after{left:21px;background:#0d1a2a}
+.cg-datebtn{display:flex;align-items:center;gap:8px;width:100%;padding:13px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--glass2);color:var(--t1);font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px}
+.cg-datebtn span{margin-left:auto;font-size:11px;color:var(--accent)}
+.cg-datebtn.open{border-color:var(--accent-border)}
+.cg-cal{background:var(--glass2);border:1px solid var(--border2);border-radius:14px;padding:4px 8px 10px;margin-bottom:10px}
+/* Boarding-pass confirm for a standby piece */
+.sb-pass{background:#F4EEDF;color:#1d1a14;border-radius:16px;overflow:hidden;position:relative;font-family:Inter,sans-serif;margin-bottom:4px}
+.sb-pass .sb-hd{background:#2D5E9E;color:#fff;display:flex;justify-content:space-between;padding:8px 14px;font-size:10.5px;font-weight:800;letter-spacing:.16em}
+.sb-pass .sb-rt{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:12px 14px 4px}
+.sb-pass .sb-rt b{font-family:'Barlow Condensed',sans-serif;font-size:40px;line-height:1;font-weight:700}
+.sb-pass .sb-rt small{display:block;font-size:9px;letter-spacing:.14em;color:#6a6252;font-weight:700}
+.sb-pass .sb-rt .sb-pl{font-size:22px;color:#2D5E9E}
+.sb-pass .sb-rt div:last-child{text-align:right}
+.sb-pass .sb-fl{display:grid;grid-template-columns:1.25fr 1fr .8fr;gap:10px;padding:6px 14px 12px}
+.sb-pass .sb-fl > div{min-width:0}
+.sb-pass small{display:block;font-size:8.5px;letter-spacing:.14em;color:#6a6252;font-weight:700}
+.sb-pass .sb-fl b{font-family:'Space Mono',monospace;font-size:12px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-pass .sb-perf{border-top:2px dashed #b9ae95;margin:0 12px;position:relative}
+.sb-pass .sb-perf:before,.sb-pass .sb-perf:after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg3)}
+.sb-pass .sb-perf:before{left:-23px}.sb-pass .sb-perf:after{right:-23px}
+.sb-pass .sb-stub{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px 12px}
+.sb-pass .sb-stub b{font-family:'Space Mono',monospace;font-size:13.5px}
+.sb-pass .sb-seat{color:#2D5E9E}
+.sb-pass .sb-stamp{position:absolute;right:16px;top:58px;color:#1E8B57;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;letter-spacing:.08em;border:3px solid currentColor;border-radius:8px;padding:2px 12px;transform:rotate(-12deg) scale(2.4);opacity:0;pointer-events:none}
+.sb-pass .sb-stamp.in{animation:sbStamp .45s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes sbStamp{to{transform:rotate(-12deg) scale(1);opacity:.9}}
+.sb-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:8px}
+.sb-acs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px}
+.sb-opts div,.sb-acs div{border:1.5px solid var(--border2);color:var(--t2);border-radius:10px;padding:9px 6px;font-size:12.5px;font-weight:700;cursor:pointer;text-align:center}
+.sb-acs div{padding:7px 11px}
+.sb-opts div.on,.sb-acs div.on{border-color:var(--green);background:var(--green-dim);color:var(--t1)}
+.sb-acts{display:flex;gap:9px;margin-top:16px}
+.sb-acts div{flex:1;padding:13px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;text-align:center}
+.sb-acts .keep{background:var(--glass2);border:1px solid var(--border2);color:var(--t2)}
+.sb-acts .go{background:var(--green);color:#06291a}
+.sb-acts.busy{opacity:.5;pointer-events:none}
+.sb-links{display:flex;justify-content:center;gap:18px;margin-top:14px;font-size:12px;color:var(--t3)}
+.sb-links span{cursor:pointer;padding:4px}
+@media (prefers-reduced-motion: reduce){.sb-pass .sb-stamp.in{animation:none;transform:rotate(-12deg);opacity:.9}.cg-item.cg-moved{animation:none}}
 
 /* CARGO -- design picker (corner dial: a round button that fans out two previews) */
 .cg-veil{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:55;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -2194,8 +2253,19 @@ function cargoDateLabel(shipDateStr) {
   return cargoParseDate(shipDateStr).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+// Standby pieces have no ship date -- they go when a plane has room, so they
+// never fall into a date bucket (an empty date would otherwise read as today).
+function cargoIsStandby(c) { return !!c.standby && !c.done; }
+function cargoSinceLabel(c) {
+  const t = c.standbySince || c.createdAt;
+  if (!t) return '';
+  const d = new Date(t), mon = STAMP_MON[d.getMonth()];
+  return `${d.getDate()} ${mon[0]}${mon.slice(1).toLowerCase()}`;
+}
+
 function groupedCargo() {
-  const pending = S.cargo.filter(c => !c.done).sort((a, b) => cargoParseDate(a.shipDate) - cargoParseDate(b.shipDate));
+  const pending = S.cargo.filter(c => !c.done && !c.standby).sort((a, b) => cargoParseDate(a.shipDate) - cargoParseDate(b.shipDate));
+  const standby = S.cargo.filter(cargoIsStandby).sort((a, b) => (a.standbySince || a.createdAt || 0) - (b.standbySince || b.createdAt || 0));
   const delivered = S.cargo.filter(c => c.done).sort((a, b) => (b.deliveredAt || 0) - (a.deliveredAt || 0));
 
   const order = [];
@@ -2206,6 +2276,7 @@ function groupedCargo() {
     byKey[b.key].items.push(c);
   });
   const groups = order.map(k => byKey[k]);
+  if (standby.length) groups.push({ key: 'standby', cls: 'standby', label: 'Standby', items: standby });
   if (delivered.length) groups.push({ key: 'delivered', cls: 'delivered', label: 'Delivered', items: delivered });
   return groups;
 }
@@ -2253,7 +2324,8 @@ function renderCargo(el) {
     html += `<div class="cg-tl">`;
     groups.forEach(g => {
       const n = g.items.length;
-      const sub = (g.key === 'delivered' || g.key === 'later') ? `${n} piece${n === 1 ? '' : 's'}` : cargoDateLabel(g.items[0].shipDate);
+      const sub = g.key === 'standby' ? 'If space allows'
+        : (g.key === 'delivered' || g.key === 'later') ? `${n} piece${n === 1 ? '' : 's'}` : cargoDateLabel(g.items[0].shipDate);
       html += `<div class="cg-grp ${g.cls}">
         <div class="cg-th"><h3>${g.label}</h3><span class="cg-td">${sub}</span><span class="cg-tn">${n}</span></div>`;
       g.items.forEach(c => { html += cargoRowHtml(c, g.cls); });
@@ -2319,9 +2391,9 @@ function cargoBoardHtml(groups) {
   let html = `<div class="bd-board">
     <div class="bd-head"><b>Departures</b><span>YAV · Cargo</span></div>`;
   groups.forEach(g => {
-    const showDate = g.key !== 'delivered' && g.key !== 'later';
+    const showDate = g.key !== 'delivered' && g.key !== 'later' && g.key !== 'standby';
     const n = g.items.length;
-    const sub = showDate
+    const sub = g.key === 'standby' ? 'If space allows' : showDate
       ? cargoParseDate(g.items[0].shipDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
       : `${n} piece${n === 1 ? '' : 's'}`;
     const title = g.label.toUpperCase().split('').map(ch => ch === ' '
@@ -2338,10 +2410,11 @@ function cargoBoardHtml(groups) {
 function boardRowHtml(c, grpCls) {
   const open = S.cargoOpen.has(c.id);
   const showDate = grpCls === 'later' || grpCls === 'overdue';
-  const sub = [c.location, c.aircraft, showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean).join(' · ');
+  const sb = cargoIsStandby(c);
+  const sub = [c.location, c.aircraft, sb ? `since ${cargoSinceLabel(c)}` : showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean).join(' · ');
   return `
     <div class="bd-item ${open ? 'open' : ''} ${c.done ? 'done' : ''}" data-id="${c.id}">
-      <div class="bd-row" onclick="toggleCargoItem('${c.id}')">
+      <div class="bd-row" onclick="${sb ? `openStandbyPass('${c.id}')` : `toggleCargoItem('${c.id}')`}">
         <div class="bd-who"><b>${c.client || '(no client name)'}</b><em>${sub}</em></div>
         ${bdTiles(c.destination)}
       </div>
@@ -2452,17 +2525,20 @@ function cargoRowHtml(c, barCls) {
   // instead. Overdue and Later can each span many different dates, so
   // those rows swap in the date to stay meaningful.
   const showDate = barCls === 'later' || barCls === 'overdue';
-  const subParts = [c.location, c.aircraft, showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean);
+  // Standby rows open the boarding pass instead of expanding.
+  const sb = cargoIsStandby(c);
+  const subParts = [c.location, c.aircraft, sb ? `waiting since ${cargoSinceLabel(c)}` : showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean);
   return `
-    <div class="cg-item ${open ? 'open' : ''} ${c.done ? 'done' : ''}" data-id="${c.id}">
-      <div class="cg-row" onclick="toggleCargoItem('${c.id}')">
+    <div class="cg-item ${open ? 'open' : ''} ${c.done ? 'done' : ''} ${S.cargoMoved === c.id ? 'cg-moved' : ''}" data-id="${c.id}">
+      <div class="cg-row" onclick="${sb ? `openStandbyPass('${c.id}')` : `toggleCargoItem('${c.id}')`}">
         <div class="cg-icon ${c.done ? 'done' : barCls}">${c.done ? '✓' : '📦'}</div>
         <div class="cg-rmain">
           <div class="cg-client">${c.client || '(no client name)'}</div>
           <div class="cg-sub">${subParts.join(' · ')}</div>
         </div>
+        ${sb ? '<span class="cg-sbtag">STANDBY</span>' : ''}
         <div class="cg-destchip">${c.destination || '—'}</div>
-        <span class="cg-chev">▾</span>
+        ${sb ? '' : '<span class="cg-chev">▾</span>'}
       </div>
       <div class="cg-detail">
         <div class="cg-detail-in">
@@ -2515,8 +2591,14 @@ function cargoFormFields(c) {
       <input id="cgAcNew" placeholder="Tail number, e.g. C-ABCD" oninput="checkCargoAcDup()" style="margin-top:6px;text-transform:uppercase">
       <div id="cgAcWarn"></div>
     </div>
-    <label>Ship date</label>
-    <input type="date" id="cgDate" value="${c.shipDate || todayStr}">
+    <div class="cg-sbtgl ${c.standby ? 'on' : ''}" id="cgSbTgl" onclick="toggleCargoFormStandby()">
+      <div><b>Standby</b><small>Ships when a plane has room — no date</small></div><span class="cg-sbsw"></span></div>
+    <div id="cgDateWrap" style="display:${c.standby ? 'none' : ''}">
+      <label>Ship date</label>
+      <input type="hidden" id="cgDate" value="${c.shipDate || todayStr}">
+      <div class="cg-datebtn" id="cgDateBtn" onclick="toggleCargoFormCal()">📅 <b id="cgDateTxt">${cargoPickLabel(c.shipDate || todayStr)}</b><span>▾</span></div>
+      <div id="cgDateCal" style="display:none"></div>
+    </div>
     <label>Destination</label>
     <input id="cgDest" placeholder="ZFG" value="${(c.destination || '').replace(/"/g, '&quot;')}">
     <label>Client name</label>
@@ -2551,10 +2633,12 @@ function cargoFormValues() {
       saveCustomAircraft();
     }
   }
+  const standby = document.getElementById('cgSbTgl').classList.contains('on');
   return {
     location,
     aircraft,
-    shipDate: document.getElementById('cgDate').value,
+    standby,
+    shipDate: standby ? '' : document.getElementById('cgDate').value,
     destination: document.getElementById('cgDest').value.trim(),
     client: document.getElementById('cgClient').value.trim(),
     pieces: parseInt(document.getElementById('cgPieces').value, 10) || null,
@@ -2640,8 +2724,8 @@ function openAddCargo() {
       closeModal();
       if (!db) { toast('No connection — cargo not saved'); return; }
       db.collection('cargoTracker').add({
-        ...v, done: false, deliveredAt: null, deleted: false, createdAt: Date.now(),
-      }).then(() => toast('📦 Cargo logged ✓'))
+        ...v, standbySince: v.standby ? Date.now() : null, done: false, deliveredAt: null, deleted: false, createdAt: Date.now(),
+      }).then(() => toast(v.standby ? '📦 Logged on standby ✓' : '📦 Cargo logged ✓'))
         .catch(e => { console.log('Add cargo failed:', e); toast('⚠️ Failed to save — check connection'); });
     });
 }
@@ -2655,6 +2739,8 @@ function editCargoPrompt(id) {
       if (!v.client) { toast('Enter a client name'); return; }
       closeModal();
       if (!db) { toast('No connection — change not saved'); return; }
+      // Going onto standby starts the "waiting since" clock; leaving it keeps the old value harmlessly.
+      if (v.standby && !c.standby) v.standbySince = Date.now();
       db.collection('cargoTracker').doc(id).update(v)
         .then(() => toast('Cargo updated ✓'))
         .catch(e => { console.log('Edit cargo failed:', e); toast('⚠️ Failed — check connection'); });
@@ -2689,6 +2775,178 @@ function reopenCargo(id) {
   if (!db) { toast('No connection'); return; }
   db.collection('cargoTracker').doc(id).update({ done: false, deliveredAt: null })
     .catch(e => { console.log('Reopen cargo failed:', e); toast('⚠️ Failed — check connection'); });
+}
+
+// ── Cargo: day picker drawn like the Calendar tab's month grid ─────────
+// Used by the Add/Edit form and the standby boarding pass. Dots mark days
+// that already have cargo going, so you can see how loaded a day is.
+const _cgCal = {}; // box id -> { y, m, sel, minIso, onPick }
+function cargoIsoPlus(days) { const d = new Date(); d.setDate(d.getDate() + days); return localDateISO(d); }
+function cargoPickLabel(iso) {
+  const nice = new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  return iso === localDateISO() ? `Today · ${nice}` : iso === cargoIsoPlus(1) ? `Tomorrow · ${nice}` : nice;
+}
+function cgCalMount(boxId, selIso, opts) {
+  const d = selIso ? new Date(selIso + 'T00:00:00') : new Date();
+  _cgCal[boxId] = { y: d.getFullYear(), m: d.getMonth(), sel: selIso || null, minIso: opts.minIso || null, onPick: opts.onPick };
+  cgCalRender(boxId);
+}
+function cgCalShift(boxId, delta) {
+  const st = _cgCal[boxId]; if (!st) return;
+  const d = new Date(st.y, st.m + delta, 1);
+  st.y = d.getFullYear(); st.m = d.getMonth();
+  cgCalRender(boxId);
+}
+function cgCalPick(boxId, iso) {
+  const st = _cgCal[boxId]; if (!st) return;
+  st.sel = iso; haptic();
+  cgCalRender(boxId);
+  if (st.onPick) st.onPick(iso);
+}
+function cgCalRender(boxId) {
+  const st = _cgCal[boxId], box = document.getElementById(boxId);
+  if (!st || !box) return;
+  const { y, m } = st, todayIso = localDateISO();
+  const startWd = new Date(y, m, 1).getDay(), dim = new Date(y, m + 1, 0).getDate();
+  const label = new Date(y, m, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const canPrev = !st.minIso || localDateISO(new Date(y, m, 1)).slice(0, 7) > st.minIso.slice(0, 7);
+  const counts = {};
+  S.cargo.forEach(c => { if (!c.done && !c.standby && c.shipDate) counts[c.shipDate] = (counts[c.shipDate] || 0) + 1; });
+  box.innerHTML = `<div class="cg-cal">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0 8px">
+      <span onclick="cgCalShift('${boxId}',-1)" style="color:var(--t3);font-size:22px;padding:2px 12px;cursor:pointer;visibility:${canPrev ? 'visible' : 'hidden'}">‹</span>
+      <span style="font-size:15px;font-weight:800;color:var(--t1)">${label}</span>
+      <span onclick="cgCalShift('${boxId}',1)" style="color:var(--t3);font-size:22px;padding:2px 12px;cursor:pointer">›</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">
+      ${['S','M','T','W','T','F','S'].map(d => `<div style="text-align:center;font-size:10px;font-weight:700;color:var(--t3)">${d}</div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
+      ${[...Array(startWd)].map(() => '<div></div>').join('')}
+      ${[...Array(dim)].map((_, i) => {
+        const iso = localDateISO(new Date(y, m, i + 1));
+        const isToday = iso === todayIso, isSel = iso === st.sel, past = st.minIso && iso < st.minIso;
+        const n = Math.min(counts[iso] || 0, 3);
+        const dots = [...Array(n)].map(() => `<span style="width:5px;height:5px;border-radius:50%;background:${isToday ? '#fff' : 'var(--accent)'}"></span>`).join('');
+        return `<div ${past ? '' : `onclick="cgCalPick('${boxId}','${iso}')"`} style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:10px;cursor:${past ? 'default' : 'pointer'};opacity:${past ? '.3' : '1'};
+                  background:${isToday ? 'var(--accent)' : 'transparent'};border:1.5px solid ${isSel ? 'var(--accent)' : 'transparent'};${isToday && isSel ? 'box-shadow:0 0 0 2px var(--bg3),0 0 0 4px var(--accent)' : ''}">
+          <span style="font-size:13px;font-weight:${isToday ? '800' : '600'};color:${isToday ? '#fff' : 'var(--t1)'}">${i + 1}</span>
+          <span style="display:flex;gap:2px;height:5px">${dots}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="text-align:center;font-size:11px;color:var(--t4);margin-top:8px">• = cargo already going that day</div>
+  </div>`;
+}
+
+// Add/Edit form: standby switch hides the date; the date row opens the grid.
+function toggleCargoFormStandby() {
+  const t = document.getElementById('cgSbTgl'), on = !t.classList.contains('on');
+  t.classList.toggle('on', on);
+  document.getElementById('cgDateWrap').style.display = on ? 'none' : '';
+  haptic();
+}
+function toggleCargoFormCal() {
+  const cal = document.getElementById('cgDateCal'), btn = document.getElementById('cgDateBtn');
+  const open = cal.style.display === 'none';
+  cal.style.display = open ? '' : 'none';
+  btn.classList.toggle('open', open);
+  if (open) cgCalMount('cgDateCal', document.getElementById('cgDate').value, { onPick: iso => {
+    document.getElementById('cgDate').value = iso;
+    document.getElementById('cgDateTxt').textContent = cargoPickLabel(iso);
+    cal.style.display = 'none'; btn.classList.remove('open');
+  } });
+}
+
+// ── Cargo: standby boarding pass ───────────────────────────────────
+// Tapping a standby piece opens its pass: pick the flight day (and the
+// aircraft if known), "Confirm seat" stamps it CLEARED and moves it into
+// that day's group.
+let _sbp = null;
+function openStandbyPass(id) {
+  const c = S.cargo.find(x => x.id === id);
+  if (!c) return;
+  haptic();
+  _sbp = { id, day: 'today', pick: null, calOpen: false, ac: c.aircraft || '',
+           acs: [...new Set([...(c.aircraft ? [c.aircraft] : []), ...getAllAircraft()])] };
+  openModal('✈ Standby cargo', '<div id="sbPass"></div>', () => {});
+  document.getElementById('mBtnRow').style.display = 'none';
+  renderStandbyPass(false);
+}
+function sbFlightIso() {
+  return _sbp.day === 'today' ? localDateISO() : _sbp.day === 'tomorrow' ? cargoIsoPlus(1) : _sbp.pick;
+}
+function sbFlightText(iso) {
+  if (iso === localDateISO()) return 'TODAY';
+  if (iso === cargoIsoPlus(1)) return 'TOMORROW';
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase();
+}
+function sbSetDay(d) {
+  _sbp.day = d;
+  _sbp.calOpen = d === 'pick' && (!_sbp.pick || !_sbp.calOpen);
+  renderStandbyPass(false);
+}
+function sbSetAc(i) { _sbp.ac = i < 0 ? '' : _sbp.acs[i]; renderStandbyPass(false); }
+function renderStandbyPass(cleared) {
+  const box = document.getElementById('sbPass');
+  const c = _sbp && S.cargo.find(x => x.id === _sbp.id);
+  if (!box || !c) return;
+  const e = _escHtml, iso = sbFlightIso();
+  const pickTxt = _sbp.pick ? new Date(_sbp.pick + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Pick date';
+  const pcs = [c.pieces ? `${c.pieces} pcs` : null, c.weight].filter(Boolean).join(' · ') || '—';
+  box.innerHTML = `
+    <div class="sb-pass">
+      <div class="sb-hd"><span>STANDBY PASS</span><span>YAV · CARGO</span></div>
+      <div class="sb-rt"><div><b>YAV</b><small>ST. ANDREWS</small></div><div class="sb-pl">✈</div>
+        <div><b>${e(String(c.destination || '—').toUpperCase().slice(0, 5))}</b><small>DESTINATION</small></div></div>
+      <div class="sb-fl"><div><small>CLIENT</small><b>${e(String(c.client || '—').toUpperCase())}</b></div>
+        <div><small>PIECES</small><b>${e(pcs)}</b></div>
+        <div><small>WAITING SINCE</small><b>${e(cargoSinceLabel(c).toUpperCase() || '—')}</b></div></div>
+      <div class="sb-perf"></div>
+      <div class="sb-stub"><div><small>FLIGHT</small><b>${cleared ? sbFlightText(iso) : '—'}</b></div>
+        <div><small>AIRCRAFT</small><b>${cleared ? e(_sbp.ac || 'TBD') : '—'}</b></div>
+        <div style="text-align:right"><small>SEAT</small><b class="sb-seat">${cleared ? 'CONFIRMED' : 'STANDBY'}</b></div></div>
+      <div class="sb-stamp ${cleared ? 'in' : ''}">CLEARED</div>
+    </div>
+    <label style="margin-top:14px">Flight day</label>
+    <div class="sb-opts">
+      <div class="${_sbp.day === 'today' ? 'on' : ''}" onclick="sbSetDay('today')">Today</div>
+      <div class="${_sbp.day === 'tomorrow' ? 'on' : ''}" onclick="sbSetDay('tomorrow')">Tomorrow</div>
+      <div class="${_sbp.day === 'pick' ? 'on' : ''}" onclick="sbSetDay('pick')">📅 ${pickTxt}</div>
+    </div>
+    <div id="sbCal" style="display:${_sbp.calOpen ? '' : 'none'}"></div>
+    <label>Aircraft <span style="color:var(--t4)">(optional)</span></label>
+    <div class="sb-acs">
+      <div class="${!_sbp.ac ? 'on' : ''}" onclick="sbSetAc(-1)">Not sure yet</div>
+      ${_sbp.acs.map((a, i) => `<div class="${a === _sbp.ac ? 'on' : ''}" onclick="sbSetAc(${i})">${e(a)}</div>`).join('')}
+    </div>
+    <div class="sb-acts ${cleared ? 'busy' : ''}"><div class="keep" onclick="closeModal()">Keep on standby</div><div class="go" onclick="confirmStandbySeat()">✈ Confirm seat</div></div>
+    <div class="sb-links" style="${cleared ? 'opacity:.5;pointer-events:none' : ''}"><span onclick="sbGo('edit')">✏️ Edit details</span><span onclick="sbGo('done')">✓ Mark delivered</span><span onclick="sbGo('del')">🗑 Delete</span></div>`;
+  if (_sbp.calOpen) cgCalMount('sbCal', _sbp.pick, { minIso: localDateISO(), onPick: d => { _sbp.pick = d; _sbp.calOpen = false; renderStandbyPass(false); } });
+}
+function confirmStandbySeat() {
+  const iso = sbFlightIso();
+  if (!iso) { toast('Pick a date on the calendar first'); _sbp.calOpen = true; renderStandbyPass(false); return; }
+  if (!db) { toast('No connection — seat not confirmed'); return; }
+  haptic('strong');
+  const id = _sbp.id, upd = { standby: false, shipDate: iso };
+  if (_sbp.ac) upd.aircraft = _sbp.ac;
+  renderStandbyPass(true);
+  setTimeout(() => {
+    if (_sbp && _sbp.id === id) closeModal();
+    S.cargoMoved = id; // the piece pulses once in its new day group
+    setTimeout(() => { if (S.cargoMoved === id) S.cargoMoved = null; }, 4000);
+    db.collection('cargoTracker').doc(id).update(upd)
+      .then(() => toast(`✈ Seat confirmed · ${cargoPickLabel(iso)}`))
+      .catch(err => { console.log('Confirm standby seat failed:', err); toast('⚠️ Failed — check connection'); });
+  }, 1300);
+}
+function sbGo(what) {
+  const id = _sbp.id;
+  closeModal();
+  if (what === 'edit') editCargoPrompt(id);
+  else if (what === 'done') markCargoDelivered(id);
+  else deleteCargoPrompt(id);
 }
 
 // ── DARK MODE ──────────────────────────────────────────────────────
@@ -3314,9 +3572,11 @@ function homeStats() {
 // Cargo summary: overdue first, then what ships today, then everything pending
 function homeCargoStats() {
   const pend = (S.cargo||[]).filter(c=>!c.done);
-  const od = pend.filter(c=>cargoBucketFor(c.shipDate).key==='overdue').length;
-  const td = pend.filter(c=>cargoBucketFor(c.shipDate).key==='today').length;
-  return { pend: pend.length, od, td, later: pend.length-od-td };
+  const dated = pend.filter(c=>!c.standby);
+  const od = dated.filter(c=>cargoBucketFor(c.shipDate).key==='overdue').length;
+  const td = dated.filter(c=>cargoBucketFor(c.shipDate).key==='today').length;
+  const sb = pend.length - dated.length;
+  return { pend: pend.length, od, td, sb, later: dated.length-od-td };
 }
 function homeFooterHtml() {
   return `<div class="hd-foot"><span id="appVerChip" style="cursor:default;user-select:none" ontouchstart="startVerPress()" ontouchend="cancelVerPress()" onmousedown="startVerPress()" onmouseup="cancelVerPress()" onmouseleave="cancelVerPress()">Skycare ${APP_VERSION} · Tasks: <span id="tasksSourceBadge">${S.tasksSource==='firestore'?'🟢 Firestore':'📋 Sheets'}</span></span></div>
@@ -3367,7 +3627,7 @@ function hdModel(w) {
   } else if(w==='cargo') {
     const c = homeCargoStats();
     m.big = c.od ? `${c.od} overdue` : c.td ? `${c.td} today` : c.pend ? `${c.pend} pending` : 'All clear';
-    m.sub = c.pend ? [c.od&&c.td?`${c.td} today`:null, c.later?`${c.later} later`:null].filter(Boolean).join(' · ') || `${c.pend} in total` : 'Nothing to ship';
+    m.sub = c.pend ? [c.od&&c.td?`${c.td} today`:null, c.later?`${c.later} later`:null, c.sb?`${c.sb} standby`:null].filter(Boolean).join(' · ') || `${c.pend} in total` : 'Nothing to ship';
     m.main = c.pend ? `${c.pend} piece${c.pend===1?'':'s'} pending${c.od?` · ${c.od} overdue`:''}${c.td?` · ${c.td} today`:''}` : 'No cargo pending';
   } else if(w==='shopping') {
     const n = (S.shopping||[]).filter(i=>i.checked).length;

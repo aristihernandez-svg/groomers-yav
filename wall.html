@@ -43,6 +43,11 @@ body{display:grid;place-items:center}
 .day.td:after,.row.td:after{content:"";position:absolute;inset:0;border-left:1cqw solid #E8A33D;border-right:1cqw solid #E8A33D;pointer-events:none}
 .day.td:after{top:-.3cqw;bottom:-.1cqw}
 .row.td:after{top:-.1cqw}
+/* Standby: no date, ships if space allows -- blue dashed band, slightly dimmed rows */
+.day.sb{border-top:.3cqw dashed #6FA8E8}
+.day.sb em{color:#8DB4E0}
+.day.sb .tile.amb{color:#A9CBF2;background:linear-gradient(#142133 0 49%,#0B0907 49% 51%,#0d1724 51% 100%);box-shadow:inset 0 0 0 .1cqw #26405f}
+.row.sb{opacity:.85}
 .tile.ac{width:1.6cqw;height:2.5cqw;line-height:2.5cqw;font-size:1.9cqw}
 .tile.ac.sm{width:1.3cqw;height:2.1cqw;line-height:2.1cqw;font-size:1.6cqw}
 .tile.ds{width:2.1cqw;height:3.1cqw;line-height:3.1cqw;font-size:2.5cqw}
@@ -94,7 +99,9 @@ document.getElementById('base').textContent = (BASE_CONFIG.baseId || '').toUpper
 const dOnly = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const parseD = s => { const [y, m, d] = (s || '').split('-').map(Number); return (y && m && d) ? new Date(y, m - 1, d) : dOnly(new Date()); };
 const fmtD = d => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-function bucket(shipDate) {
+function bucket(shipDate, standby) {
+  // Standby pieces have no date; they sit last, after every dated day.
+  if (standby) return { k: 100, key: 'standby', label: 'STANDBY', diff: 0 };
   const diff = Math.round((parseD(shipDate) - dOnly(new Date())) / 86400000);
   if (diff < 0) return { k: -1, key: 'overdue', label: 'OVERDUE', diff };
   if (diff === 0) return { k: 0, key: 'today', label: 'TODAY', diff };
@@ -143,8 +150,8 @@ const tiles = (s, cls) => `<div class="tl">${String(s).replace(/\s+/g, '').toUpp
 const titleTiles = (t, red) => `<div class="tt">${t.split('').map(c => c === ' ' ? '<i class="tile dt sp"></i>' : `<i class="tile amb dt ${red ? 'red' : ''}" data-ch="${esc(c)}">${esc(c)}</i>`).join('')}</div>`;
 function bandHtml(g) {
   const n = g.rows.length;
-  const right = g.b.key === 'later' ? `${n} piece${n === 1 ? '' : 's'}` : g.b.key === 'overdue' ? 'Was due earlier' : fmtD(parseD(g.rows[0].shipDate));
-  return `<div class="day ${g.b.key === 'overdue' ? 'od' : ''} ${g.b.key === 'today' ? 'td' : ''}" data-band="${g.b.key}">${titleTiles(g.b.label, g.b.key === 'overdue')}<em>${right}</em></div>`;
+  const right = g.b.key === 'standby' ? 'If space allows' : g.b.key === 'later' ? `${n} piece${n === 1 ? '' : 's'}` : g.b.key === 'overdue' ? 'Was due earlier' : fmtD(parseD(g.rows[0].shipDate));
+  return `<div class="day ${g.b.key === 'overdue' ? 'od' : ''} ${g.b.key === 'today' ? 'td' : ''} ${g.b.key === 'standby' ? 'sb' : ''}" data-band="${g.b.key}">${titleTiles(g.b.label, g.b.key === 'overdue')}<em>${right}</em></div>`;
 }
 function rowHtml(c, b) {
   const od = b.key === 'overdue';
@@ -153,7 +160,7 @@ function rowHtml(c, b) {
   const ac = String(c.aircraft || '').replace(/\s+/g, '');
   const dest = String(c.destination || '—').replace(/\s+/g, '').slice(0, 7);
   const note = String(c.notes || '').split('\n')[0];
-  return `<div class="row ${isNew ? 'new' : ''} ${od ? 'od' : ''} ${b.key === 'today' ? 'td' : ''}" data-id="${esc(c.id)}">
+  return `<div class="row ${isNew ? 'new' : ''} ${od ? 'od' : ''} ${b.key === 'today' ? 'td' : ''} ${b.key === 'standby' ? 'sb' : ''}" data-id="${esc(c.id)}">
     <div>${ac ? tiles(ac, 'ac' + (ac.length > 6 ? ' sm' : '')) : '<span class="ground">Ground</span>'}</div>
     <div class="who"><b>${esc(c.client || '—')}${isNew ? '<span class="new-tag">NEW</span>' : ''}</b><span>${esc(sub)}</span></div>
     <div class="pcs">${c.pieces ? esc(c.pieces) + ' pcs' : ''}</div>
@@ -165,7 +172,7 @@ function rowHtml(c, b) {
 let pages = [], page = 0, lastKey = '', pageTimer = null, hidden = 0;
 function cntText() {
   return `${items.length} piece${items.length === 1 ? '' : 's'} on the board`
-    + (hidden ? ` · ${hidden} later not shown` : '')
+    + (hidden ? ` · ${hidden} more not shown` : '')
     + (pages.length > 1 ? ` · page ${page + 1}/${pages.length}` : '');
 }
 function render(fromData) {
@@ -177,7 +184,7 @@ function render(fromData) {
   }
   // group
   const map = {};
-  items.forEach(c => { const b = bucket(c.shipDate); (map[b.key] = map[b.key] || { b, rows: [] }).rows.push(c); });
+  items.forEach(c => { const b = bucket(c.shipDate, c.standby); (map[b.key] = map[b.key] || { b, rows: [] }).rows.push(c); });
   const groups = Object.values(map).sort((a, b) => a.b.k - b.b.k);
   groups.forEach(g => g.rows.sort((a, b) => g.b.key === 'overdue'
     ? String(a.shipDate).localeCompare(String(b.shipDate))
