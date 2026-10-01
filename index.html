@@ -944,10 +944,8 @@ body::before{
 .sb-pass .sb-stamp.in{animation:sbStamp .45s cubic-bezier(.2,1.6,.4,1) forwards}
 @keyframes sbStamp{to{transform:rotate(-12deg) scale(1);opacity:.9}}
 .sb-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:8px}
-.sb-acs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px}
-.sb-opts div,.sb-acs div{border:1.5px solid var(--border2);color:var(--t2);border-radius:10px;padding:9px 6px;font-size:12.5px;font-weight:700;cursor:pointer;text-align:center}
-.sb-acs div{padding:7px 11px}
-.sb-opts div.on,.sb-acs div.on{border-color:var(--green);background:var(--green-dim);color:var(--t1)}
+.sb-opts div{border:1.5px solid var(--border2);color:var(--t2);border-radius:10px;padding:9px 6px;font-size:12.5px;font-weight:700;cursor:pointer;text-align:center}
+.sb-opts div.on{border-color:var(--green);background:var(--green-dim);color:var(--t1)}
 .sb-acts{display:flex;gap:9px;margin-top:16px}
 .sb-acts div{flex:1;padding:13px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;text-align:center}
 .sb-acts .keep{background:var(--glass2);border:1px solid var(--border2);color:var(--t2)}
@@ -1682,7 +1680,7 @@ const S = {
   cargoDesign: localStorage.getItem('gykf_cargo_design') === 'board' ? 'board' : 'classic', // per-phone display choice
   cargoSound: localStorage.getItem('gykf_cargo_sound') !== '0', // flap clack sound, on unless muted
   customCargoLocations: [], // user-added cargo locations, same pattern as customStores
-  customAircraft: [],       // user-added aircraft tail numbers for cargo (never preloaded)
+  customAircraft: [],       // user-added aircraft tail numbers for cargo (on top of CARGO_AIRCRAFT)
 };
 
 const NAV_ITEMS = [
@@ -2677,7 +2675,7 @@ function cargoFormValues() {
     aircraft = document.getElementById('cgAcNew').value.trim().toUpperCase();
     if (aircraft && !getAllAircraft().includes(aircraft)) {
       S.customAircraft.push(aircraft);
-      saveCustomAircraft();
+      saveCustomAircraft(aircraft);
     }
   }
   const standby = document.getElementById('cgSbTgl').classList.contains('on');
@@ -2694,13 +2692,16 @@ function cargoFormValues() {
   };
 }
 
-// ── Cargo aircraft (optional, added by the team -- never preloaded) ──
+// ── Cargo aircraft (optional): the fleet below + any the team adds ──
+const CARGO_AIRCRAFT = ['C-FAJR', 'C-FAQR', 'C-FTJX', 'C-GBHO', 'C-GCJH', 'C-GJHX', 'C-GJRH', 'C-GQXD', 'C-GQXX', 'C-GTJF'];
 function getAllAircraft() {
   const used = S.cargo.map(c => c.aircraft).filter(Boolean);
-  return [...new Set([...S.customAircraft, ...used])].sort();
+  return [...new Set([...CARGO_AIRCRAFT, ...S.customAircraft, ...used])].sort();
 }
-function saveCustomAircraft() {
-  if (db) db.collection('appConfig').doc('cargoAircraft').set({ custom: S.customAircraft }, { merge: true })
+// Adds just the one new tail (arrayUnion), so a phone with a stale list
+// can't write back a tail someone else already removed.
+function saveCustomAircraft(tail) {
+  if (db && tail) db.collection('appConfig').doc('cargoAircraft').set({ custom: firebase.firestore.FieldValue.arrayUnion(tail) }, { merge: true })
     .catch(e => console.log('saveCustomAircraft failed:', e));
 }
 function loadCustomAircraft() {
@@ -2933,7 +2934,7 @@ function sbSetDay(d) {
   _sbp.calOpen = d === 'pick' && (!_sbp.pick || !_sbp.calOpen);
   renderStandbyPass(false);
 }
-function sbSetAc(i) { _sbp.ac = i < 0 ? '' : _sbp.acs[i]; renderStandbyPass(false); }
+function sbSetAc(i) { _sbp.ac = i < 0 ? '' : _sbp.acs[i]; }
 function renderStandbyPass(cleared) {
   const box = document.getElementById('sbPass');
   const c = _sbp && S.cargo.find(x => x.id === _sbp.id);
@@ -2963,10 +2964,10 @@ function renderStandbyPass(cleared) {
     </div>
     <div id="sbCal" style="display:${_sbp.calOpen ? '' : 'none'}"></div>
     <label>Aircraft <span style="color:var(--t4)">(optional)</span></label>
-    <div class="sb-acs">
-      <div class="${!_sbp.ac ? 'on' : ''}" onclick="sbSetAc(-1)">Not sure yet</div>
-      ${_sbp.acs.map((a, i) => `<div class="${a === _sbp.ac ? 'on' : ''}" onclick="sbSetAc(${i})">${e(a)}</div>`).join('')}
-    </div>
+    <select id="sbAc" onchange="sbSetAc(+this.value)" style="margin-bottom:4px">
+      <option value="-1" ${!_sbp.ac ? 'selected' : ''}>Not sure yet</option>
+      ${_sbp.acs.map((a, i) => `<option value="${i}" ${a === _sbp.ac ? 'selected' : ''}>${e(a)}</option>`).join('')}
+    </select>
     <div class="sb-acts ${cleared ? 'busy' : ''}"><div class="keep" onclick="closeModal()">Keep on standby</div><div class="go" onclick="confirmStandbySeat()">✈ Confirm seat</div></div>
     <div class="sb-links" style="${cleared ? 'opacity:.5;pointer-events:none' : ''}"><span onclick="sbGo('edit')">✏️ Edit details</span></div>`;
   if (_sbp.calOpen) cgCalMount('sbCal', _sbp.pick, { minIso: localDateISO(), onPick: d => { _sbp.pick = d; _sbp.calOpen = false; renderStandbyPass(false); } });
