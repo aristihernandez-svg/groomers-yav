@@ -880,15 +880,35 @@ body::before{
 /* Standby cargo: no ship date, goes when a plane has room. Blue + dashed so it never reads as late. */
 .cg-grp.standby{--c:#6FA8E8;--tx:#8FBBEE;--glow:rgba(111,168,232,.5)}
 .cg-grp.standby .cg-th:before{background:var(--bg);border:3px dashed #6FA8E8;box-shadow:0 0 0 5px var(--bg)}
-.cg-grp.standby .cg-item{border:1px dashed rgba(111,168,232,.45);background:rgba(111,168,232,.05)}
+/* Folds (starts folded); lines get more air and one solid blue edge so they're easy to tell apart */
+.cg-grp.standby .cg-th{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cg-sbfold{font-size:12px;color:var(--tx);transition:transform .2s;margin-left:2px}
+.cg-grp.standby.folded .cg-sbfold{transform:rotate(-90deg)}
+.cg-sblst{display:grid;gap:12px;padding:4px 0 8px}
+.cg-grp.standby.folded .cg-sblst{display:none}
+.cg-sbhint{display:none;font-size:11.5px;color:var(--t3);margin:-4px 0 10px;cursor:pointer}
+.cg-grp.standby.folded .cg-sbhint{display:block}
+.cg-tl .cg-grp.standby .cg-item{margin:0;border:1px solid var(--border2);border-left:3px solid #6FA8E8}
+.cg-grp.standby .cg-row{padding:14px 13px}
+.cg-grp.standby .cg-item.open{border-color:rgba(111,168,232,.45);border-left-color:#6FA8E8}
+.cg-grp.standby .cg-item.open .cg-chev{color:#8FBBEE}
+.cg-dbtn.cg-seat-btn{background:rgba(111,168,232,.14);border-color:#6FA8E8;color:#8FBBEE}
 .cg-icon.standby{background:rgba(111,168,232,.14)}
-.cg-sbtag{font-size:9.5px;font-weight:800;letter-spacing:.12em;color:#8FBBEE;border:1px solid rgba(111,168,232,.45);border-radius:6px;padding:2px 6px;flex-shrink:0}
 .cg-item.cg-moved{animation:cgMoved 1.4s ease 2}
 @keyframes cgMoved{0%{box-shadow:0 0 0 0 rgba(46,204,138,.7)}100%{box-shadow:0 0 0 14px rgba(46,204,138,0)}}
 .bd-grp.standby .bd-h{border-top:3px dashed #6FA8E8}
 .bd-grp.standby .bd-flap.bd-ttl{color:#A9CBF2}
 .bd-grp.standby .bd-rt b{background:#6FA8E8;color:#0B0907}
 .bd-grp.standby .bd-rt em{color:#8DB4E0}
+.bd-grp.standby .bd-h{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bd-sbfold{display:inline-block;margin-left:6px;font-size:13px;color:#8DB4E0;transition:transform .2s}
+.bd-grp.standby.folded .bd-sbfold{transform:rotate(-90deg)}
+.bd-grp.standby.folded .bd-sblst{display:none}
+.bd-grp.standby.folded .bd-h{border-radius:5px;border-bottom:none}
+.bd-grp.standby .bd-item{border-left:3px solid #6FA8E8;border-top:1px solid #23303f}
+.bd-sblst .bd-item:first-child{border-top:none}
+.bd-grp.standby .bd-row{padding:18px 16px}
+.bd-btn.bd-seat{border-color:#6FA8E8;color:#A9CBF2}
 /* Add/Edit form: standby switch + date trigger */
 .cg-sbtgl{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border2);background:var(--glass2);cursor:pointer;margin:6px 0 10px}
 .cg-sbtgl.on{border-color:rgba(111,168,232,.5);background:rgba(111,168,232,.12)}
@@ -2263,6 +2283,15 @@ function cargoSinceLabel(c) {
   return `${d.getDate()} ${mon[0]}${mon.slice(1).toLowerCase()}`;
 }
 
+// Standby group open/folded -- folded unless this phone left it open.
+function cargoSbFolded() { try { return localStorage.getItem('gyav_cargo_sb_open') !== '1'; } catch (e) { return true; } }
+function toggleCargoStandby() {
+  const folded = !cargoSbFolded();
+  try { localStorage.setItem('gyav_cargo_sb_open', folded ? '0' : '1'); } catch (e) {}
+  haptic();
+  document.querySelectorAll('.cg-grp.standby, .bd-grp.standby').forEach(g => g.classList.toggle('folded', folded));
+}
+
 function groupedCargo() {
   const pending = S.cargo.filter(c => !c.done && !c.standby).sort((a, b) => cargoParseDate(a.shipDate) - cargoParseDate(b.shipDate));
   const standby = S.cargo.filter(cargoIsStandby).sort((a, b) => (a.standbySince || a.createdAt || 0) - (b.standbySince || b.createdAt || 0));
@@ -2326,6 +2355,14 @@ function renderCargo(el) {
       const n = g.items.length;
       const sub = g.key === 'standby' ? 'If space allows'
         : (g.key === 'delivered' || g.key === 'later') ? `${n} piece${n === 1 ? '' : 's'}` : cargoDateLabel(g.items[0].shipDate);
+      if (g.key === 'standby') {
+        // Folds away (starts folded) so standby pieces don't crowd the dated ones.
+        html += `<div class="cg-grp standby ${cargoSbFolded() ? 'folded' : ''}">
+          <div class="cg-th" onclick="toggleCargoStandby()"><h3>${g.label}</h3><span class="cg-td">${sub}</span><span class="cg-tn">${n}</span><span class="cg-sbfold">▾</span></div>
+          <div class="cg-sbhint" onclick="toggleCargoStandby()">${n} piece${n === 1 ? '' : 's'} waiting for space · tap to show</div>
+          <div class="cg-sblst">${g.items.map(c => cargoRowHtml(c, g.cls)).join('')}</div></div>`;
+        return;
+      }
       html += `<div class="cg-grp ${g.cls}">
         <div class="cg-th"><h3>${g.label}</h3><span class="cg-td">${sub}</span><span class="cg-tn">${n}</span></div>`;
       g.items.forEach(c => { html += cargoRowHtml(c, g.cls); });
@@ -2399,6 +2436,12 @@ function cargoBoardHtml(groups) {
     const title = g.label.toUpperCase().split('').map(ch => ch === ' '
       ? '<span class="sp"></span>'
       : `<div class="bd-flap bd-ttl" data-ch="${ch}"><span>${ch}</span></div>`).join('');
+    if (g.key === 'standby') {
+      html += `<div class="bd-grp standby ${cargoSbFolded() ? 'folded' : ''}">
+        <div class="bd-h" onclick="toggleCargoStandby()"><div class="bd-tt">${title}</div><div class="bd-rt"><em>${sub}</em><b>${String(n).padStart(2, '0')}</b><span class="bd-sbfold">▾</span></div></div>
+        <div class="bd-sblst">${g.items.map(c => boardRowHtml(c, g.cls)).join('')}</div></div>`;
+      return;
+    }
     html += `<div class="bd-grp ${g.cls}">
       <div class="bd-h"><div class="bd-tt">${title}</div><div class="bd-rt"><em>${sub}</em><b>${String(n).padStart(2, '0')}</b></div></div>`;
     g.items.forEach(c => { html += boardRowHtml(c, g.cls); });
@@ -2414,7 +2457,7 @@ function boardRowHtml(c, grpCls) {
   const sub = [c.location, c.aircraft, sb ? `since ${cargoSinceLabel(c)}` : showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean).join(' · ');
   return `
     <div class="bd-item ${open ? 'open' : ''} ${c.done ? 'done' : ''}" data-id="${c.id}">
-      <div class="bd-row" onclick="${sb ? `openStandbyPass('${c.id}')` : `toggleCargoItem('${c.id}')`}">
+      <div class="bd-row" onclick="toggleCargoItem('${c.id}')">
         <div class="bd-who"><b>${c.client || '(no client name)'}</b><em>${sub}</em></div>
         ${bdTiles(c.destination)}
       </div>
@@ -2431,7 +2474,9 @@ function boardRowHtml(c, grpCls) {
           ${c.done
             ? `<div class="bd-btn" onclick="event.stopPropagation();reopenCargo('${c.id}')">↺ Reopen</div>`
             : `<div class="bd-btn" onclick="event.stopPropagation();markCargoDelivered('${c.id}')">✓ Delivered</div>`}
-          <div class="bd-btn" onclick="event.stopPropagation();editCargoPrompt('${c.id}')">Edit</div>
+          ${sb
+            ? `<div class="bd-btn bd-seat" onclick="event.stopPropagation();openStandbyPass('${c.id}')">✈ Edit</div>`
+            : `<div class="bd-btn" onclick="event.stopPropagation();editCargoPrompt('${c.id}')">Edit</div>`}
           <div class="bd-btn bd-del" onclick="event.stopPropagation();deleteCargoPrompt('${c.id}')">🗑</div>
         </div>
       </div></div>
@@ -2525,20 +2570,19 @@ function cargoRowHtml(c, barCls) {
   // instead. Overdue and Later can each span many different dates, so
   // those rows swap in the date to stay meaningful.
   const showDate = barCls === 'later' || barCls === 'overdue';
-  // Standby rows open the boarding pass instead of expanding.
+  // Standby rows expand like any other; their Edit opens the boarding pass.
   const sb = cargoIsStandby(c);
   const subParts = [c.location, c.aircraft, sb ? `waiting since ${cargoSinceLabel(c)}` : showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean);
   return `
     <div class="cg-item ${open ? 'open' : ''} ${c.done ? 'done' : ''} ${S.cargoMoved === c.id ? 'cg-moved' : ''}" data-id="${c.id}">
-      <div class="cg-row" onclick="${sb ? `openStandbyPass('${c.id}')` : `toggleCargoItem('${c.id}')`}">
+      <div class="cg-row" onclick="toggleCargoItem('${c.id}')">
         <div class="cg-icon ${c.done ? 'done' : barCls}">${c.done ? '✓' : '📦'}</div>
         <div class="cg-rmain">
           <div class="cg-client">${c.client || '(no client name)'}</div>
           <div class="cg-sub">${subParts.join(' · ')}</div>
         </div>
-        ${sb ? '<span class="cg-sbtag">STANDBY</span>' : ''}
         <div class="cg-destchip">${c.destination || '—'}</div>
-        ${sb ? '' : '<span class="cg-chev">▾</span>'}
+        <span class="cg-chev">▾</span>
       </div>
       <div class="cg-detail">
         <div class="cg-detail-in">
@@ -2548,13 +2592,16 @@ function cargoRowHtml(c, barCls) {
             <div class="cg-f"><label>Destination</label><div class="cg-v">${c.destination || '—'}</div></div>
             <div class="cg-f"><label># of Pieces</label><div class="cg-v">${c.pieces || '—'}</div></div>
             <div class="cg-f"><label>Weight</label><div class="cg-v">${c.weight || '—'}</div></div>
+            ${sb ? `<div class="cg-f"><label>Waiting since</label><div class="cg-v">${cargoSinceLabel(c)}</div></div>` : ''}
           </div>
           ${c.notes ? `<div class="cg-dnotes"><label>Notes</label><p>${c.notes}</p></div>` : ''}
           <div class="cg-dactions">
             ${c.done
               ? `<div class="cg-dbtn" onclick="event.stopPropagation();reopenCargo('${c.id}')">↺ Reopen</div>`
               : `<div class="cg-dbtn cg-done-btn" onclick="event.stopPropagation();markCargoDelivered('${c.id}')">✓ Mark Delivered</div>`}
-            <div class="cg-dbtn" onclick="event.stopPropagation();editCargoPrompt('${c.id}')">✏️ Edit</div>
+            ${sb
+              ? `<div class="cg-dbtn cg-seat-btn" onclick="event.stopPropagation();openStandbyPass('${c.id}')">✈ Edit</div>`
+              : `<div class="cg-dbtn" onclick="event.stopPropagation();editCargoPrompt('${c.id}')">✏️ Edit</div>`}
             <div class="cg-dbtn cg-del-btn" onclick="event.stopPropagation();deleteCargoPrompt('${c.id}')">🗑</div>
           </div>
         </div>
@@ -2921,7 +2968,7 @@ function renderStandbyPass(cleared) {
       ${_sbp.acs.map((a, i) => `<div class="${a === _sbp.ac ? 'on' : ''}" onclick="sbSetAc(${i})">${e(a)}</div>`).join('')}
     </div>
     <div class="sb-acts ${cleared ? 'busy' : ''}"><div class="keep" onclick="closeModal()">Keep on standby</div><div class="go" onclick="confirmStandbySeat()">✈ Confirm seat</div></div>
-    <div class="sb-links" style="${cleared ? 'opacity:.5;pointer-events:none' : ''}"><span onclick="sbGo('edit')">✏️ Edit details</span><span onclick="sbGo('done')">✓ Mark delivered</span><span onclick="sbGo('del')">🗑 Delete</span></div>`;
+    <div class="sb-links" style="${cleared ? 'opacity:.5;pointer-events:none' : ''}"><span onclick="sbGo('edit')">✏️ Edit details</span></div>`;
   if (_sbp.calOpen) cgCalMount('sbCal', _sbp.pick, { minIso: localDateISO(), onPick: d => { _sbp.pick = d; _sbp.calOpen = false; renderStandbyPass(false); } });
 }
 function confirmStandbySeat() {
