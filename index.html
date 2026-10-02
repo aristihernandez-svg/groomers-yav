@@ -1290,9 +1290,29 @@ body::before{
 <input type="file" id="photoInput" accept="image/*" style="display:none">
 
 <script>
+// ── STORAGE: YAV keeps its own keys ────────────────
+// YKF and YAV are both served from aristihernandez-svg.github.io, so they share
+// browser storage. YAV used to read/write YKF-named keys (gykf_*), which let YKF data
+// (e.g. day notes) flow into YAV's database on a phone that has both apps. Every key
+// here is now gyav_*. Once per phone, carry over only harmless preferences -- never
+// data caches, which reload from YAV's own database.
+(function migrateYavStorage(){
+  try {
+    if (localStorage.getItem('gyav_storage_v1')) return;
+    ['theme','dark','nav_order','tileOrder','auditTiles','cargo_design','cargo_sound','custom_aircraft',
+     'custom_cargo_locations','agroomer','pdfVersions','dmg_draft'].forEach(k => {
+      const v = localStorage.getItem('gykf_' + k);
+      if (v !== null && localStorage.getItem('gyav_' + k) === null) localStorage.setItem('gyav_' + k, v);
+    });
+    if (localStorage.getItem('app_pin_ok') === '1' && localStorage.getItem('gyav_app_pin_ok') === null) localStorage.setItem('gyav_app_pin_ok', '1');
+    localStorage.setItem('gyav_storage_v1', '1');
+  } catch (e) {}
+})();
 // ── CONFIG ────────────────────────────────────────────────────────
 const SHEET_ID    = '12vTTI_2UBH-yKDAdYL7k937EP1hCdJXFv8ml3nmsobQ';
-const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxR1D54W4UQrLXAnk0e2B8fCdf9TTzYI4qe4ijhsNDlOSESM1JExspP-0KBFsa9AmdTag/exec';
+// No Apps Script backend for YAV: the URL that was here is YKF's, so every task / Side Quest
+// tick in YAV was also being written into YKF's Google Sheet. 'BACKEND_URL_HERE' = off.
+const BACKEND_URL = 'BACKEND_URL_HERE';
 
 const DAYS      = ['☀ Sunday','1️⃣ Monday','2️⃣ Tuesday','3️⃣ Wednesday','4️⃣ Thursday','5️⃣ Friday','🗓 Saturday'];
 const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -1404,7 +1424,7 @@ function saveCustomStores() {
 }
 function loadCustomStores() {
   // Seed from localStorage immediately; setupLiveSync wires the Firestore listener
-  try { S.customStores = JSON.parse(localStorage.getItem('gykf_custom_stores') || '[]'); } catch(e) { S.customStores = []; }
+  try { S.customStores = JSON.parse(localStorage.getItem('gyav_custom_stores') || '[]'); } catch(e) { S.customStores = []; }
 }
 function storeSelectHtml(selectedStore='') {
   const stores = getAllStores();
@@ -1612,7 +1632,7 @@ const CAR_OIL_INFO = {
 // ── STATE ──────────────────────────────────────────────────────────
 const S = {
   tab:'home', dayView:TODAY, inDay:false,
-  theme: localStorage.getItem('gykf_theme') || 'premium',
+  theme: localStorage.getItem('gyav_theme') || 'premium',
   renderV: 0,
   pendingDmgPhoto: null, dmgKeyCtx: null,
   contactSearch: '', // stores damage photo from camera
@@ -1621,7 +1641,7 @@ const S = {
   shopSearch:'', shopView:'list', // 'list' or 'cart'
   mCtx:null, photoCtx:null,
   dmgReports:{}, // {procKey:[{text,photo,date}]}
-  dark: localStorage.getItem('gykf_dark')==='1',
+  dark: localStorage.getItem('gyav_dark')==='1',
   homeDesign: (()=>{ try { return localStorage.getItem('gyav_home_design') || 'classic'; } catch(e) { return 'classic'; } })(), // per-device home layout
   handoffNotes: [], // unresolved shift-handoff notes, shown as sticky notes
   calendarEvents: [], // {id,date,title,notes,repeat?,until?,skip?,type?} — see REPEATING EVENTS
@@ -1656,9 +1676,9 @@ const S = {
   acEditLabelsMode: false, // true when pencil icon is active on checklist screen
   acCustomAircraft: {metro:[], westwind:[]}, // user-added registrations per type
   acDisabled: {}, // {month:[reg,...]} — loaded from Firestore via loadAcDisabled()
-  acHidden: JSON.parse(localStorage.getItem('gykf_acHidden')||'[]'), // [reg,...] permanently hidden built-in aircraft
+  acHidden: JSON.parse(localStorage.getItem('gyav_acHidden')||'[]'), // [reg,...] permanently hidden built-in aircraft
   acVersionsView: false, // PDF version manager screen
-  customAcTypesList: JSON.parse(localStorage.getItem('gykf_customAcTypesList')||'[]'), // [{id,name,regs,checklist,pdfVersion}]
+  customAcTypesList: JSON.parse(localStorage.getItem('gyav_customAcTypesList')||'[]'), // [{id,name,regs,checklist,pdfVersion}]
   acCustomTypeView: null,  // id of custom type folder open
   crewHouseView: false,  // true = crew house checklist open
   crewHouseAudit: {},    // {date, inspector, items:{key:{score,comment}}, comments}
@@ -1677,8 +1697,8 @@ const S = {
   tasksSource: 'sheets', // 'sheets' | 'firestore' — controlled by appConfig/tasksSource
   cargo: [],             // outbound cargo pieces -- Firestore-only, no localStorage
   cargoOpen: new Set(),  // ids of cargo cards currently expanded, survives live-sync re-renders
-  cargoDesign: localStorage.getItem('gykf_cargo_design') === 'board' ? 'board' : 'classic', // per-phone display choice
-  cargoSound: localStorage.getItem('gykf_cargo_sound') !== '0', // flap clack sound, on unless muted
+  cargoDesign: localStorage.getItem('gyav_cargo_design') === 'board' ? 'board' : 'classic', // per-phone display choice
+  cargoSound: localStorage.getItem('gyav_cargo_sound') !== '0', // flap clack sound, on unless muted
   customCargoLocations: [], // user-added cargo locations, same pattern as customStores
   customAircraft: [],       // user-added aircraft tail numbers for cargo (on top of CARGO_AIRCRAFT)
 };
@@ -1728,7 +1748,7 @@ function pinKey(k) {
   err.textContent = '';
   if (_pinEntry.length === 4) {
     if (_pinEntry === PIN_CORRECT) {
-      localStorage.setItem('app_pin_ok', '1');
+      localStorage.setItem('gyav_app_pin_ok', '1');
       document.getElementById('pinGate').style.display = 'none';
       bootApp();
     } else {
@@ -1773,7 +1793,7 @@ function sopSecretTap(e) {
 }
 
 window.addEventListener('load', async () => {
-  if (localStorage.getItem('app_pin_ok') !== '1') {
+  if (localStorage.getItem('gyav_app_pin_ok') !== '1') {
     showPinGate();
     return;
   }
@@ -1783,7 +1803,7 @@ window.addEventListener('load', async () => {
 async function bootApp() {
   try {
     // Load saved theme
-    const savedTheme = localStorage.getItem('gykf_theme') || 'premium';
+    const savedTheme = localStorage.getItem('gyav_theme') || 'premium';
     S.theme = savedTheme;
     document.documentElement.setAttribute('data-theme', savedTheme==='premium'?'':savedTheme);
     // Default to premium dark if no saved theme
@@ -1905,7 +1925,7 @@ function goTab(id) {
 function setTheme(t) {
   S.theme=t;
   document.documentElement.setAttribute('data-theme', t==='premium'?'':t);
-  localStorage.setItem('gykf_theme',t);
+  localStorage.setItem('gyav_theme',t);
   updateThemeToggleBtn();
   if(S.tab==='home') renderHome(document.getElementById('content'));
 }
@@ -2403,13 +2423,13 @@ function closeCargoPicker() {
 function setCargoDesign(d) {
   S.cargoDesign = d;
   S.cargoPickerOpen = false;
-  try { localStorage.setItem('gykf_cargo_design', d); } catch (e) {}
+  try { localStorage.setItem('gyav_cargo_design', d); } catch (e) {}
   cargoUnlockAudio();
   renderCargo(document.getElementById('content'));
 }
 function toggleCargoSound() {
   S.cargoSound = !S.cargoSound;
-  try { localStorage.setItem('gykf_cargo_sound', S.cargoSound ? '1' : '0'); } catch (e) {}
+  try { localStorage.setItem('gyav_cargo_sound', S.cargoSound ? '1' : '0'); } catch (e) {}
   cargoUnlockAudio();
   renderCargoPicker(); // stays open, just flips the switch
   if (S.cargoSound) bdClack(true); // instant confirmation it's on
@@ -2705,7 +2725,7 @@ function saveCustomAircraft(tail) {
     .catch(e => console.log('saveCustomAircraft failed:', e));
 }
 function loadCustomAircraft() {
-  try { S.customAircraft = JSON.parse(localStorage.getItem('gykf_custom_aircraft') || '[]'); } catch (e) { S.customAircraft = []; }
+  try { S.customAircraft = JSON.parse(localStorage.getItem('gyav_custom_aircraft') || '[]'); } catch (e) { S.customAircraft = []; }
 }
 function cargoAcSelectHtml(selected = '') {
   return `<option value="">— None / ground —</option>
@@ -2739,7 +2759,7 @@ function saveCustomCargoLocations() {
     .catch(e => console.log('saveCustomCargoLocations failed:', e));
 }
 function loadCustomCargoLocations() {
-  try { S.customCargoLocations = JSON.parse(localStorage.getItem('gykf_custom_cargo_locations') || '[]'); } catch (e) { S.customCargoLocations = []; }
+  try { S.customCargoLocations = JSON.parse(localStorage.getItem('gyav_custom_cargo_locations') || '[]'); } catch (e) { S.customCargoLocations = []; }
 }
 function cargoLocSelectHtml(selected = '') {
   const locs = getAllCargoLocations();
@@ -3197,10 +3217,10 @@ async function fetchDay(tabName) {
 
 function _cacheTasksLocal(tabName) {
   try {
-    const cached = JSON.parse(localStorage.getItem('gykf_tasks')||'{}');
+    const cached = JSON.parse(localStorage.getItem('gyav_tasks')||'{}');
     cached[tabName] = S.tasks[tabName];
     cached._date = new Date().toDateString();
-    localStorage.setItem('gykf_tasks', JSON.stringify(cached));
+    localStorage.setItem('gyav_tasks', JSON.stringify(cached));
   } catch(e) {}
 }
 
@@ -3256,7 +3276,7 @@ async function fetchContacts() {
         );
         if (parsed.length > 2) {
           S.contacts = parsed;
-          localStorage.setItem('gykf_contacts', JSON.stringify(S.contacts));
+          localStorage.setItem('gyav_contacts', JSON.stringify(S.contacts));
           console.log('Contacts from backend:', S.contacts.length);
           return;
         }
@@ -3266,7 +3286,7 @@ async function fetchContacts() {
 
   // Try localStorage cache
   try {
-    const saved = localStorage.getItem('gykf_contacts');
+    const saved = localStorage.getItem('gyav_contacts');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.length > 2) { S.contacts = parsed; return; }
@@ -3324,17 +3344,17 @@ async function fetchBored() {
     // Only use fallback if sheet returned nothing at all
     if(S.bored.length===0) {
       console.log('Sheet returned 0 bored tasks — checking localStorage then fallback');
-      const saved=localStorage.getItem('gykf_bored');
+      const saved=localStorage.getItem('gyav_bored');
       if(saved) { try{ const parsed=JSON.parse(saved); if(parsed.length>0){S.bored=parsed;return;} }catch(e){} }
       loadBoredFallback();
     } else {
       // Sheet has data — save it to localStorage as cache
-      localStorage.setItem('gykf_bored',JSON.stringify(S.bored));
+      localStorage.setItem('gyav_bored',JSON.stringify(S.bored));
     }
   } catch(e){
     console.error('Bored fetch error:',e);
     // On error: try localStorage first, then hardcoded fallback
-    const saved=localStorage.getItem('gykf_bored');
+    const saved=localStorage.getItem('gyav_bored');
     if(saved) { try{ const parsed=JSON.parse(saved); if(parsed.length>0){S.bored=parsed;return;} }catch(err){} }
     loadBoredFallback();
   }
@@ -3342,7 +3362,7 @@ async function fetchBored() {
 
 function loadBoredFallback() {
   // Hardcoded from the sheet — same approach as contacts
-  const saved = localStorage.getItem('gykf_bored');
+  const saved = localStorage.getItem('gyav_bored');
   if(saved) { try{ S.bored=JSON.parse(saved); return; }catch(e){} }
   S.bored = [
     {id:1,task:"Deep clean groomers' corner shelving",done:false},
@@ -3550,7 +3570,7 @@ async function renderHome(el) {
 
   // Audit reminder popup — fires on 8th, 9th, 10th if audits are pending
   const _popDay = new Date().getDate();
-  const _popKey = 'gykf_auditPopup_' + localDateISO();
+  const _popKey = 'gyav_auditPopup_' + localDateISO();
   if([8,9,10].includes(_popDay) && !localStorage.getItem(_popKey)) {
     const _mRegs = [...AIRCRAFT_METRO,...(S.acCustomAircraft.metro||[])].filter(r=>!isAcDisabled(r)&&!isAcHidden(r));
     const _wRegs = [...AIRCRAFT_WESTWIND,...(S.acCustomAircraft.westwind||[])].filter(r=>!isAcDisabled(r)&&!isAcHidden(r));
@@ -4913,18 +4933,18 @@ function renderCart(el, items) {
 
 // ── PROCEDURES ─────────────────────────────────────────────────────
 function loadCrewCarStatus() {
-  try { S.crewCarStatus=JSON.parse(localStorage.getItem('gykf_ccs')||'{}'); } catch(e){ S.crewCarStatus={}; }
+  try { S.crewCarStatus=JSON.parse(localStorage.getItem('gyav_ccs')||'{}'); } catch(e){ S.crewCarStatus={}; }
 }
 function saveCrewCarStatus() {
-  try { localStorage.setItem('gykf_ccs',JSON.stringify(S.crewCarStatus)); } catch(e){}
+  try { localStorage.setItem('gyav_ccs',JSON.stringify(S.crewCarStatus)); } catch(e){}
 }
 
 // ── CREW CAR DATA ─────────────────────────────────────────────
 function loadCrewCarData() {
-  try { S.crewCarData=JSON.parse(localStorage.getItem('gykf_ccd')||'{}'); } catch(e){ S.crewCarData={}; }
+  try { S.crewCarData=JSON.parse(localStorage.getItem('gyav_ccd')||'{}'); } catch(e){ S.crewCarData={}; }
 }
 function saveCrewCarData() {
-  try { localStorage.setItem('gykf_ccd',JSON.stringify(S.crewCarData)); } catch(e){}
+  try { localStorage.setItem('gyav_ccd',JSON.stringify(S.crewCarData)); } catch(e){}
   if(db) {
     db.collection('crewCarData').doc('all').set(S.crewCarData, {merge:true})
       .catch(e=>console.log('crewCarData Firestore write failed:', e));
@@ -4979,8 +4999,8 @@ function auditDocKey(carKey) { return auditMonth()+'-'+carKey; }
 // and the Aug 5 2026 incident for why nothing here ever deletes a live doc again.
 function facilityDocKey(type) { return type + '-' + auditMonth(); }
 function loadCarAudits() {
-  try { S.monthlyCarAudits=JSON.parse(localStorage.getItem('gykf_caudits')||'{}'); } catch(e){ S.monthlyCarAudits={}; }
-  try { S.auditGroomer=localStorage.getItem('gykf_agroomer')||''; } catch(e){}
+  try { S.monthlyCarAudits=JSON.parse(localStorage.getItem('gyav_caudits')||'{}'); } catch(e){ S.monthlyCarAudits={}; }
+  try { S.auditGroomer=localStorage.getItem('gyav_agroomer')||''; } catch(e){}
   if(!db) return;
   // Individual per-car document listeners — same pattern as facility audits (crewhouse/hangar)
   // fires instantly on any write to that specific doc, not a collection query
@@ -4988,15 +5008,15 @@ function loadCarAudits() {
     const docKey=auditDocKey(car.key);
     db.collection('auditCars').doc(docKey).onSnapshot(doc=>{
       if(doc.exists) S.monthlyCarAudits[docKey]={...S.monthlyCarAudits[docKey],...doc.data()};
-      try { localStorage.setItem('gykf_caudits',JSON.stringify(S.monthlyCarAudits)); } catch(e){}
+      try { localStorage.setItem('gyav_caudits',JSON.stringify(S.monthlyCarAudits)); } catch(e){}
       updateAuditBadge();
       render();
     }, e=>console.log('loadCarAudits onSnapshot failed:',car.key,e));
   });
 }
 function saveCarAudit(carKey) {
-  try { localStorage.setItem('gykf_caudits',JSON.stringify(S.monthlyCarAudits)); } catch(e){}
-  try { localStorage.setItem('gykf_agroomer',S.auditGroomer); } catch(e){}
+  try { localStorage.setItem('gyav_caudits',JSON.stringify(S.monthlyCarAudits)); } catch(e){}
+  try { localStorage.setItem('gyav_agroomer',S.auditGroomer); } catch(e){}
   updateAuditBadge();
   if(!db) return;
   const month=auditMonth();
@@ -6109,7 +6129,7 @@ function auditSectionHTML(key) {
   <div id="auditSection_${key}" style="margin:16px 14px 0;border-top:1px solid var(--border);padding-top:16px">
     <div style="font-size:11px;font-weight:700;color:var(--t2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">📋 Monthly Audit — ${month}</div>
 
-    <input value="${S.auditGroomer||''}" placeholder="Your name (groomer)..." ${locked?'disabled':''} oninput="S.auditGroomer=this.value;localStorage.setItem('gykf_agroomer',this.value)"
+    <input value="${S.auditGroomer||''}" placeholder="Your name (groomer)..." ${locked?'disabled':''} oninput="S.auditGroomer=this.value;localStorage.setItem('gyav_agroomer',this.value)"
       style="width:100%;padding:9px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--glass2);font-size:13px;font-family:inherit;color:var(--t1);outline:none;margin-bottom:14px">
 
     <!-- Vehicle Inspection checklist -->
@@ -6467,7 +6487,7 @@ function deleteAuditMonth(month) {
     .then(()=>{
       S.pastAudits=S.pastAudits.filter(a=>a.month!==month);
       CREW_CARS.forEach(c=>{ delete S.monthlyCarAudits[month+'-'+c.key]; });
-      try { localStorage.setItem('gykf_caudits',JSON.stringify(S.monthlyCarAudits)); } catch(e){}
+      try { localStorage.setItem('gyav_caudits',JSON.stringify(S.monthlyCarAudits)); } catch(e){}
       S.crewCarsView='list'; S.pastAuditView=null;
       render(); toast('🗑 Audit deleted');
     })
@@ -6482,7 +6502,7 @@ function deleteCarAudit(month, carKey) {
   db.collection('auditCars').doc(month+'-'+carKey).delete()
     .then(()=>{
       delete S.monthlyCarAudits[month+'-'+carKey];
-      try { localStorage.setItem('gykf_caudits',JSON.stringify(S.monthlyCarAudits)); } catch(e){}
+      try { localStorage.setItem('gyav_caudits',JSON.stringify(S.monthlyCarAudits)); } catch(e){}
       render(); toast('🗑 '+car?.name+' audit deleted');
     })
     .catch(e=>{ console.log('deleteCarAudit failed:',e); toast('Delete failed'); });
@@ -7560,19 +7580,19 @@ function chData() {
 }
 
 function loadCrewHouseAudit() {
-  try { S.crewHouseAudit = JSON.parse(localStorage.getItem('gykf_crewhouse')||'{}'); } catch(e){}
+  try { S.crewHouseAudit = JSON.parse(localStorage.getItem('gyav_crewhouse')||'{}'); } catch(e){}
   if(!S.crewHouseAudit.items) S.crewHouseAudit.items={};
   if(!db) return;
   db.collection('facilityAudits').doc(facilityDocKey('crewhouse')).onSnapshot(doc=>{
     if(doc.exists){ S.crewHouseAudit=doc.data(); if(!S.crewHouseAudit.items) S.crewHouseAudit.items={}; }
     else { S.crewHouseAudit={items:{}}; }
-    try { localStorage.setItem('gykf_crewhouse', JSON.stringify(S.crewHouseAudit)); } catch(e){}
+    try { localStorage.setItem('gyav_crewhouse', JSON.stringify(S.crewHouseAudit)); } catch(e){}
     render();
   }, e=>console.error('crewhouse onSnapshot error:', e));
 }
 
 function saveCrewHouseAudit() {
-  try { localStorage.setItem('gykf_crewhouse', JSON.stringify(S.crewHouseAudit)); } catch(e){}
+  try { localStorage.setItem('gyav_crewhouse', JSON.stringify(S.crewHouseAudit)); } catch(e){}
   if(db) db.collection('facilityAudits').doc(facilityDocKey('crewhouse')).set(S.crewHouseAudit,{merge:true}).catch(()=>{});
 }
 
@@ -8114,7 +8134,7 @@ function resetCrewHouseAudit() {
   if(!confirm('Reset this month\'s Crew House audit fields? This clears all scores, comments, and the inspector name on every device. Only affects this month — past months are untouched.')) return;
   S.crewHouseAudit = {items:{}};
   _chExpandedComments.clear();
-  try { localStorage.removeItem('gykf_crewhouse'); } catch(e){}
+  try { localStorage.removeItem('gyav_crewhouse'); } catch(e){}
   if(db) db.collection('facilityAudits').doc(facilityDocKey('crewhouse')).delete().catch(()=>{});
   render();
   toast('Crew House audit reset ✓');
@@ -8206,19 +8226,19 @@ function hoData() {
 }
 
 function loadHangarAudit() {
-  try { S.hangarAudit = JSON.parse(localStorage.getItem('gykf_hangar')||'{}'); } catch(e){}
+  try { S.hangarAudit = JSON.parse(localStorage.getItem('gyav_hangar')||'{}'); } catch(e){}
   if(!S.hangarAudit.items) S.hangarAudit.items={};
   if(!db) return;
   db.collection('facilityAudits').doc(facilityDocKey('hangar')).onSnapshot(doc=>{
     if(doc.exists){ S.hangarAudit=doc.data(); if(!S.hangarAudit.items) S.hangarAudit.items={}; }
     else { S.hangarAudit={items:{}}; }
-    try { localStorage.setItem('gykf_hangar', JSON.stringify(S.hangarAudit)); } catch(e){}
+    try { localStorage.setItem('gyav_hangar', JSON.stringify(S.hangarAudit)); } catch(e){}
     render();
   }, e=>console.error('hangar onSnapshot error:', e));
 }
 
 function saveHangarAudit() {
-  try { localStorage.setItem('gykf_hangar', JSON.stringify(S.hangarAudit)); } catch(e){}
+  try { localStorage.setItem('gyav_hangar', JSON.stringify(S.hangarAudit)); } catch(e){}
   if(db) db.collection('facilityAudits').doc(facilityDocKey('hangar')).set(S.hangarAudit,{merge:true}).catch(()=>{});
 }
 
@@ -8442,7 +8462,7 @@ function resetHangarAudit() {
   if(!confirm('Reset this month\'s Hangar & Office audit fields? This clears all scores, comments, and the inspector name on every device. Only affects this month — past months are untouched.')) return;
   S.hangarAudit = {items:{}};
   _hoExpandedComments.clear();
-  try { localStorage.removeItem('gykf_hangar'); } catch(e){}
+  try { localStorage.removeItem('gyav_hangar'); } catch(e){}
   if(db) db.collection('facilityAudits').doc(facilityDocKey('hangar')).delete().catch(()=>{});
   render();
   toast('Hangar & Office audit reset ✓');
@@ -8675,19 +8695,19 @@ function plData() {
 }
 
 function loadParkingAudit() {
-  try { S.parkingAudit = JSON.parse(localStorage.getItem('gykf_parking')||'{}'); } catch(e){}
+  try { S.parkingAudit = JSON.parse(localStorage.getItem('gyav_parking')||'{}'); } catch(e){}
   if(!S.parkingAudit.items) S.parkingAudit.items={};
   if(!db) return;
   db.collection('facilityAudits').doc(facilityDocKey('parking')).onSnapshot(doc=>{
     if(doc.exists){ S.parkingAudit=doc.data(); if(!S.parkingAudit.items) S.parkingAudit.items={}; }
     else { S.parkingAudit={items:{}}; }
-    try { localStorage.setItem('gykf_parking', JSON.stringify(S.parkingAudit)); } catch(e){}
+    try { localStorage.setItem('gyav_parking', JSON.stringify(S.parkingAudit)); } catch(e){}
     render();
   }, e=>console.error('parking onSnapshot error:', e));
 }
 
 function saveParkingAudit() {
-  try { localStorage.setItem('gykf_parking', JSON.stringify(S.parkingAudit)); } catch(e){}
+  try { localStorage.setItem('gyav_parking', JSON.stringify(S.parkingAudit)); } catch(e){}
   if(db) db.collection('facilityAudits').doc(facilityDocKey('parking')).set(S.parkingAudit,{merge:true}).catch(()=>{});
 }
 
@@ -8888,7 +8908,7 @@ function resetParkingAudit() {
   if(!confirm('Reset this month\'s Parking Lot audit fields? This clears all scores, comments, and the inspector name on every device. Only affects this month — past months are untouched.')) return;
   S.parkingAudit={items:{}};
   _plExpandedComments.clear();
-  try{localStorage.removeItem('gykf_parking');}catch(e){}
+  try{localStorage.removeItem('gyav_parking');}catch(e){}
   if(db) db.collection('facilityAudits').doc(facilityDocKey('parking')).delete().catch(()=>{});
   render();
   toast('Parking Lot audit reset ✓');
@@ -9029,19 +9049,19 @@ function ykfData() {
 }
 
 function loadYkfBaseAudit() {
-  try { S.ykfBaseAudit = JSON.parse(localStorage.getItem('gykf_ykfbase')||'{}'); } catch(e){}
+  try { S.ykfBaseAudit = JSON.parse(localStorage.getItem('gyav_ykfbase')||'{}'); } catch(e){}
   if(!S.ykfBaseAudit.items) S.ykfBaseAudit.items={};
   if(!db) return;
   db.collection('facilityAudits').doc(facilityDocKey('ykfbase')).onSnapshot(doc=>{
     if(doc.exists){ S.ykfBaseAudit=doc.data(); if(!S.ykfBaseAudit.items) S.ykfBaseAudit.items={}; }
     else { S.ykfBaseAudit={items:{}}; }
-    try { localStorage.setItem('gykf_ykfbase', JSON.stringify(S.ykfBaseAudit)); } catch(e){}
+    try { localStorage.setItem('gyav_ykfbase', JSON.stringify(S.ykfBaseAudit)); } catch(e){}
     render();
   }, e=>console.error('ykfbase onSnapshot error:', e));
 }
 
 function saveYkfBaseAudit() {
-  try { localStorage.setItem('gykf_ykfbase', JSON.stringify(S.ykfBaseAudit)); } catch(e){}
+  try { localStorage.setItem('gyav_ykfbase', JSON.stringify(S.ykfBaseAudit)); } catch(e){}
   if(db) db.collection('facilityAudits').doc(facilityDocKey('ykfbase')).set(S.ykfBaseAudit,{merge:true}).catch(()=>{});
 }
 
@@ -9260,7 +9280,7 @@ function generateYkfBasePDF(silent) {
 function resetYkfBaseAudit() {
   if(!confirm('Reset this month\'s YKF Base audit fields? This clears everything on every device. Only affects this month — past months are untouched.')) return;
   S.ykfBaseAudit={items:{}};
-  try{localStorage.removeItem('gykf_ykfbase');}catch(e){}
+  try{localStorage.removeItem('gyav_ykfbase');}catch(e){}
   if(db) db.collection('facilityAudits').doc(facilityDocKey('ykfbase')).delete().catch(()=>{});
   render();
   toast('YKF Base audit reset ✓');
@@ -9475,19 +9495,19 @@ function msData() {
 }
 
 function loadMsdsAudit() {
-  try { S.msdsAudit = JSON.parse(localStorage.getItem('gykf_msds')||'{}'); } catch(e){}
+  try { S.msdsAudit = JSON.parse(localStorage.getItem('gyav_msds')||'{}'); } catch(e){}
   if(!S.msdsAudit.items) S.msdsAudit.items={};
   if(!db) return;
   db.collection('facilityAudits').doc(facilityDocKey('msds')).onSnapshot(doc=>{
     if(doc.exists){ S.msdsAudit=doc.data(); if(!S.msdsAudit.items) S.msdsAudit.items={}; }
     else { S.msdsAudit={items:{}}; }
-    try { localStorage.setItem('gykf_msds', JSON.stringify(S.msdsAudit)); } catch(e){}
+    try { localStorage.setItem('gyav_msds', JSON.stringify(S.msdsAudit)); } catch(e){}
     render();
   }, e=>console.error('msds onSnapshot error:', e));
 }
 
 function saveMsdsAudit() {
-  try { localStorage.setItem('gykf_msds', JSON.stringify(S.msdsAudit)); } catch(e){}
+  try { localStorage.setItem('gyav_msds', JSON.stringify(S.msdsAudit)); } catch(e){}
   if(db) db.collection('facilityAudits').doc(facilityDocKey('msds')).set(S.msdsAudit,{merge:true}).catch(()=>{});
 }
 
@@ -9695,7 +9715,7 @@ function generateMsdsPDF(silent) {
 function resetMsdsAudit() {
   if(!confirm('Reset this month\'s MSDS audit fields? This clears all checkmarks and the auditor name on every device. Only affects this month — past months are untouched.')) return;
   S.msdsAudit = {items:{}};
-  try { localStorage.removeItem('gykf_msds'); } catch(e){}
+  try { localStorage.removeItem('gyav_msds'); } catch(e){}
   if(db) db.collection('facilityAudits').doc(facilityDocKey('msds')).delete().catch(()=>{});
   render();
   toast('MSDS audit reset ✓');
@@ -9727,12 +9747,12 @@ function resetAllAcAudits() {
     delete S.acAudits[key];
     if(db) db.collection('auditAircraft').doc(key).delete().catch(()=>{});
   });
-  try { localStorage.setItem('gykf_acaudits', JSON.stringify(S.acAudits)); } catch(e){}
+  try { localStorage.setItem('gyav_acaudits', JSON.stringify(S.acAudits)); } catch(e){}
 
   // Monthly car photo audits (photos, done status per car) — NOT crew car vehicle data.
   // Only this month's docs (auditDocKey embeds the month) — past months are untouched.
   CREW_CARS.forEach(c => { delete S.monthlyCarAudits[auditDocKey(c.key)]; });
-  try { localStorage.setItem('gykf_caudits', JSON.stringify(S.monthlyCarAudits)); } catch(e){}
+  try { localStorage.setItem('gyav_caudits', JSON.stringify(S.monthlyCarAudits)); } catch(e){}
   if(db) CREW_CARS.forEach(c => db.collection('auditCars').doc(auditDocKey(c.key)).delete().catch(()=>{}));
 
   // Facility audits — only this month's docs; past months are untouched
@@ -9741,11 +9761,11 @@ function resetAllAcAudits() {
   S.msdsAudit      = {items:{}};
   S.parkingAudit   = {items:{}};
   S.ykfBaseAudit   = {items:{}};
-  ['gykf_crewhouse','gykf_hangar','gykf_msds','gykf_parking','gykf_ykfbase'].forEach(k=>{ try{localStorage.removeItem(k);}catch(e){} });
+  ['gyav_crewhouse','gyav_hangar','gyav_msds','gyav_parking','gyav_ykfbase'].forEach(k=>{ try{localStorage.removeItem(k);}catch(e){} });
   if(db) ['crewhouse','hangar','msds','parking','ykfbase'].forEach(doc=>db.collection('facilityAudits').doc(facilityDocKey(doc)).delete().catch(()=>{}));
 
   render();
-  localStorage.setItem('gykf_audit_reset_ts', Date.now().toString());
+  localStorage.setItem('gyav_audit_reset_ts', Date.now().toString());
   toast('All audits reset ✓');
 }
 
@@ -9834,18 +9854,18 @@ function acIsComplete(reg, type) {
 }
 
 function saveCustomAcTypesList() {
-  try { localStorage.setItem('gykf_customAcTypesList', JSON.stringify(S.customAcTypesList)); } catch(e){}
+  try { localStorage.setItem('gyav_customAcTypesList', JSON.stringify(S.customAcTypesList)); } catch(e){}
 }
 
 function loadAcCustomAircraft() {
-  try { S.acCustomAircraft = JSON.parse(localStorage.getItem('gykf_accustom')||'{"metro":[],"westwind":[]}'); } catch(e){ S.acCustomAircraft={metro:[],westwind:[]}; }
+  try { S.acCustomAircraft = JSON.parse(localStorage.getItem('gyav_accustom')||'{"metro":[],"westwind":[]}'); } catch(e){ S.acCustomAircraft={metro:[],westwind:[]}; }
   if(!db) return;
   db.collection('appConfig').doc('acCustomAircraft').get()
-    .then(snap=>{ if(snap.exists){ S.acCustomAircraft={metro:[],westwind:[],...snap.data()}; try{localStorage.setItem('gykf_accustom',JSON.stringify(S.acCustomAircraft));}catch(e){} render(); }})
+    .then(snap=>{ if(snap.exists){ S.acCustomAircraft={metro:[],westwind:[],...snap.data()}; try{localStorage.setItem('gyav_accustom',JSON.stringify(S.acCustomAircraft));}catch(e){} render(); }})
     .catch(()=>{});
 }
 function saveAcCustomAircraft() {
-  try { localStorage.setItem('gykf_accustom', JSON.stringify(S.acCustomAircraft)); } catch(e){}
+  try { localStorage.setItem('gyav_accustom', JSON.stringify(S.acCustomAircraft)); } catch(e){}
   if(db) db.collection('appConfig').doc('acCustomAircraft').set(S.acCustomAircraft,{merge:true}).catch(()=>{});
 }
 function openAddAircraftModal(type) {
@@ -9946,11 +9966,11 @@ function carAuditCancelPress() {
 }
 
 function loadCarDisabled() {
-  try { S.carDisabled = JSON.parse(localStorage.getItem('gykf_carDisabled')||'{}'); } catch(e){}
+  try { S.carDisabled = JSON.parse(localStorage.getItem('gyav_carDisabled')||'{}'); } catch(e){}
   if(!db) return;
   db.collection('carsState').doc('disabled').onSnapshot(doc=>{
     if(doc.exists) S.carDisabled = doc.data().data || {};
-    try{localStorage.setItem('gykf_carDisabled',JSON.stringify(S.carDisabled));}catch(e){}
+    try{localStorage.setItem('gyav_carDisabled',JSON.stringify(S.carDisabled));}catch(e){}
     render();
   }, e=>console.error('carDisabled onSnapshot error:', e));
 }
@@ -9962,13 +9982,13 @@ function toggleCarDisabled(key) {
   if(!S.carDisabled[m]) S.carDisabled[m]=[];
   const i = S.carDisabled[m].indexOf(key);
   if(i>=0) S.carDisabled[m].splice(i,1); else S.carDisabled[m].push(key);
-  try{localStorage.setItem('gykf_carDisabled',JSON.stringify(S.carDisabled));}catch(e){}
+  try{localStorage.setItem('gyav_carDisabled',JSON.stringify(S.carDisabled));}catch(e){}
   if(db) db.collection('carsState').doc('disabled').set({data:S.carDisabled}).catch(()=>{});
   closeModal(); render();
 }
 
 function loadAcAudits() {
-  try { S.acAudits = JSON.parse(localStorage.getItem('gykf_acaudits')||'{}'); } catch(e){ S.acAudits={}; }
+  try { S.acAudits = JSON.parse(localStorage.getItem('gyav_acaudits')||'{}'); } catch(e){ S.acAudits={}; }
   // Firestore listener is wired by setupLiveSync — no duplicate listener here
 }
 function refreshAcAudits() {
@@ -9976,13 +9996,13 @@ function refreshAcAudits() {
   const month = acAuditMonthKey();
   db.collection('auditAircraft').where('month','==',month).get().then(snap=>{
     snap.docs.forEach(d=>{ S.acAudits[d.id] = {...(S.acAudits[d.id]||{}), ...d.data()}; });
-    try { localStorage.setItem('gykf_acaudits', JSON.stringify(S.acAudits)); } catch(e){}
+    try { localStorage.setItem('gyav_acaudits', JSON.stringify(S.acAudits)); } catch(e){}
     render();
   }).catch(e=>console.log('refreshAcAudits failed:',e));
 }
 
 function saveAcAudit(reg) {
-  try { localStorage.setItem('gykf_acaudits', JSON.stringify(S.acAudits)); } catch(e){}
+  try { localStorage.setItem('gyav_acaudits', JSON.stringify(S.acAudits)); } catch(e){}
   if(!db) return;
   const month = acAuditMonthKey();
   const type = S.acAuditType || (AIRCRAFT_WESTWIND.includes(reg)?'westwind':'metro');
@@ -10003,11 +10023,11 @@ function saveAcAuditDebounced(reg) {
 }
 
 function loadAcDisabled() {
-  try { S.acDisabled = JSON.parse(localStorage.getItem('gykf_acDisabled')||'{}'); } catch(e){}
+  try { S.acDisabled = JSON.parse(localStorage.getItem('gyav_acDisabled')||'{}'); } catch(e){}
   if(!db) return;
   db.collection('acState').doc('disabled').onSnapshot(doc=>{
     if(doc.exists) S.acDisabled = doc.data().data || {};
-    try{localStorage.setItem('gykf_acDisabled',JSON.stringify(S.acDisabled));}catch(e){}
+    try{localStorage.setItem('gyav_acDisabled',JSON.stringify(S.acDisabled));}catch(e){}
     render();
   }, e=>console.error('acDisabled onSnapshot error:', e));
 }
@@ -10019,17 +10039,17 @@ function toggleAcDisabled(reg) {
   if(!S.acDisabled[m]) S.acDisabled[m]=[];
   const i = S.acDisabled[m].indexOf(reg);
   if(i>=0) S.acDisabled[m].splice(i,1); else S.acDisabled[m].push(reg);
-  try{localStorage.setItem('gykf_acDisabled',JSON.stringify(S.acDisabled));}catch(e){}
+  try{localStorage.setItem('gyav_acDisabled',JSON.stringify(S.acDisabled));}catch(e){}
   if(db) db.collection('acState').doc('disabled').set({data:S.acDisabled}).catch(()=>{});
   render();
 }
 
 function loadAcHidden() {
-  try { S.acHidden = JSON.parse(localStorage.getItem('gykf_acHidden')||'[]'); } catch(e){}
+  try { S.acHidden = JSON.parse(localStorage.getItem('gyav_acHidden')||'[]'); } catch(e){}
   if(!db) return;
   db.collection('acState').doc('hidden').onSnapshot(doc=>{
     if(doc.exists) S.acHidden = doc.data().regs || [];
-    try{localStorage.setItem('gykf_acHidden',JSON.stringify(S.acHidden));}catch(e){}
+    try{localStorage.setItem('gyav_acHidden',JSON.stringify(S.acHidden));}catch(e){}
     render();
   }, e=>console.error('acHidden onSnapshot error:', e));
 }
@@ -10041,7 +10061,7 @@ function toggleAcHidden(reg) {
   const i = arr.indexOf(reg);
   if(i>=0) arr.splice(i,1); else arr.push(reg);
   S.acHidden = arr;
-  try{localStorage.setItem('gykf_acHidden',JSON.stringify(arr));}catch(e){}
+  try{localStorage.setItem('gyav_acHidden',JSON.stringify(arr));}catch(e){}
   if(db) db.collection('acState').doc('hidden').set({regs:arr}).catch(()=>{});
   closeModal();
   render();
@@ -10049,10 +10069,10 @@ function toggleAcHidden(reg) {
 }
 
 function getPdfVersion(type) {
-  try{const all=JSON.parse(localStorage.getItem('gykf_pdfVersions')||'{}');return all[type]||null;}catch(e){return null;}
+  try{const all=JSON.parse(localStorage.getItem('gyav_pdfVersions')||'{}');return all[type]||null;}catch(e){return null;}
 }
 function savePdfVersion(type,data) {
-  try{const all=JSON.parse(localStorage.getItem('gykf_pdfVersions')||'{}');all[type]=data;localStorage.setItem('gykf_pdfVersions',JSON.stringify(all));}catch(e){}
+  try{const all=JSON.parse(localStorage.getItem('gyav_pdfVersions')||'{}');all[type]=data;localStorage.setItem('gyav_pdfVersions',JSON.stringify(all));}catch(e){}
 }
 const PDF_VERSION_DEFAULTS = {
   westwind:{version:'8.0', date:'September 23, 2025', form:'03-8'},
@@ -10280,11 +10300,11 @@ function getAcLabel(type, key) {
 }
 
 function loadAcAuditLabels() {
-  try { S.acAuditLabels = JSON.parse(localStorage.getItem('gykf_aclabels')||'{}'); } catch(e){}
+  try { S.acAuditLabels = JSON.parse(localStorage.getItem('gyav_aclabels')||'{}'); } catch(e){}
   if(!db) return;
   db.collection('auditLabels').get().then(snap=>{
     snap.forEach(doc=>{ S.acAuditLabels[doc.id] = doc.data(); });
-    try { localStorage.setItem('gykf_aclabels', JSON.stringify(S.acAuditLabels)); } catch(e){}
+    try { localStorage.setItem('gyav_aclabels', JSON.stringify(S.acAuditLabels)); } catch(e){}
   }).catch(()=>{});
 }
 
@@ -10292,7 +10312,7 @@ function saveAcAuditLabel(type, key, field, value) {
   if(!S.acAuditLabels[type]) S.acAuditLabels[type]={};
   if(!S.acAuditLabels[type][key]) S.acAuditLabels[type][key]={};
   S.acAuditLabels[type][key][field]=value;
-  try { localStorage.setItem('gykf_aclabels', JSON.stringify(S.acAuditLabels)); } catch(e){}
+  try { localStorage.setItem('gyav_aclabels', JSON.stringify(S.acAuditLabels)); } catch(e){}
   if(db) db.collection('auditLabels').doc(type).set(S.acAuditLabels[type],{merge:true}).catch(()=>{});
 }
 
@@ -10998,7 +11018,7 @@ let _dragOffX    = 0, _dragOffY = 0;
 
 function getOrderedHomeTiles(base) {
   try {
-    const saved = JSON.parse(localStorage.getItem('gykf_tileOrder')||'null');
+    const saved = JSON.parse(localStorage.getItem('gyav_tileOrder')||'null');
     if(Array.isArray(saved)) {
       const map = Object.fromEntries(base.map(t=>[t.id,t]));
       const ordered = saved.filter(id=>map[id]).map(id=>map[id]);
@@ -11009,7 +11029,7 @@ function getOrderedHomeTiles(base) {
   return [...base];
 }
 function saveTileOrder() {
-  try { localStorage.setItem('gykf_tileOrder', JSON.stringify(_tileOrder.map(t=>t.id))); } catch(e) {}
+  try { localStorage.setItem('gyav_tileOrder', JSON.stringify(_tileOrder.map(t=>t.id))); } catch(e) {}
 }
 function enterTileEditMode() {
   if(_tileEditMode) return;
@@ -11105,11 +11125,11 @@ function _tileDragEnd(e) {
 }
 
 function saveAuditTilesLocal() {
-  try { localStorage.setItem('gykf_auditTiles', JSON.stringify(S.auditTiles)); } catch(e) {}
+  try { localStorage.setItem('gyav_auditTiles', JSON.stringify(S.auditTiles)); } catch(e) {}
 }
 function loadAuditTilesLocal() {
   try {
-    const raw=localStorage.getItem('gykf_auditTiles');
+    const raw=localStorage.getItem('gyav_auditTiles');
     if(raw) S.auditTiles=JSON.parse(raw);
   } catch(e) {}
 }
@@ -11634,7 +11654,7 @@ function toggleBored(id) {
   S.bored[idx].done=!S.bored[idx].done;
   haptic(); api({action:'toggleBored',task:S.bored[idx].task});
   fsSetBoredDone(S.bored[idx].task, S.bored[idx].done);
-  localStorage.setItem('gykf_bored',JSON.stringify(S.bored));
+  localStorage.setItem('gyav_bored',JSON.stringify(S.bored));
   renderBored(document.getElementById('content'));
   toast(S.bored[idx].done?'✓ Done!':'Unchecked');
 }
@@ -11728,11 +11748,11 @@ function hideTaskToday(tabName,idx) {
     db.collection('taskState').doc(tabName).set(patch,{merge:true}).catch(()=>{});
   }
   try {
-    const ls=JSON.parse(localStorage.getItem('gykf_taskstate')||'{}');
+    const ls=JSON.parse(localStorage.getItem('gyav_taskstate')||'{}');
     ls[tabName]=ls[tabName]||{};
     ls[tabName][fsKey(t.task)+'_hidden']=true;
     ls[tabName]._date=new Date().toDateString();
-    localStorage.setItem('gykf_taskstate',JSON.stringify(ls));
+    localStorage.setItem('gyav_taskstate',JSON.stringify(ls));
   } catch(_) {}
   render(); toast('Hidden for today');
 }
@@ -12043,7 +12063,7 @@ function openDmgReport(key) {
         const tailNumber = _collectDmgTails();
         if(!text && !photo){toast('Add a description or photo first');return;}
         S.pendingDmgPhoto = null; S.dmgKeyCtx=null; // clear after use
-        localStorage.removeItem('gykf_dmg_draft');
+        localStorage.removeItem('gyav_dmg_draft');
         if(!S.dmgReports[key]) S.dmgReports[key]=[];
         const date=new Date().toLocaleDateString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
         const report = {text:text||'(no description)',photo,date,tailNumber};
@@ -12079,23 +12099,23 @@ function saveDmgDraft() {
   if(!S.dmgKeyCtx) return;
   const textEl=document.getElementById('dmgText');
   const draft={procKey:S.dmgKeyCtx,text:textEl?textEl.value:'',photo:S.pendingDmgPhoto||''};
-  if(!draft.text && !draft.photo) { localStorage.removeItem('gykf_dmg_draft'); return; }
-  try { localStorage.setItem('gykf_dmg_draft', JSON.stringify(draft)); }
+  if(!draft.text && !draft.photo) { localStorage.removeItem('gyav_dmg_draft'); return; }
+  try { localStorage.setItem('gyav_dmg_draft', JSON.stringify(draft)); }
   catch(e) { console.log('saveDmgDraft quota error (non-fatal, draft just won\'t survive a reload):', e); }
 }
 function recoverDmgDraft() {
   try {
-    const raw=localStorage.getItem('gykf_dmg_draft');
+    const raw=localStorage.getItem('gyav_dmg_draft');
     if(!raw) return;
     const draft=JSON.parse(raw);
-    if(!draft || !draft.photo || !draft.procKey) { localStorage.removeItem('gykf_dmg_draft'); return; }
+    if(!draft || !draft.photo || !draft.procKey) { localStorage.removeItem('gyav_dmg_draft'); return; }
     if(!S.dmgReports[draft.procKey]) S.dmgReports[draft.procKey]=[];
     const date=new Date().toLocaleDateString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
     S.dmgReports[draft.procKey].push({text:draft.text||'(recovered photo)',photo:draft.photo,date});
     saveDmg();
-    localStorage.removeItem('gykf_dmg_draft');
+    localStorage.removeItem('gyav_dmg_draft');
     toast('📸 Recovered a damage photo that didn\'t finish saving');
-  } catch(e) { localStorage.removeItem('gykf_dmg_draft'); }
+  } catch(e) { localStorage.removeItem('gyav_dmg_draft'); }
 }
 
 // ── PHOTO HANDLING ─────────────────────────────────────────────────
@@ -12272,7 +12292,7 @@ function openModal(title,fields,onSave) {
   document.getElementById('overlay').classList.add('open');
   setTimeout(()=>document.querySelector('#mFields input,#mFields textarea')?.focus(),100);
 }
-function closeModal() { document.getElementById('overlay').classList.remove('open'); S.mCtx=null; S.pendingPhoto=null; const ms=document.getElementById('mSave'); ms.textContent='Save'; ms.disabled=false; ms.style.display=''; document.getElementById('mBtnRow').style.display=''; if(S.dmgKeyCtx){S.dmgKeyCtx=null; S.pendingDmgPhoto=null; localStorage.removeItem('gykf_dmg_draft');} }
+function closeModal() { document.getElementById('overlay').classList.remove('open'); S.mCtx=null; S.pendingPhoto=null; const ms=document.getElementById('mSave'); ms.textContent='Save'; ms.disabled=false; ms.style.display=''; document.getElementById('mBtnRow').style.display=''; if(S.dmgKeyCtx){S.dmgKeyCtx=null; S.pendingDmgPhoto=null; localStorage.removeItem('gyav_dmg_draft');} }
 function mSubmit() { S.mCtx?.(); }
 
 function fuzzyDistance(a, b) {
@@ -13131,7 +13151,7 @@ async function runMigration() {
     // Load migrated tasks into memory
     DAYS.forEach(day => { S.tasks[day] = preview[day]; });
     // Wipe stale Sheets cache from localStorage
-    localStorage.removeItem('gykf_tasks');
+    localStorage.removeItem('gyav_tasks');
     await db.collection('appConfig').doc('importing').set({ active: false });
   } catch(e) {
     setMigStatus('⚠️ Cutover failed — tasks written but source not flipped. Try escape hatch.', 'var(--red)');
@@ -13553,13 +13573,13 @@ function saveShoppingState() {
   // Save checked state of all items keyed by item name
   const state = {};
   S.shopping.forEach(i=>{ state[i.item] = i.checked; });
-  localStorage.setItem('gykf_shop_state', JSON.stringify(state));
+  localStorage.setItem('gyav_shop_state', JSON.stringify(state));
 }
 
 function restoreShoppingState() {
   // Restore locally cached checked state onto freshly fetched items
   try {
-    const state = JSON.parse(localStorage.getItem('gykf_shop_state') || '{}');
+    const state = JSON.parse(localStorage.getItem('gyav_shop_state') || '{}');
     S.shopping.forEach(i=>{
       if(i.item in state) {
         i.checked = state[i.item];
@@ -13569,22 +13589,22 @@ function restoreShoppingState() {
   } catch(e) {}
 }
 function saveTripNotes(val) {
-  S.tripNotes=val; localStorage.setItem('gykf_trip',val);
+  S.tripNotes=val; localStorage.setItem('gyav_trip',val);
   if(db) db.collection('teamData').doc('trip').set({notes:val}).catch(e=>console.log('saveTripNotes failed:',e));
 }
 function clearTrip() {
   if(!confirm('Clear trip notes?')) return;
-  S.tripNotes=''; localStorage.removeItem('gykf_trip');
+  S.tripNotes=''; localStorage.removeItem('gyav_trip');
   if(db) db.collection('teamData').doc('trip').set({notes:''}).catch(()=>{});
   renderShopping(document.getElementById('content'));
   toast('Trip notes cleared');
 }
 function loadDayNotes() {
-  try { S.dayNotes = JSON.parse(localStorage.getItem('gykf_dayNotes')||'{}'); } catch(e) { S.dayNotes = {}; }
+  try { S.dayNotes = JSON.parse(localStorage.getItem('gyav_dayNotes')||'{}'); } catch(e) { S.dayNotes = {}; }
 }
 function loadTaskCache() {
   try {
-    const cached = JSON.parse(localStorage.getItem('gykf_tasks')||'{}');
+    const cached = JSON.parse(localStorage.getItem('gyav_tasks')||'{}');
     const today = new Date().toDateString();
     const cacheDate = cached._date;
     const sameDay = cacheDate === today;
@@ -13599,7 +13619,7 @@ function loadTaskCache() {
 }
 function saveDmg() {
   try {
-    localStorage.setItem('gykf_dmg',JSON.stringify(S.dmgReports));
+    localStorage.setItem('gyav_dmg',JSON.stringify(S.dmgReports));
   } catch(e) {
     // Storage quota full (likely old large photos) — strip photos from the
     // oldest reports until the write fits, keeping all descriptions intact.
@@ -13610,7 +13630,7 @@ function saveDmg() {
     let prunedAny=false, saved=false;
     for(const {key,i} of all) {
       if(S.dmgReports[key][i].photo) { S.dmgReports[key][i].photo=''; prunedAny=true; }
-      try { localStorage.setItem('gykf_dmg',JSON.stringify(S.dmgReports)); saved=true; break; }
+      try { localStorage.setItem('gyav_dmg',JSON.stringify(S.dmgReports)); saved=true; break; }
       catch(e2) { /* still too big, keep pruning the next oldest photo */ }
     }
     if(prunedAny) toast(saved
@@ -13618,7 +13638,7 @@ function saveDmg() {
       : '⚠️ Storage full — could not free enough room, some reports may not be saved');
   }
 }
-function loadDmg() { try{S.dmgReports=JSON.parse(localStorage.getItem('gykf_dmg')||'{}');}catch(e){S.dmgReports={};} }
+function loadDmg() { try{S.dmgReports=JSON.parse(localStorage.getItem('gyav_dmg')||'{}');}catch(e){S.dmgReports={};} }
 function fallback() {
   return [
     {task:"Check O₂ beds & refill if needed",freq:"Daily",area:"AIRCRAFT",done:false},
@@ -13719,7 +13739,7 @@ function setupDraggableNav() {
         }
         // Save order
         const order = [...nav.querySelectorAll('.nb')].map(n=>n.id.replace('nb-',''));
-        localStorage.setItem('gykf_nav_order', JSON.stringify(order));
+        localStorage.setItem('gyav_nav_order', JSON.stringify(order));
       }
       items.forEach(i=>i.classList.remove('drag-over','dragging'));
     });
@@ -13735,7 +13755,7 @@ function setupDraggableNav() {
 
 function restoreNavOrder() {
   try {
-    const order = JSON.parse(localStorage.getItem('gykf_nav_order')||'[]');
+    const order = JSON.parse(localStorage.getItem('gyav_nav_order')||'[]');
     if(!order.length) return;
     const nav = document.getElementById('nav');
     order.forEach(id=>{
@@ -13898,7 +13918,7 @@ function setupLiveSync() {
         const k = acAuditDocKey(reg);
         S.acAudits[k] = {...(S.acAudits[k]||{}), ...auditData};
       });
-      try { localStorage.setItem('gykf_acaudits', JSON.stringify(S.acAudits)); } catch(e) {}
+      try { localStorage.setItem('gyav_acaudits', JSON.stringify(S.acAudits)); } catch(e) {}
       render();
     }, e => console.log('acAudits listener error:', e));
 
@@ -13938,7 +13958,7 @@ function setupLiveSync() {
       if(!snap.exists) return;
       const data=snap.data();
       Object.assign(S.crewCarData, data);
-      try { localStorage.setItem('gykf_ccd',JSON.stringify(S.crewCarData)); } catch(e){}
+      try { localStorage.setItem('gyav_ccd',JSON.stringify(S.crewCarData)); } catch(e){}
       const v=S.crewCarsView;
       if(v && v!==null && S.tab==='procedures') {
         const el=document.getElementById('content');
@@ -14066,7 +14086,7 @@ function setupLiveSync() {
       // Remove deleted docs
       const liveIds = new Set(snap.docs.map(d=>d.id));
       Object.keys(S.dayNotes).forEach(k=>{ if(!liveIds.has(k)) delete S.dayNotes[k]; });
-      try { localStorage.setItem('gykf_dayNotes', JSON.stringify(S.dayNotes)); } catch(e) {}
+      try { localStorage.setItem('gyav_dayNotes', JSON.stringify(S.dayNotes)); } catch(e) {}
       // Don't re-render if a note is currently open and being typed into — prevents textarea from closing
       if(window._dayNoteSaving > 0) return;
       const anyOpen = Object.values(window._dayNoteOpen||{}).some(Boolean);
@@ -14088,26 +14108,26 @@ function setupLiveSync() {
     db.collection('appConfig').doc('stores').onSnapshot(snap => {
       const data = snap.data();
       S.customStores = (data && Array.isArray(data.custom)) ? data.custom : [];
-      localStorage.setItem('gykf_custom_stores', JSON.stringify(S.customStores));
+      localStorage.setItem('gyav_custom_stores', JSON.stringify(S.customStores));
     }, e => console.log('customStores listener error:', e));
 
     db.collection('appConfig').doc('cargoAircraft').onSnapshot(snap => {
       const data = snap.data();
       S.customAircraft = (data && Array.isArray(data.custom)) ? data.custom : [];
-      try { localStorage.setItem('gykf_custom_aircraft', JSON.stringify(S.customAircraft)); } catch (e) {}
+      try { localStorage.setItem('gyav_custom_aircraft', JSON.stringify(S.customAircraft)); } catch (e) {}
     }, e => console.log('customAircraft listener error:', e));
 
     db.collection('appConfig').doc('cargoLocations').onSnapshot(snap => {
       const data = snap.data();
       S.customCargoLocations = (data && Array.isArray(data.custom)) ? data.custom : [];
-      localStorage.setItem('gykf_custom_cargo_locations', JSON.stringify(S.customCargoLocations));
+      localStorage.setItem('gyav_custom_cargo_locations', JSON.stringify(S.customCargoLocations));
     }, e => console.log('customCargoLocations listener error:', e));
 
     // Trip notes — live so whoever is shopping sees the latest plan
     db.collection('teamData').doc('trip').onSnapshot(snap => {
       if(!snap.exists) return;
       const val = snap.data()?.notes || '';
-      S.tripNotes = val; localStorage.setItem('gykf_trip', val);
+      S.tripNotes = val; localStorage.setItem('gyav_trip', val);
       if(S.tab==='shopping') renderShopping(document.getElementById('content'));
     }, e => console.log('tripNotes listener error:', e));
 
@@ -14374,7 +14394,7 @@ function renderFleet(el) {
     return d.distNm!==null && d.distNm<=250 && d.eta!==null;
   }).sort((a,b)=>_fleetData[a.tail].distNm-_fleetData[b.tail].distNm);
 
-  const notifBtn = ('Notification' in window && 'serviceWorker' in navigator && localStorage.getItem('notifications_enabled')!=='1')
+  const notifBtn = ('Notification' in window && 'serviceWorker' in navigator && localStorage.getItem('gyav_notifications_enabled')!=='1')
     ? `<button onclick="requestNotificationPermission().then(()=>renderFleet(document.getElementById('content')))"
          style="margin-top:8px;padding:8px 14px;border-radius:8px;border:1px solid rgba(200,168,75,0.4);
                 background:rgba(200,168,75,0.1);color:#C8A84B;font-size:12px;font-weight:600;cursor:pointer;width:100%">
@@ -14636,7 +14656,7 @@ function scheduleSaveDayNote(isoDate) {
   // Defer localStorage write so it doesn't block keystrokes
   clearTimeout(window._dayNoteTimer[isoDate]);
   window._dayNoteTimer[isoDate] = setTimeout(()=>{
-    try { localStorage.setItem('gykf_dayNotes', JSON.stringify(S.dayNotes)); } catch(e) {}
+    try { localStorage.setItem('gyav_dayNotes', JSON.stringify(S.dayNotes)); } catch(e) {}
     fsSaveDayNote(isoDate, true);
   }, 1000);
 }
@@ -14644,7 +14664,7 @@ function scheduleSaveDayNote(isoDate) {
 function completeDayNote(isoDate) {
   delete S.dayNotes[isoDate];
   delete window._dayNoteOpen[isoDate];
-  try { localStorage.setItem('gykf_dayNotes', JSON.stringify(S.dayNotes)); } catch(e) {}
+  try { localStorage.setItem('gyav_dayNotes', JSON.stringify(S.dayNotes)); } catch(e) {}
   if(db) db.collection('dayNotes').doc(isoDate).delete().catch(()=>{});
   const el = document.getElementById('content');
   if(S.tab==='today') renderToday(el);
@@ -14750,8 +14770,8 @@ async function requestNotificationPermission() {
     });
 
     const subId = btoa(sub.endpoint).replace(/[^a-zA-Z0-9]/g,'').slice(-40);
-    localStorage.setItem('push_sub_id', subId);
-    localStorage.setItem('push_endpoint', sub.endpoint);
+    localStorage.setItem('gyav_push_sub_id', subId);
+    localStorage.setItem('gyav_push_endpoint', sub.endpoint);
 
     try {
       await db.collection('pushSubscriptions').doc(subId).set({
@@ -14760,7 +14780,7 @@ async function requestNotificationPermission() {
         ua: navigator.userAgent.slice(0, 80)
       }, { merge: true });
       console.log('Push sub saved to Firestore ✓', subId);
-      localStorage.setItem('notifications_enabled', '1');
+      localStorage.setItem('gyav_notifications_enabled', '1');
       updateNotifBtn();
       toast('✅ Notifications enabled & saved to server!');
     } catch(e) {
@@ -14793,13 +14813,13 @@ async function disableNotifications() {
     if (sub) await sub.unsubscribe();
   } catch(e) {}
 
-  const subId = localStorage.getItem('push_sub_id');
+  const subId = localStorage.getItem('gyav_push_sub_id');
   if (subId && db) {
     db.collection('pushSubscriptions').doc(subId).delete().catch(()=>{});
   }
 
-  localStorage.removeItem('notifications_enabled');
-  localStorage.removeItem('push_sub_id');
+  localStorage.removeItem('gyav_notifications_enabled');
+  localStorage.removeItem('gyav_push_sub_id');
   toast('🔕 Notifications disabled');
   updateNotifBtn();
 }
@@ -14807,7 +14827,7 @@ async function disableNotifications() {
 function updateNotifBtn() {
   const btn = document.getElementById('notifBtn');
   if (!btn) return;
-  const enabled = localStorage.getItem('notifications_enabled') === '1';
+  const enabled = localStorage.getItem('gyav_notifications_enabled') === '1';
   btn.textContent = enabled ? '🔔' : '🔕';
   btn.title = enabled ? 'Notifications ON — hold to test' : 'Enable notifications';
 }
@@ -14825,7 +14845,7 @@ function _notifPressEnd() {
 }
 
 async function sendTestPush() {
-  const subId = localStorage.getItem('push_sub_id');
+  const subId = localStorage.getItem('gyav_push_sub_id');
   if (!subId) { toast('⚠️ No subscription found — try disabling and re-enabling notifications'); return; }
   if (!db) { toast('⚠️ Database not ready'); return; }
 
@@ -14876,7 +14896,7 @@ async function sendTestPush() {
 }
 
 function toggleNotifications() {
-  const enabled = localStorage.getItem('notifications_enabled') === '1';
+  const enabled = localStorage.getItem('gyav_notifications_enabled') === '1';
   if (enabled) {
     disableNotifications();
   } else {
@@ -14890,18 +14910,18 @@ window.addEventListener('load', () => {
     // Re-sync push subscription to Firestore on every load.
     // Guards against SW updates that change the endpoint, or a previous
     // Firestore write that silently failed.
-    if (localStorage.getItem('notifications_enabled') === '1') {
+    if (localStorage.getItem('gyav_notifications_enabled') === '1') {
       try {
         const swReg = await navigator.serviceWorker.ready;
         let sub = await swReg.pushManager.getSubscription();
         if (sub && !pushKeyMatches(sub)) { await sub.unsubscribe(); sub = null; } // old key -> ask again
         if (sub && db) {
           const subId = btoa(sub.endpoint).replace(/[^a-zA-Z0-9]/g,'').slice(-40);
-          const storedEndpoint = localStorage.getItem('push_endpoint');
+          const storedEndpoint = localStorage.getItem('gyav_push_endpoint');
           // Only re-save if endpoint changed or subId not yet in localStorage
-          if (sub.endpoint !== storedEndpoint || !localStorage.getItem('push_sub_id')) {
-            localStorage.setItem('push_sub_id', subId);
-            localStorage.setItem('push_endpoint', sub.endpoint);
+          if (sub.endpoint !== storedEndpoint || !localStorage.getItem('gyav_push_sub_id')) {
+            localStorage.setItem('gyav_push_sub_id', subId);
+            localStorage.setItem('gyav_push_endpoint', sub.endpoint);
             await db.collection('pushSubscriptions').doc(subId).set({
               sub: JSON.parse(JSON.stringify(sub)),
               ts: firebase.firestore.FieldValue.serverTimestamp(),
@@ -14911,9 +14931,9 @@ window.addEventListener('load', () => {
           }
         } else if (!sub) {
           // Subscription was lost (SW update, browser clear) — reset state
-          localStorage.removeItem('notifications_enabled');
-          localStorage.removeItem('push_sub_id');
-          localStorage.removeItem('push_endpoint');
+          localStorage.removeItem('gyav_notifications_enabled');
+          localStorage.removeItem('gyav_push_sub_id');
+          localStorage.removeItem('gyav_push_endpoint');
           updateNotifBtn();
           console.log('Push subscription lost — reset notification state');
         }
