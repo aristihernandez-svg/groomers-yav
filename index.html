@@ -2693,7 +2693,7 @@ function cargoFormValues() {
 }
 
 // ── Cargo aircraft (optional): the fleet below + any the team adds ──
-const CARGO_AIRCRAFT = ['C-FAJR', 'C-FAQR', 'C-FTJX', 'C-GBHO', 'C-GCJH', 'C-GJHX', 'C-GJRH', 'C-GQXD', 'C-GQXX', 'C-GTJF'];
+const CARGO_AIRCRAFT = ['C-FAJR', 'C-FAQR', 'C-FBHO', 'C-FTJX', 'C-GCJH', 'C-GJHX', 'C-GJRH', 'C-GQXD', 'C-GQXX', 'C-GTJF'];
 function getAllAircraft() {
   const used = S.cargo.map(c => c.aircraft).filter(Boolean);
   return [...new Set([...CARGO_AIRCRAFT, ...S.customAircraft, ...used])].sort();
