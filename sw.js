@@ -1,4 +1,4 @@
-const CACHE = 'skycare-yav-v23';
+const CACHE = 'skycare-yav-v24';
 const SHELL = ['./', './index.html', './manifest.json', './baseConfig.js'];
 
 self.addEventListener('install', e => {
@@ -25,13 +25,13 @@ self.addEventListener('fetch', e => {
 self.addEventListener('push', e => {
   let data = {};
   try { data = e.data ? e.data.json() : {}; } catch(err) {}
-  const title = data.title || 'Skycare YKF';
+  const title = data.title || 'Skycare YAV';
   const options = {
     body: data.body || '',
-    icon: data.icon || '/cars/Skycare_logo-removebg-preview.png',
-    badge: data.badge || '/cars/Skycare_logo-removebg-preview.png',
+    icon: data.icon || './cars/Skycare_logo-removebg-preview.png',
+    badge: data.badge || './cars/Skycare_logo-removebg-preview.png',
     tag: data.tag,
-    data: { url: data.url || '/' },
+    data: { url: data.url || './' },
   };
   e.waitUntil(self.registration.showNotification(title, options));
 });

@@ -20,10 +20,10 @@ const BASE_CONFIG = {
     messagingSenderId: "309421655672",
     appId: "1:309421655672:web:47dfdb7d5c7cf4d6dd8f8d"
   },
-  vapidPublicKey: "BPeoEM6LmjhAtmQBBXwCuzaccbYpRPPk--YlvjXw9mjqpVGg1xeTXzBusCTM-z-8ijVopMqLxZQEGnFpD16vL-E",
-  // Matching private key is NOT here — it's a real secret, save it in a
-  // password manager. Needed later for YAV's notification workflow
-  // (GitHub Actions secret), which doesn't exist yet.
+  vapidPublicKey: "BL-9QbyPlFMPIv8T_C_aeM4MTkv2Mb9ogKZLlQjk9IJeHbCGYNJKlThwgJyqdxbuDdCGQf7dR5sDeNSEyNsgAVA",
+  // Matching private key is NOT here — it lives only as the GitHub Actions
+  // secret VAPID_PRIVATE_KEY_YAV in the groomers-ykf repo, used by the fleet
+  // arrival job (notif/fleet-alert.js) to send YAV's 40 nm CYAV alerts.
 
   crewCars: [
     {key:'caravan', name:'Dodge Caravan', fuel:'gasoline', color:'#D8CBB0', color2:'#EDE4D0', label:'Minivan', img:'cars/Dodge_caravan_2008_YAV-removebg-preview.png', plate:'HVA 763'},
@@ -41,7 +41,7 @@ const BASE_CONFIG = {
   // so re-enabling later is a one-line flip, not a rebuild. Absence of a key
   // (or true) means enabled — this is how YKF stays completely unaffected.
   features: {
-    fleet: false,           // no real airport coords/ICAO for YAV yet
+    fleet: true,            // Fleet tab measured from CYAV (2026-10-01)
     facilityAudits: false,  // no real content yet, and "YKF Base" naming doesn't apply
   },
 };

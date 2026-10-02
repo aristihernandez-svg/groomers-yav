@@ -1306,15 +1306,15 @@ const TODAY = getToday(); // kept for init-time use (S.dayView, boot fetch)
 const APP_VERSION = 'v2.0';
 
 const FLEET_TAILS = ['IOA','IOB','IOC','IOE','IOH','IOJ','DAX','IAW','XAW','XDP'];
-// CYKF coords (Waterloo Region Airport)
-const CYKF_LAT = 43.4601, CYKF_LON = -80.3782;
+// CYAV coords (Winnipeg / St. Andrews) -- every fleet distance, ETA and alert in this app is measured from here
+const CYAV_LAT = 50.0564, CYAV_LON = -97.0325;
 function haversineNm(lat1,lon1,lat2,lon2){
   const R=3440.065,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
   const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 function etaMinutes(distNm, speedKts){ return speedKts>20 ? Math.round(distNm/speedKts*60) : null; }
-const FLEET_ALERT_NM = 30;
+const FLEET_ALERT_NM = 40; // the push alert radius (sent by notif/fleet-alert.js in the YKF repo)
 const PROC_TAILS  = {
   metro:    ['IOA','IOB','IOC','IOE','IOJ','IOH'],
   westwind: ['IAW','XAW','XDP'],
@@ -14225,35 +14225,56 @@ const FLEET_AIRCRAFT = [
   {reg:'C-FIOA', tail:'IOA', type:'Metroliner', icao24:''},
   {reg:'C-FIOB', tail:'IOB', type:'Metroliner', icao24:''},
   {reg:'C-FIOH', tail:'IOH', type:'Metroliner', icao24:''},
-  {reg:'C-GIAW', tail:'IAW', type:'Westwind',   icao24:''},
+  {reg:'C-GTIM', tail:'TIM', type:'Metroliner', icao24:''},
+  {reg:'C-GCPX', tail:'CPX', type:'Metroliner', icao24:''},
+  {reg:'C-GKKC', tail:'KKC', type:'Metroliner', icao24:''},
   {reg:'C-FXAW', tail:'XAW', type:'Westwind',   icao24:''},
   {reg:'C-FXDP', tail:'XDP', type:'Westwind',   icao24:''},
   {reg:'C-FDAX', tail:'DAX', type:'Astra',      icao24:''},
+  {reg:'C-FAJR', tail:'AJR', type:'Navajo',     icao24:''},
+  {reg:'C-FAQR', tail:'AQR', type:'Navajo',     icao24:''},
+  {reg:'C-FTJX', tail:'TJX', type:'Navajo',     icao24:''},
+  {reg:'C-GCJH', tail:'CJH', type:'Navajo',     icao24:''},
+  {reg:'C-GJHX', tail:'JHX', type:'Navajo',     icao24:''},
+  {reg:'C-GJRH', tail:'JRH', type:'Navajo',     icao24:''},
+  {reg:'C-GQXD', tail:'QXD', type:'Navajo',     icao24:''},
+  {reg:'C-GQXX', tail:'QXX', type:'Navajo',     icao24:''},
+  {reg:'C-GTJF', tail:'TJF', type:'Navajo',     icao24:''},
+  {reg:'C-FBHO', tail:'BHO', type:'Navajo',     icao24:''},
 ];
 
 let _fleetData = {}; // icao24/callsign → state
 let _fleetLastFetch = 0;
 let _fleetTimer = null;
 
-async function fetchFleetOpenSky() {
-  // Direct browser fetch from airplanes.live — free, no auth, open CORS
-  const results = await Promise.allSettled(
-    FLEET_AIRCRAFT.map(ac =>
-      fetch(`https://api.airplanes.live/v2/reg/${encodeURIComponent(ac.reg)}`, { signal: AbortSignal.timeout(8000) })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          const p = data?.ac?.[0];
-          if(!p) return null;
-          const onGround = p.alt_baro === 'ground' || p.on_ground === true;
-          const altFt = onGround ? 0 : (typeof p.alt_baro === 'number' ? p.alt_baro : null);
-          const speedKts = typeof p.gs === 'number' ? Math.round(p.gs) : 0;
-          const distNm = (p.lat && p.lon) ? Math.round(haversineNm(p.lat, p.lon, CYKF_LAT, CYKF_LON)) : null;
-          return { tail: ac.tail, reg: ac.reg, lat: p.lat, lon: p.lon, altFt, speedKts, track: p.track || 0, onGround, distNm };
-        })
-        .catch(() => null)
-    )
-  );
-  return results.map(r => r.status === 'fulfilled' ? r.value : null).filter(Boolean);
+let _fleetFeedAt = 0; // when the fleet job last saved positions (ms)
+// Positions come from the company fleet job (OpenSky + adsb.lol, about every 2 min), saved in
+// the shared positions doc (Firebase project groomer-ykf, fleetPositions/live, readable without a login). Only position, altitude,
+// speed and track are taken from it -- distance and ETA are worked out here, from CYAV.
+function fsRestValue(v) {
+  if(!v) return null;
+  if('stringValue' in v)  return v.stringValue;
+  if('integerValue' in v) return Number(v.integerValue);
+  if('doubleValue' in v)  return v.doubleValue;
+  if('booleanValue' in v) return v.booleanValue;
+  if('timestampValue' in v) return v.timestampValue;
+  if('mapValue' in v) return Object.fromEntries(Object.entries(v.mapValue.fields||{}).map(([k,x])=>[k,fsRestValue(x)]));
+  if('arrayValue' in v) return (v.arrayValue.values||[]).map(fsRestValue);
+  return null;
+}
+async function fetchFleetPositions() {
+  try {
+    const r = await fetch('https://firestore.googleapis.com/v1/projects/groomer-ykf/databases/(default)/documents/fleetPositions/live', {cache:'no-store'});
+    if(!r.ok) return [];
+    const v = fsRestValue({mapValue:{fields:(await r.json()).fields||{}}});
+    _fleetFeedAt = v.fetchedAt ? Date.parse(v.fetchedAt) : 0;
+    return Object.values(v.positions||{}).filter(p => p && typeof p.lat==='number' && typeof p.lon==='number').map(p => ({
+      tail: p.tail, reg: p.reg, lat: p.lat, lon: p.lon,
+      altFt: p.onGround ? 0 : (p.altFt ?? null),
+      speedKts: p.speedKts || 0, track: p.track || 0, onGround: !!p.onGround,
+      distNm: Math.round(haversineNm(p.lat, p.lon, CYAV_LAT, CYAV_LON))
+    }));
+  } catch(e) { return []; }
 }
 
 function fleetCallsignMatch(callsign) {
@@ -14268,7 +14289,7 @@ function fleetCallsignMatch(callsign) {
 async function refreshFleet() {
   const btn = document.getElementById('fleetRefreshBtn');
   if(btn) { btn.textContent = '⏳ Fetching…'; btn.disabled = true; }
-  const positions = await fetchFleetOpenSky();
+  const positions = await fetchFleetPositions();
   _fleetData = {};
   if(positions) {
     positions.forEach(p => {
@@ -14284,7 +14305,7 @@ async function refreshFleet() {
       };
     });
   }
-  _fleetLastFetch = Date.now();
+  _fleetLastFetch = _fleetFeedAt || Date.now(); // show the age of the data, not of the request
   renderFleet(document.getElementById('content'));
 }
 
@@ -14353,16 +14374,16 @@ function renderFleet(el) {
     return d.distNm!==null && d.distNm<=250 && d.eta!==null;
   }).sort((a,b)=>_fleetData[a.tail].distNm-_fleetData[b.tail].distNm);
 
-  const notifBtn = ('Notification' in window && Notification.permission!=='granted')
-    ? `<button onclick="Notification.requestPermission().then(()=>renderFleet(document.getElementById('content')))"
+  const notifBtn = ('Notification' in window && 'serviceWorker' in navigator && localStorage.getItem('notifications_enabled')!=='1')
+    ? `<button onclick="requestNotificationPermission().then(()=>renderFleet(document.getElementById('content')))"
          style="margin-top:8px;padding:8px 14px;border-radius:8px;border:1px solid rgba(200,168,75,0.4);
                 background:rgba(200,168,75,0.1);color:#C8A84B;font-size:12px;font-weight:600;cursor:pointer;width:100%">
-         🔔 Enable 30 nm arrival alerts
+         🔔 Enable ${FLEET_ALERT_NM} nm arrival alerts (CYAV)
        </button>` : '';
 
   el.innerHTML = `
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-  <div style="background:#171310;min-height:100vh;padding-bottom:100px">
+  <div style="background:#0a0e1a;min-height:100vh;padding-bottom:100px">
 
     <!-- Header -->
     <div style="padding:16px 16px 10px;border-bottom:1px solid rgba(255,255,255,0.06)">
@@ -14373,7 +14394,7 @@ function renderFleet(el) {
           <span style="font-size:10px;color:rgba(255,255,255,0.3)">${fetchAge}</span>
           <button id="fleetRefreshBtn" onclick="refreshFleet()"
             style="padding:7px 14px;border-radius:8px;border:none;background:#C8A84B;
-                   color:#171310;font-size:12px;font-weight:700;cursor:pointer">🔄 Refresh</button>
+                   color:#0a0e1a;font-size:12px;font-weight:700;cursor:pointer">🔄 Refresh</button>
         </div>
       </div>
       ${notifBtn}
@@ -14397,17 +14418,17 @@ function renderFleet(el) {
 
     <!-- Live Map -->
     <div style="margin:0 16px 16px;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.08)">
-      <div id="fleetMap" style="height:260px;width:100%;background:#241A0C"></div>
+      <div id="fleetMap" style="height:260px;width:100%;background:#0d1520"></div>
     </div>
 
     <!-- Inbound section -->
     ${inbound.length ? `
     <div style="margin:0 16px 10px">
-      <div style="font-size:10px;font-weight:700;color:#C8A84B;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">⬇ Inbound to CYKF</div>
+      <div style="font-size:10px;font-weight:700;color:#C8A84B;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">⬇ Inbound to CYAV</div>
       ${inbound.map(ac=>{
         const d=_fleetData[ac.tail];
         const etaStr = d.eta!=null ? (d.eta<60 ? d.eta+' min' : Math.floor(d.eta/60)+'h '+(d.eta%60)+'m') : '—';
-        const alert25 = d.distNm<=FLEET_ALERT_NM ? `<span style="background:rgba(232,64,64,0.2);border:1px solid rgba(232,64,64,0.4);color:#ff6b6b;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px">◉ 30 NM</span>` : '';
+        const alert25 = d.distNm<=FLEET_ALERT_NM ? `<span style="background:rgba(232,64,64,0.2);border:1px solid rgba(232,64,64,0.4);color:#ff6b6b;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px">◉ ${FLEET_ALERT_NM} NM</span>` : '';
         return `<div style="background:rgba(46,204,138,0.06);border:1px solid rgba(46,204,138,0.2);border-radius:12px;padding:12px 14px;margin-bottom:8px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <div style="display:flex;align-items:center;gap:8px">
@@ -14417,7 +14438,7 @@ function renderFleet(el) {
             </div>
             <div style="text-align:right">
               <div style="font-size:18px;font-weight:800;color:#2ECC8A">${etaStr}</div>
-              <div style="font-size:9px;color:rgba(46,204,138,0.6);font-weight:600">ETA CYKF</div>
+              <div style="font-size:9px;color:rgba(46,204,138,0.6);font-weight:600">ETA CYAV</div>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
@@ -14468,10 +14489,10 @@ function renderFleet(el) {
               <span style="font-size:14px;font-weight:800;color:#fff;font-family:'Courier New',monospace">${ac.reg}</span>
               <span style="font-size:10px;color:rgba(255,255,255,0.35)">${ac.type}</span>
             </div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.3);padding-left:12px">${sub||(d.onGround ? (d.distNm!=null&&d.distNm<=5 ? 'On ground · CYKF' : 'On ground') : '—')}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.3);padding-left:12px">${sub||(d.onGround ? (d.distNm!=null&&d.distNm<=5 ? 'On ground · CYAV' : 'On ground') : '—')}</div>
           </div>
           ${!d.onGround && d.eta!=null ? `
-          <div style="display:flex;align-items:center;gap:2px;flex-shrink:0" title="ETA to CYKF">
+          <div style="display:flex;align-items:center;gap:2px;flex-shrink:0" title="ETA to CYAV">
             ${flipEta(d.eta)}
           </div>` : d.onGround ? `<span style="font-size:11px;color:#F39C12;font-weight:600">Ground</span>` : ''}
         </div>`;
@@ -14479,7 +14500,7 @@ function renderFleet(el) {
     </div>
 
     <div style="margin:16px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06)">
-      <div style="font-size:10px;color:rgba(255,255,255,0.25);line-height:1.6">Live data: airplanes.live (free ADS-B). Auto-refreshes every 60s. 30 nm ring alert fires once per inbound arrival.</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.25);line-height:1.6">Live data: OpenSky + adsb.lol ADS-B, refreshed about every 2 min. Distances and ETAs are from CYAV. The push alert fires once per inbound arrival, within ${FLEET_ALERT_NM} nm of CYAV.</div>
     </div>
   </div>`;
 
@@ -14488,13 +14509,13 @@ function renderFleet(el) {
     if(typeof L === 'undefined') return;
     const mapEl = document.getElementById('fleetMap');
     if(!mapEl || mapEl._leaflet_id) return;
-    const map = L.map('fleetMap',{zoomControl:false,attributionControl:false}).setView([CYKF_LAT,CYKF_LON],7);
+    const map = L.map('fleetMap',{zoomControl:false,attributionControl:false}).setView([CYAV_LAT,CYAV_LON],7);
     // CARTO's dark basemap now requires a paid API key (every tile came back "API key required").
     // Esri's dark-gray basemap is free with no key or account needed.
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16}).addTo(map);
-    // CYKF marker
-    L.circle([CYKF_LAT,CYKF_LON],{radius:30*1852,color:'#C8A84B',weight:1,fillOpacity:0.05,dashArray:'6,6'}).addTo(map);
-    L.circleMarker([CYKF_LAT,CYKF_LON],{radius:6,color:'#C8A84B',fillColor:'#C8A84B',fillOpacity:1,weight:2}).bindTooltip('CYKF',{permanent:true,direction:'right',className:'fleet-tip'}).addTo(map);
+    // CYAV marker
+    L.circle([CYAV_LAT,CYAV_LON],{radius:FLEET_ALERT_NM*1852,color:'#C8A84B',weight:1,fillOpacity:0.05,dashArray:'6,6'}).addTo(map);
+    L.circleMarker([CYAV_LAT,CYAV_LON],{radius:6,color:'#C8A84B',fillColor:'#C8A84B',fillOpacity:1,weight:2}).bindTooltip('CYAV',{permanent:true,direction:'right',className:'fleet-tip'}).addTo(map);
     // Aircraft markers
     FLEET_AIRCRAFT.forEach(ac=>{
       const d=_fleetData[ac.tail];
@@ -14515,7 +14536,7 @@ function renderFleet(el) {
     });
     // Fit bounds if aircraft present
     const pts=FLEET_AIRCRAFT.filter(a=>_fleetData[a.tail]&&_fleetData[a.tail].lat).map(a=>[_fleetData[a.tail].lat,_fleetData[a.tail].lon]);
-    if(pts.length) { pts.push([CYKF_LAT,CYKF_LON]); try{map.fitBounds(pts,{padding:[20,20]});}catch(e){} }
+    if(pts.length) { pts.push([CYAV_LAT,CYAV_LON]); try{map.fitBounds(pts,{padding:[20,20]});}catch(e){} }
   },100);
 
   // Auto-refresh every 60s while on fleet tab
@@ -14720,6 +14741,9 @@ async function requestNotificationPermission() {
     if (!db) { toast('⚠️ Database not ready — try again in a moment'); return false; }
 
     const swReg = await navigator.serviceWorker.ready;
+    // A subscription made with an older push key can't be reused -- drop it first.
+    const old = await swReg.pushManager.getSubscription();
+    if (old && !pushKeyMatches(old)) await old.unsubscribe();
     const sub = await swReg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
@@ -14750,6 +14774,16 @@ async function requestNotificationPermission() {
     toast('Could not enable notifications: ' + e.message);
     return false;
   }
+}
+
+// True when this phone's push subscription was made with the app's current key.
+function pushKeyMatches(sub) {
+  try {
+    const k = sub.options && sub.options.applicationServerKey;
+    if (!k) return true; // browser doesn't say -- assume it's fine
+    const a = new Uint8Array(k), b = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+    return a.length === b.length && a.every((x, i) => x === b[i]);
+  } catch (e) { return true; }
 }
 
 async function disableNotifications() {
@@ -14859,7 +14893,8 @@ window.addEventListener('load', () => {
     if (localStorage.getItem('notifications_enabled') === '1') {
       try {
         const swReg = await navigator.serviceWorker.ready;
-        const sub = await swReg.pushManager.getSubscription();
+        let sub = await swReg.pushManager.getSubscription();
+        if (sub && !pushKeyMatches(sub)) { await sub.unsubscribe(); sub = null; } // old key -> ask again
         if (sub && db) {
           const subId = btoa(sub.endpoint).replace(/[^a-zA-Z0-9]/g,'').slice(-40);
           const storedEndpoint = localStorage.getItem('push_endpoint');
