@@ -1298,6 +1298,8 @@ body::before{
 // data caches, which reload from YAV's own database.
 (function migrateYavStorage(){
   try {
+    // v2: drop the task list cached from YKF's spreadsheet (YAV no longer downloads it)
+    if (!localStorage.getItem('gyav_storage_v2')) { localStorage.removeItem('gyav_tasks'); localStorage.setItem('gyav_storage_v2', '1'); }
     if (localStorage.getItem('gyav_storage_v1')) return;
     ['theme','dark','nav_order','tileOrder','auditTiles','cargo_design','cargo_sound','custom_aircraft',
      'custom_cargo_locations','agroomer','pdfVersions','dmg_draft'].forEach(k => {
@@ -1309,7 +1311,9 @@ body::before{
   } catch (e) {}
 })();
 // ── CONFIG ────────────────────────────────────────────────────────
-const SHEET_ID    = '12vTTI_2UBH-yKDAdYL7k937EP1hCdJXFv8ml3nmsobQ';
+// No Google Sheet for YAV: the ID that was here is YKF's spreadsheet, which YAV was quietly
+// downloading at every start. Blank = every sheet reader below stops before touching it.
+const SHEET_ID    = '';
 // No Apps Script backend for YAV: the URL that was here is YKF's, so every task / Side Quest
 // tick in YAV was also being written into YKF's Google Sheet. 'BACKEND_URL_HERE' = off.
 const BACKEND_URL = 'BACKEND_URL_HERE';
@@ -3189,6 +3193,7 @@ async function fetchDay(tabName) {
     // Fall through to Sheets if doc missing or not migrated
   }
 
+  if(!SHEET_ID) { S.tasks[tabName] = S.tasks[tabName] || []; return; } // no spreadsheet for this base
   // ── Sheets path (default) ────────────────────────────────────────
   try {
     const gid = TAB_GIDS[tabName];
@@ -3234,6 +3239,7 @@ function _cacheTasksLocal(tabName) {
 }
 
 async function fetchShopping() {
+  if(!SHEET_ID) return; // the list comes from this base's own database (shoppingCatalog listener)
   try {
     const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=441663137`;
     const text=(await (await fetch(url)).text());
@@ -3262,6 +3268,7 @@ async function fetchShopping() {
 }
 
 async function fetchContacts() {
+  if(!SHEET_ID) return;
   try {
     // Always try backend first — reads all rows regardless of merged cells
     if (BACKEND_URL && BACKEND_URL !== 'BACKEND_URL_HERE') {
@@ -3334,6 +3341,7 @@ async function fetchContacts() {
 
 
 async function fetchBored() {
+  if(!SHEET_ID) return;
   try {
     const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=1981877526`;
     const text=(await (await fetch(url)).text());
@@ -3416,6 +3424,7 @@ async function syncAll() {
 // easier there than typing them into the app one at a time). Safe to run
 // repeatedly — matching items/contacts are updated, not duplicated.
 async function importFromSheets() {
+  if(!SHEET_ID) { toast('No spreadsheet is linked to this base'); return; }
   if(!db) { toast('Firestore not available — check your connection'); return; }
   if(!confirm('Import current Shopping + Contacts sheet rows into the live app?\n\nThis adds new items and updates existing ones with matching names — it won\'t remove anything.')) return;
   toast('Importing from Sheets...');
@@ -12970,6 +12979,7 @@ async function runEscapeHatch() {
 }
 
 function showMigrationManager() {
+  if(!SHEET_ID) { toast('No spreadsheet is linked to this base'); return; }
   const src = S.tasksSource;
   const overlay = document.createElement('div');
   overlay.id = 'migManagerOverlay';
@@ -13029,6 +13039,7 @@ function setMigStatus(msg, color='var(--t2)') {
 }
 
 function confirmMigration() {
+  if(!SHEET_ID) { toast('No spreadsheet is linked to this base'); return; }
   const overlay = document.createElement('div');
   overlay.id = 'migConfirmOverlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);z-index:6000;display:flex;align-items:center;justify-content:center;padding:24px';
@@ -13051,6 +13062,7 @@ function confirmMigration() {
 
 // Raw Sheets fetch for a single day — returns task array without touching S.tasks
 async function fetchDayRaw(tabName) {
+  if(!SHEET_ID) return [];
   const gid = TAB_GIDS[tabName];
   const url = gid
     ? `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`
