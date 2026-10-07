@@ -14687,6 +14687,7 @@ async function fetchFleetPositions() {
       tail: p.tail, reg: p.reg, lat: p.lat, lon: p.lon,
       altFt: p.onGround ? 0 : (p.altFt ?? null),
       speedKts: p.speedKts || 0, track: p.track || 0, trackRaw: p.track ?? null, onGround: !!p.onGround,
+      leaving: !!p.leavingYav, // the alert job saw it climbing out or moving away from CYAV
       distNm: Math.round(haversineNm(p.lat, p.lon, CYAV_LAT, CYAV_LON))
     }));
   } catch(e) { return []; }
@@ -14710,7 +14711,7 @@ async function refreshFleet() {
     positions.forEach(p => {
       if(!p || !p.tail) return;
       // Only a plane heading for the base gets an ETA (and so shows under "Inbound")
-      const headingIn = fleetHeadingToward(p.lat, p.lon, p.trackRaw, CYAV_LAT, CYAV_LON);
+      const headingIn = !p.leaving && fleetHeadingToward(p.lat, p.lon, p.trackRaw, CYAV_LAT, CYAV_LON);
       const eta = headingIn && p.distNm && p.speedKts ? etaMinutes(p.distNm, p.speedKts) : null;
       _fleetData[p.tail] = {
         callsign: p.reg || p.tail,
