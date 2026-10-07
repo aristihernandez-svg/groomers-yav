@@ -14663,6 +14663,13 @@ let _fleetLastFetch = 0;
 let _fleetTimer = null;
 
 let _fleetFeedAt = 0; // when the fleet job last saved positions (ms)
+// Live tracking runs 6 AM – 8 PM Eastern (5 AM – 7 PM here): the fleet job makes no requests overnight,
+// so the tab says it's paused instead of showing planes frozen where they were at 8 PM.
+let _fleetPaused = false;
+function fleetTrackingPaused() {
+  const h = Number(new Intl.DateTimeFormat('en-US', {timeZone:'America/Toronto', hour:'numeric', hourCycle:'h23'}).format(new Date()));
+  return h < 6 || h >= 20;
+}
 // Positions come from the company fleet job (OpenSky + adsb.lol, about every 2 min), saved in
 // the shared positions doc (Firebase project groomer-ykf, fleetPositions/live, readable without a login). Only position, altitude,
 // speed and track are taken from it -- distance and ETA are worked out here, from CYAV.
@@ -14678,6 +14685,8 @@ function fsRestValue(v) {
   return null;
 }
 async function fetchFleetPositions() {
+  _fleetPaused = fleetTrackingPaused();
+  if(_fleetPaused) return [];
   try {
     const r = await fetch('https://firestore.googleapis.com/v1/projects/groomer-ykf/databases/(default)/documents/fleetPositions/live', {cache:'no-store'});
     if(!r.ok) return [];
@@ -14787,7 +14796,7 @@ function renderFleet(el) {
   document.getElementById('fab').style.display='none';
   clearTimeout(_fleetTimer);
 
-  const fetchAge = _fleetLastFetch
+  const fetchAge = _fleetPaused ? 'Live tracking 5 AM – 7 PM' : _fleetLastFetch
     ? (() => { const s=Math.floor((Date.now()-_fleetLastFetch)/1000); return 'Updated '+(s<60?s+' s ago':Math.floor(s/60)+' min ago'); })()
     : 'Not fetched yet';
 
@@ -14809,7 +14818,7 @@ function renderFleet(el) {
   const etaText = m => m<60 ? m+' min' : Math.floor(m/60)+'h '+String(m%60).padStart(2,'0');
   const row = ac => {
     const d=_fleetData[ac.tail];
-    if(!d) return `<div class="fl-row"><span class="fl-dot off"></span><div class="fl-grow"><span class="fl-reg off">${ac.reg}</span> <span class="fl-type">${ac.type}</span><div class="fl-sub off">No signal</div></div></div>`;
+    if(!d) return `<div class="fl-row"><span class="fl-dot off"></span><div class="fl-grow"><span class="fl-reg off">${ac.reg}</span> <span class="fl-type">${ac.type}</span><div class="fl-sub off">${_fleetPaused?'Overnight — tracking resumes 5 AM':'No signal'}</div></div></div>`;
     const sub = d.onGround
       ? (d.distNm!=null&&d.distNm<=5 ? 'On the ground · CYAV' : 'On the ground')
       : [d.distNm!=null ? d.distNm+' nm' : null, d.altFt ? d.altFt.toLocaleString()+' ft' : null, d.speedKts ? d.speedKts+' kts' : null].filter(Boolean).join(' · ');
@@ -14851,11 +14860,11 @@ function renderFleet(el) {
     ${onGround.length ? `<div class="fl-sec">On the ground<span>${onGround.length}</span></div><div class="fl-card">${onGround.map(row).join('')}</div>` : ''}
     ${noSignal.length ? `
     <div class="fl-more" onclick="S.fleetOffOpen=!S.fleetOffOpen;renderFleet(document.getElementById('content'))">
-      <span class="fl-dot off"></span>${noSignal.length} aircraft with no signal<span style="margin-left:auto">${S.fleetOffOpen?'▾':'▸'}</span></div>
+      <span class="fl-dot off"></span>${noSignal.length} aircraft ${_fleetPaused?'· overnight, resumes 5 AM':'with no signal'}<span style="margin-left:auto">${S.fleetOffOpen?'▾':'▸'}</span></div>
     ${S.fleetOffOpen ? `<div class="fl-card" style="margin-top:8px">${noSignal.map(row).join('')}</div>` : ''}` : ''}
 
     ${notifBtn}
-    <p class="fl-fine">Live ADS-B (OpenSky + adsb.lol), refreshed about every 2 min. Distances and ETAs are from CYAV. The push alert fires once per inbound arrival, within ${FLEET_ALERT_NM} nm of CYAV.</p>
+    <p class="fl-fine">Live ADS-B (OpenSky + adsb.lol), refreshed about every minute from 5 AM to 7 PM (no tracking or alerts overnight). Distances and ETAs are from CYAV. The push alert fires once per inbound arrival, within ${FLEET_ALERT_NM} nm of CYAV.</p>
     <div style="height:90px"></div>
   </div>`;
 
