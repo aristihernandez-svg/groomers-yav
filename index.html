@@ -2157,7 +2157,7 @@ function render() {
       else renderProcs(el);
       break;
     case 'audits':
-      if(true) { renderAuditsLocked(el); break; } // audits disabled for YAV -- see renderAuditsLocked
+      if(!AUDITS_ENABLED) { renderAuditsLocked(el); break; } // audits disabled for YAV -- see renderAuditsLocked
       if(S.crewCarsView==='list') renderCrewCarsList(el);
       else if(S.crewCarsView==='past') renderPastAuditView(el,S.pastAuditView);
       else if(S.crewCarsView) renderCarAudit(el,S.crewCarsView);
@@ -2183,6 +2183,9 @@ function render() {
     case 'fleet':        renderFleet(el); if(!_fleetLastFetch) refreshFleet(); break;
   }
 }
+// Audits are locked for YAV for now. This one switch turns the tab AND the 8th–10th audit reminder
+// back on together; while it is off, nothing about audits pops up.
+var AUDITS_ENABLED = false;
 function renderAuditsLocked(el) {
   setBar({title:'Audits'});
   document.getElementById('fab').style.display='none';
@@ -3768,10 +3771,11 @@ async function renderHome(el) {
   // Design picker
   try { homeAfterRender(); } catch(e) { console.log('homeAfterRender error:', e); }
 
-  // Audit reminder popup — fires on 8th, 9th, 10th if audits are pending
+  // Audit reminder popup — fires on 8th, 9th, 10th if audits are pending. Off while YAV's
+  // audits are locked (AUDITS_ENABLED): YAV has no audits of its own, so it listed every one as missing.
   const _popDay = new Date().getDate();
   const _popKey = 'gyav_auditPopup_' + localDateISO();
-  if([8,9,10].includes(_popDay) && !localStorage.getItem(_popKey)) {
+  if(AUDITS_ENABLED && [8,9,10].includes(_popDay) && !localStorage.getItem(_popKey)) {
     const _mRegs = [...AIRCRAFT_METRO,...(S.acCustomAircraft.metro||[])].filter(r=>!isAcDisabled(r)&&!isAcHidden(r));
     const _wRegs = [...AIRCRAFT_WESTWIND,...(S.acCustomAircraft.westwind||[])].filter(r=>!isAcDisabled(r)&&!isAcHidden(r));
     const _aRegs = [...AIRCRAFT_ASTRA].filter(r=>!isAcDisabled(r)&&!isAcHidden(r));
