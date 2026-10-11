@@ -540,6 +540,27 @@ body::before{
 .hp-pc.on small{color:var(--accent2)}
 .hp-mini{width:64px;height:44px;flex-shrink:0;border-radius:8px;position:relative;overflow:hidden}
 .hp-mini u{position:absolute;border-radius:3px;text-decoration:none}
+/* Today's cargo in the Home Cargo card: DEST · client · pcs (overdue first, in red) */
+.hct{display:flex;flex-direction:column;gap:4px;margin-top:8px;text-align:left;width:100%}
+.hct-r{display:flex;align-items:baseline;gap:7px;font-size:12px;line-height:1.25;min-width:0}
+.hct-r b{flex-shrink:0;font-weight:800;letter-spacing:.5px;min-width:38px}
+.hct-r span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hct-r em{flex-shrink:0;font-style:normal;opacity:.75;font-size:11px}
+.hct-r.od b,.hct-r.od em{color:#FF6B6B}
+.hct-more,.hct-none{font-size:11px;opacity:.75}
+.hd-bx.fleet .hct{margin-top:6px;gap:5px}.hd-bx.fleet .hct-r{font-size:12px}.hd-bx.fleet .hct-r b{font-size:12.5px;line-height:1.25;color:#7DD3FC;min-width:34px}.hd-bx.fleet .hct-r span{font-size:12px;font-weight:500}.hd-bx.fleet .hct-r em{font-size:10.5px}
+.hd-ahero .cap{flex-direction:column;align-items:stretch;gap:2px;background:linear-gradient(transparent,rgba(5,8,20,.75) 30%);padding:26px 10px 8px;margin:0 -14px -10px;border-radius:0 0 18px 18px}
+.hd-ahero.hct-on{height:210px}
+.hd-ahero .hct-r b{color:#8ff0c6}
+.hd-bcard.fl .hct{margin-top:6px}.hd-bcard.fl .hct-r{font-size:12.5px;font-weight:700}.hd-bcard.fl .hct-r b{background:#111;color:#B6FF3B;padding:0 5px;border-radius:4px}
+.hd-nbar .hct-r b{color:#7df3ff;text-shadow:0 0 6px #29e0ff}.hd-nbar .hct-r{font-size:12px}
+.hd-chip .hct{margin-top:4px}.hd-chip .hct-r b{color:#7dffc4}
+.ap-card.ap-photo .hct{margin-top:2px;margin-bottom:8px;border-top:1px solid #EEF2F8;padding-top:8px}.ap-card .hct-r{font-size:13px;color:#12203c}.ap-card .hct-r b{color:#0B3B8C}.ap-card .hct-r em{color:#5a6b8c}
+.ck-polaroid .hct{font-family:Kalam,cursive;padding:4px 6px 0}.ck-polaroid .hct-r{font-size:14px;color:#2a2a2a}.ck-polaroid .hct-r b{color:#B3261E}
+.hct-classic{margin:12px 14px;padding:12px 14px 13px;border-radius:12px;background:rgba(232,163,61,.12);border:1px solid rgba(232,163,61,.35);cursor:pointer}
+.hct-classic .hct-h{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--gold)}
+.hct-classic .hct-h span{margin-left:auto;font-weight:600;color:var(--t2);text-transform:none;letter-spacing:0}
+.hct-classic .hct-r{font-size:14px;color:var(--t1)}.hct-classic .hct-r b{color:var(--gold2)}
 @media (prefers-reduced-motion:reduce){.hd-blob,.hd-mq span{animation:none}}
 
 /* NAV */
@@ -3842,6 +3863,7 @@ async function renderHome(el) {
 
     ${renderHandoffNotesHtml()}
     ${renderTodayEventsHtml()}
+    ${hdCargoClassicHtml()}
 
     <div style="padding:0 14px;margin:${S.handoffNotes&&S.handoffNotes.length?'4px 0 12px':'14px 0 4px'}">
       <button onclick="openHandoffNote()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:12px;background:var(--glass2);border:1px dashed var(--border2);color:var(--t2);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.2px">
@@ -3974,6 +3996,25 @@ function homeCargoStats() {
   const sb = pend.length - dated.length;
   return { pend: pend.length, od, td, sb, later: dated.length-od-td };
 }
+// What ships today (not delivered, not standby), anything overdue first. For the Home Cargo card.
+function hdCargoToday() {
+  const pend = (S.cargo || []).filter(c => !c.done && !c.standby && c.shipDate);
+  const od = pend.filter(c => cargoBucketFor(c.shipDate).key === 'overdue').sort((a, b) => cargoParseDate(a.shipDate) - cargoParseDate(b.shipDate));
+  const td = pend.filter(c => cargoBucketFor(c.shipDate).key === 'today');
+  const next = pend.filter(c => cargoParseDate(c.shipDate) > cargoDateOnly(new Date())).sort((a, b) => cargoParseDate(a.shipDate) - cargoParseDate(b.shipDate))[0] || null;
+  return { list: [...od.map(c => ({ ...c, od: true })), ...td], next };
+}
+function hdCargoListHtml(max = 3) {
+  const { list, next } = hdCargoToday();
+  if (!list.length) return `<div class="hct"><div class="hct-none">Nothing ships today${next ? ` · next: ${_hdEsc(cargoBucketFor(next.shipDate).label)} → ${_hdEsc(next.destination || '—')}` : ''}</div></div>`;
+  const rows = list.slice(0, max).map(c => `<div class="hct-r ${c.od ? 'od' : ''}"><b>${_hdEsc(c.destination || '—')}</b><span>${_hdEsc(c.client || '(no client)')}${c.od ? ' · overdue' : ''}</span><em>${c.pieces ? c.pieces + ' pcs' : ''}</em></div>`).join('');
+  return `<div class="hct">${rows}${list.length > max ? `<div class="hct-more">+${list.length - max} more</div>` : ''}</div>`;
+}
+function hdCargoClassicHtml() {
+  const { list } = hdCargoToday();
+  if (!list.length) return '';
+  return `<div class="hct-classic" onclick="openCargoFromHome()"><div class="hct-h">📦 Shipping today<span>${list.length} piece${list.length === 1 ? '' : 's'} ›</span></div>${hdCargoListHtml(4)}</div>`;
+}
 function homeFooterHtml() {
   return `<div class="hd-foot"><span id="appVerChip" style="cursor:default;user-select:none" ontouchstart="startVerPress()" ontouchend="cancelVerPress()" onmousedown="startVerPress()" onmouseup="cancelVerPress()" onmouseleave="cancelVerPress()">Skycare ${APP_VERSION} · Tasks: <span id="tasksSourceBadge">${S.tasksSource==='firestore'?'🟢 Firestore':'📋 Sheets'}</span></span></div>
     <div class="hd-share"><button onclick="openShareInstallSheet()">Share &amp; Install App</button></div>`;
@@ -4046,7 +4087,7 @@ function hdModel(w) {
 function hdSlotCard(design, slot) {
   const w = hdSlotWin(design, slot.id);
   const key = `${design}:${slot.id}`;
-  return `<div class="${slot.cls}" data-hs="${key}"
+  return `<div class="${slot.cls}${slot.size==='hero' && w==='cargo' ? ' hct-on' : ''}" data-hs="${key}"
     onclick="hdSlotClick('${design}','${slot.id}')" onpointerdown="hdSlotDown(event,'${design}','${slot.id}')"
     onpointermove="hdSlotMove(event)" onpointerup="hdSlotUp()" onpointercancel="hdSlotUp()" onpointerleave="hdSlotUp()"
     oncontextmenu="return false">${hdCardInner(design, slot, w)}</div>`;
@@ -4061,31 +4102,31 @@ function hdCardInner(design, slot, w) {
       return `${vis}<div><h3>${_hdEsc(m.label)}</h3><p>${_hdEsc(m.main)}</p><span class="hd-btn">Open ${_hdEsc(m.label)}</span></div>`;
     }
     case 'bento:tall': {
-      const mid = m.pct!=null ? `<div class="hd-pb"><i style="width:${m.pct}%"></i></div>` : `<div class="hd-bigico">${m.svg}</div>`;
+      const mid = m.pct!=null ? `<div class="hd-pb"><i style="width:${m.pct}%"></i></div>` : w==='cargo' ? hdCargoListHtml(3) : `<div class="hd-bigico">${m.svg}</div>`;
       return `<div><small>${U}</small><b>${_hdEsc(m.big)}</b></div>${mid}<em>${_hdEsc(m.sub)}</em>`;
     }
     case 'bento:compact':
       return `<small>${ico} ${U}</small><p>${_hdEsc(m.big)}<br>${_hdEsc(m.sub)}</p>`;
     case 'aurora:hero':   // the aircraft slideshow always stays; the caption says what this card shows
-      return `${homePlaneImgsHtml('18px 30px 34px')}<div class="cap"><b>${_hdEsc(m.label)} · ${_hdEsc(m.big)}</b><i>${_hdEsc(m.sub)}</i></div>`;
+      return `${homePlaneImgsHtml('18px 30px 34px')}<div class="cap">${hdHeroCap(w, m)}</div>`;
     case 'aurora:card':
       return `<small>${U}</small><p><b style="font-size:24px">${_hdEsc(m.big)}</b><br>${_hdEsc(m.sub)}</p>`;
     case 'brutal:bar':
       return m.pct!=null ? `<b>${_hdEsc(m.main)}</b><div class="hd-pbar"><i style="width:${m.pct}%"></i></div>`
                          : `<b>${_hdEsc(m.label)} · ${_hdEsc(m.big)}</b><div class="hd-bsub">${_hdEsc(m.sub)}</div>`;
     case 'brutal:plane':
-      return `<div class="pl ico">${m.svg}</div><div><b>${_hdEsc(m.label)}</b><small>${_hdEsc(m.big)} · ${_hdEsc(m.sub)}</small></div>`;
+      return `<div class="pl ico">${m.svg}</div><div style="flex:1;min-width:0"><b>${_hdEsc(m.label)}</b><small>${_hdEsc(m.big)} · ${_hdEsc(m.sub)}</small>${w==='cargo' ? hdCargoListHtml(3) : ''}</div>`;
     case 'neon:bar':
       return m.pct!=null ? `<b>${U}</b> · ${_hdEsc(m.main)}<div class="p"><i style="width:${m.pct}%"></i></div>`
-                         : `<b>${U}</b> · ${_hdEsc(m.main)}`;
+                         : `<b>${U}</b> · ${_hdEsc(m.main)}${w==='cargo' ? hdCargoListHtml(3) : ''}`;
     case 'airline:photo':
-      return `<div class="ap-img">${m.svg}</div><div class="ap-row"><b>${_hdEsc(m.label)} · ${_hdEsc(m.big)}</b><span class="ap-pill">${_hdEsc(m.sub)}</span></div>`;
+      return `${w==='cargo' ? '' : `<div class="ap-img">${m.svg}</div>`}<div class="ap-row"><b>${_hdEsc(m.label)} · ${_hdEsc(m.big)}</b><span class="ap-pill">${_hdEsc(m.sub)}</span></div>${w==='cargo' ? hdCargoListHtml(3) : ''}`;
     case 'airline:bar':
       return m.pct!=null
         ? `<div class="ap-row"><b>${_hdEsc(m.label)}</b><span>${m.pct}%</span></div><div class="ap-bar"><i style="width:${m.pct}%"></i></div><div class="ap-sub">${_hdEsc(m.sub)}</div>`
         : `<div class="ap-row"><b>${_hdEsc(m.label)}</b><span>${_hdEsc(m.big)}</span></div><div class="ap-sub">${_hdEsc(m.sub)}</div>`;
     case 'cork:polaroid':
-      return `<div class="ck-pin"></div><div class="ck-img">${m.svg}</div><figcaption>${_hdEsc(m.label)} — ${_hdEsc(m.big)}</figcaption>`;
+      return `<div class="ck-pin"></div>${w==='cargo' ? hdCargoListHtml(3) : `<div class="ck-img">${m.svg}</div>`}<figcaption>${_hdEsc(m.label)} — ${_hdEsc(m.big)}</figcaption>`;
     case 'cork:bar':
       return m.pct!=null
         ? `<b>${_hdEsc(m.label)}: ${m.pct}%</b><div class="ck-bar"><i style="width:${m.pct}%"></i></div><div>${_hdEsc(m.sub)}</div>`
@@ -4095,7 +4136,11 @@ function hdCardInner(design, slot, w) {
 }
 function hdSkyChip() {
   const m = hdModel('cargo');
-  return `<b>${_hdEsc(m.label)}</b><i>${_hdEsc(m.big)}</i> · ${_hdEsc(m.sub)}`;
+  return `<b>${_hdEsc(m.label)}</b><i>${_hdEsc(m.big)}</i> · ${_hdEsc(m.sub)}${hdCargoListHtml(3)}`;
+}
+// Aurora's hero caption (the slideshow keeps running behind it); the Cargo card lists today's pieces
+function hdHeroCap(w, m) {
+  return `<b>${_hdEsc(m.label)} · ${_hdEsc(m.big)}</b><i>${_hdEsc(m.sub)}</i>${w==='cargo' ? hdCargoListHtml(3) : ''}`;
 }
 // Numbers arrive after the page is drawn (live listeners): refresh the cards in place, so the
 // aircraft slideshow and any open menu aren't disturbed.
@@ -4106,7 +4151,7 @@ function homeRefreshSoft() {
     const slot = (HD_SLOTS[design]||[]).find(s=>s.id===slotId);
     if(!slot) return;
     const w = hdSlotWin(design, slotId), m = hdModel(w);
-    if(slot.size==='hero') { const cap = n.querySelector('.cap'); if(cap) cap.innerHTML = `<b>${_hdEsc(m.label)} · ${_hdEsc(m.big)}</b><i>${_hdEsc(m.sub)}</i>`; }
+    if(slot.size==='hero') { const cap = n.querySelector('.cap'); if(cap) cap.innerHTML = hdHeroCap(w, m); n.classList.toggle('hct-on', w==='cargo'); }
     else n.innerHTML = hdCardInner(design, slot, w);
   });
   const chip = document.querySelector('.hd-chip'); if(chip) chip.innerHTML = hdSkyChip();
@@ -4127,8 +4172,12 @@ function hdSlotMove(e) {
 function hdSlotUp() { clearTimeout(_hsTimer); _hsTimer = null; }
 function hdSlotClick(design, slotId) {
   if(_hsFired) { _hsFired = false; return; }
-  goTab(hdSlotWin(design, slotId));
+  const w = hdSlotWin(design, slotId);
+  if(w === 'cargo') { openCargoFromHome(); return; }
+  goTab(w);
 }
+// Home's cargo boxes open the Cargo list (not Records, even if that was open last), at the top
+function openCargoFromHome() { S.cargoView = 'cargo'; goTab('cargo'); const c = document.getElementById('content'); if (c) c.scrollTop = 0; }
 function hdOpenSlotMenu(design, slotId) {
   _hsCtx = {design, slotId}; _hsOpenAt = Date.now();
   const cur = hdSlotWin(design, slotId);
@@ -4200,7 +4249,7 @@ function homeDesignHtml(d, dateStr) {
     <div id="homeTileWrap"></div>
     ${homeFooterHtml()}</div>`; }
   if(d==='sky') return `<div class="hd hd-sky">
-    <div class="hd-skyarea"><div class="dt">${dt}</div>${homePlaneImgsHtml('44px 6px 60px')}<div class="hd-chip" onclick="goTab('cargo')">${hdSkyChip()}</div></div>
+    <div class="hd-skyarea"><div class="dt">${dt}</div>${homePlaneImgsHtml('44px 6px 60px')}<div class="hd-chip" onclick="openCargoFromHome()">${hdSkyChip()}</div></div>
     <div class="hd-sheet"><div class="hd-grab"></div>
       <h3 onclick="goTab('mastertask')">Master Task</h3><div class="pb"><i style="width:${st.pct}%"></i></div><div class="ps">${_hdEsc(mt.main)}</div>
       ${homeNotesHtml()}
