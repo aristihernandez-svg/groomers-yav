@@ -1043,6 +1043,26 @@ body::before{
 .cg-item.open .cg-chev{transform:rotate(180deg);color:var(--accent2)}
 .cg-item.done .cg-client{text-decoration:line-through;color:var(--t4)}
 .cg-item.done .cg-sub{color:var(--t4)}
+/* Delivered: when it was delivered (gold), folding group, link to Records */
+.cg-dlv{color:var(--gold2);font-weight:600}
+.cg-grp.fold .cg-th{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cg-grp.fold.folded .cg-sbfold{transform:rotate(-90deg)}
+.cg-grp.fold.folded .cg-dlst{display:none}
+.cg-grp.fold.folded .cg-sbhint{display:block}
+.cg-reclink{margin:4px 0 0;padding:10px 12px;border:1px dashed var(--border2);border-radius:12px;font-size:12.5px;color:var(--t2);text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cg-reclink b{color:var(--gold)}
+.cg-viewseg{padding:8px 16px 2px}
+.cg-rsearch{display:block;width:100%;margin-top:10px;padding:11px 12px;border-radius:12px;background:var(--glass2);border:1px solid var(--border);color:var(--t1);font:inherit;font-size:14px;outline:none;-webkit-user-select:text;user-select:text}
+.cg-rsearch::placeholder{color:var(--t3)}
+.cg-rsum{margin:10px 2px 0;font-size:12px;color:var(--t2)}
+.cg-rsum b{color:var(--gold2)}
+.cg-dgrid .cg-f.wide{grid-column:1/-1}
+.cg-dgrid .cg-f .cg-v.dlvv{color:var(--gold2)}
+.bd-grp.fold .bd-h{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bd-grp.fold.folded .bd-sbfold{transform:rotate(-90deg)}
+.bd-grp.fold.folded .bd-dlst{display:none}
+.bd-grp.fold.folded .bd-h{border-radius:5px;border-bottom:none}
+.bd-who em .bd-dlv{color:var(--gold2)}
 .cg-detail{max-height:0;overflow:hidden;transition:max-height .25s ease}
 .cg-item.open .cg-detail{max-height:340px}
 .cg-detail-in{padding:0 14px 14px;border-top:1px solid var(--border)}
@@ -2508,10 +2528,48 @@ function toggleCargoStandby() {
   document.querySelectorAll('.cg-grp.standby, .bd-grp.standby').forEach(g => g.classList.toggle('folded', folded));
 }
 
+// Delivered pieces stay on the Cargo tab for 3 days after being marked delivered, then are listed
+// under Records (the last 2 months). Nothing is deleted: older deliveries stay in the database.
+const CARGO_DELIV_SHOW_MS = 3 * 86400000;
+function cargoRecent(c) { return !!c.deliveredAt && Date.now() - c.deliveredAt < CARGO_DELIV_SHOW_MS; }
+function cargoRecordsSince() { const d = new Date(); d.setMonth(d.getMonth() - 2); d.setHours(0, 0, 0, 0); return d; }
+function cargoRecords() {
+  const since = +cargoRecordsSince();
+  return S.cargo.filter(c => c.done && c.deliveredAt && c.deliveredAt >= since).sort((a, b) => b.deliveredAt - a.deliveredAt);
+}
+// When it was delivered. 'short' (Cargo tab): Today, 2:14 PM · 'record': Sun, Oct 11 · 2:14 PM · 'full': Sunday, October 11, 2026 · 2:14 PM
+function cargoDeliveredLabel(c, style) {
+  if (!c.deliveredAt) return 'date not recorded';
+  const d = new Date(c.deliveredAt), time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  if (style === 'full') return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + ' · ' + time;
+  const day = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  if (style === 'record') return day + ' · ' + time;
+  const days = Math.round((cargoDateOnly(new Date()) - cargoDateOnly(d)) / 86400000);
+  return (days === 0 ? 'Today' : days === 1 ? 'Yesterday' : day) + ', ' + time;
+}
+// Delivered group open/folded -- open unless this phone folded it.
+function cargoDelivFolded() { try { return localStorage.getItem('gyav_cargo_dl_folded') === '1'; } catch (e) { return false; } }
+function toggleCargoDelivered() {
+  const folded = !cargoDelivFolded();
+  try { localStorage.setItem('gyav_cargo_dl_folded', folded ? '1' : '0'); } catch (e) {}
+  haptic();
+  document.querySelectorAll('.cg-grp.delivered.fold, .bd-grp.delivered.fold').forEach(g => g.classList.toggle('folded', folded));
+}
+function setCargoView(v) {
+  S.cargoView = v;
+  haptic();
+  renderCargo(document.getElementById('content'));
+  document.getElementById('content').scrollTop = 0;
+}
+function cargoOlderLinkHtml() {
+  const older = cargoRecords().filter(c => !cargoRecent(c)).length;
+  return older ? `<div class="cg-reclink" onclick="setCargoView('records')">${older} older deliver${older === 1 ? 'y is' : 'ies are'} in <b>Records ›</b></div>` : '';
+}
+
 function groupedCargo() {
   const pending = S.cargo.filter(c => !c.done && !c.standby).sort((a, b) => cargoParseDate(a.shipDate) - cargoParseDate(b.shipDate));
   const standby = S.cargo.filter(cargoIsStandby).sort((a, b) => (a.standbySince || a.createdAt || 0) - (b.standbySince || b.createdAt || 0));
-  const delivered = S.cargo.filter(c => c.done).sort((a, b) => (b.deliveredAt || 0) - (a.deliveredAt || 0));
+  const delivered = S.cargo.filter(c => c.done && cargoRecent(c)).sort((a, b) => (b.deliveredAt || 0) - (a.deliveredAt || 0));
 
   const order = [];
   const byKey = {};
@@ -2551,15 +2609,20 @@ document.addEventListener('click', () => {
   if (S.wallOpen) { S.wallOpen = false; if (S.tab === 'cargo') syncWallLink(); }
 });
 
+function cargoViewSegHtml(view) {
+  const active = S.cargo.filter(c => !c.done).length, recs = cargoRecords().length;
+  return `<div class="cg-viewseg"><div class="ct-seg"><button class="${view === 'cargo' ? 'on' : ''}" onclick="setCargoView('cargo')">Cargo <em>${active}</em></button><button class="${view === 'records' ? 'on' : ''}" onclick="setCargoView('records')">Records <em>${recs}</em></button></div></div>`;
+}
 function renderCargo(el) {
   setBar({ title: 'Cargo' });
   syncWallLink();
   showFab(openAddCargo);
+  if (S.cargoView === 'records') { renderCargoRecords(el); return; }
 
   const groups = groupedCargo();
   const board = S.cargoDesign === 'board';
 
-  let html = '';
+  let html = cargoViewSegHtml('cargo');
 
   if (!groups.length) {
     html += `<div class="empty"><div class="empty-icon">📦</div><p>No cargo logged. Tap + to add a piece.</p></div>`;
@@ -2579,11 +2642,20 @@ function renderCargo(el) {
           <div class="cg-sblst">${g.items.map(c => cargoRowHtml(c, g.cls)).join('')}</div></div>`;
         return;
       }
+      if (g.key === 'delivered') {
+        // Folds (open unless this phone folded it); older deliveries are one tap away in Records.
+        html += `<div class="cg-grp delivered fold ${cargoDelivFolded() ? 'folded' : ''}">
+          <div class="cg-th" onclick="toggleCargoDelivered()"><h3>${g.label}</h3><span class="cg-td">last 3 days</span><span class="cg-tn">${n}</span><span class="cg-sbfold">▾</span></div>
+          <div class="cg-sbhint" onclick="toggleCargoDelivered()">${n} delivered in the last 3 days · tap to show</div>
+          <div class="cg-dlst">${g.items.map(c => cargoRowHtml(c, g.cls)).join('')}${cargoOlderLinkHtml()}</div></div>`;
+        return;
+      }
       html += `<div class="cg-grp ${g.cls}">
         <div class="cg-th"><h3>${g.label}</h3><span class="cg-td">${sub}</span><span class="cg-tn">${n}</span></div>`;
       g.items.forEach(c => { html += cargoRowHtml(c, g.cls); });
       html += `</div>`;
     });
+    if (!groups.some(g => g.key === 'delivered')) html += cargoOlderLinkHtml();
     html += `</div>`;
   }
   html += `<div style="height:80px"></div>`;
@@ -2591,6 +2663,33 @@ function renderCargo(el) {
   document.getElementById('cgDial').style.display = '';
   renderCargoPicker();
   if (board) bdStartTimer();
+}
+
+// ── Cargo: Records (deliveries from the last 2 months, newest first, by week) ──
+function renderCargoRecords(el) {
+  const since = cargoRecordsSince(), n = cargoRecords().length;
+  const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  el.innerHTML = cargoViewSegHtml('records') + `<div style="padding:0 16px">
+      <input class="cg-rsearch" type="search" placeholder="🔍  Search client, destination or aircraft" value="${(S.cargoRecQ || '').replace(/"/g, '&quot;')}" oninput="S.cargoRecQ=this.value;document.getElementById('cgRecList').innerHTML=cargoRecordsListHtml()">
+      <div class="cg-rsum"><b>${n}</b> deliver${n === 1 ? 'y' : 'ies'} · ${fmt(since)} – ${fmt(new Date())}</div></div>
+    <div id="cgRecList">${cargoRecordsListHtml()}</div><div style="height:80px"></div>`;
+  document.getElementById('cgDial').style.display = 'none';
+}
+function cargoRecordsListHtml() {
+  const q = (S.cargoRecQ || '').trim().toLowerCase();
+  const list = cargoRecords().filter(c => !q || [c.client, c.destination, c.aircraft, c.location, c.notes].some(v => String(v || '').toLowerCase().includes(q)));
+  if (!list.length) return `<div class="empty"><div class="empty-icon">📦</div><p>${q ? 'No delivery matches that search.' : 'No deliveries in the last 2 months.'}</p></div>`;
+  // weeks run Monday–Sunday
+  const monday = t => { const d = cargoDateOnly(new Date(t)); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; };
+  const thisWk = +monday(Date.now()), md = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const weeks = [];
+  list.forEach(c => { const w = +monday(c.deliveredAt); let g = weeks.find(x => x.w === w); if (!g) weeks.push(g = { w, items: [] }); g.items.push(c); });
+  return `<div class="cg-tl">${weeks.map(g => {
+    const start = new Date(g.w), end = new Date(g.w); end.setDate(end.getDate() + 6);
+    const label = g.w === thisWk ? 'This week' : g.w === thisWk - 7 * 86400000 ? 'Last week' : md(start) + ' – ' + (start.getMonth() === end.getMonth() ? end.getDate() : md(end));
+    const range = start.getMonth() === end.getMonth() ? `${md(start)} – ${end.getDate()}` : `${md(start)} – ${md(end)}`;
+    return `<div class="cg-grp delivered"><div class="cg-th"><h3>${label}</h3><span class="cg-td">${label.includes('week') ? range : ''}</span><span class="cg-tn">${g.items.length}</span></div>${g.items.map(c => cargoRowHtml(c, 'delivered', true)).join('')}</div>`;
+  }).join('')}</div>`;
 }
 
 // ── Cargo: design picker (corner dial) ─────────────────────────────
@@ -2652,6 +2751,12 @@ function cargoBoardHtml(groups) {
     const title = g.label.toUpperCase().split('').map(ch => ch === ' '
       ? '<span class="sp"></span>'
       : `<div class="bd-flap bd-ttl" data-ch="${ch}"><span>${ch}</span></div>`).join('');
+    if (g.key === 'delivered') {
+      html += `<div class="bd-grp delivered fold ${cargoDelivFolded() ? 'folded' : ''}">
+        <div class="bd-h" onclick="toggleCargoDelivered()"><div class="bd-tt">${title}</div><div class="bd-rt"><em>last 3 days</em><b>${String(n).padStart(2, '0')}</b><span class="bd-sbfold">▾</span></div></div>
+        <div class="bd-dlst">${g.items.map(c => boardRowHtml(c, g.cls)).join('')}<div style="padding:0 12px 12px">${cargoOlderLinkHtml()}</div></div></div>`;
+      return;
+    }
     if (g.key === 'standby') {
       html += `<div class="bd-grp standby ${cargoSbFolded() ? 'folded' : ''}">
         <div class="bd-h" onclick="toggleCargoStandby()"><div class="bd-tt">${title}</div><div class="bd-rt"><em>${sub}</em><b>${String(n).padStart(2, '0')}</b><span class="bd-sbfold">▾</span></div></div>
@@ -2670,7 +2775,9 @@ function boardRowHtml(c, grpCls) {
   const open = S.cargoOpen.has(c.id);
   const showDate = grpCls === 'later' || grpCls === 'overdue';
   const sb = cargoIsStandby(c);
-  const sub = [c.location, c.aircraft, sb ? `since ${cargoSinceLabel(c)}` : showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean).join(' · ');
+  const sub = c.done
+    ? [`<span class="bd-dlv">✓ ${cargoDeliveredLabel(c, 'short')}</span>`, c.pieces ? `${c.pieces} pcs` : null].filter(Boolean).join(' · ')
+    : [c.location, c.aircraft, sb ? `since ${cargoSinceLabel(c)}` : showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean).join(' · ');
   return `
     <div class="bd-item ${open ? 'open' : ''} ${c.done ? 'done' : ''}" data-id="${c.id}">
       <div class="bd-row" onclick="toggleCargoItem('${c.id}')">
@@ -2684,6 +2791,7 @@ function boardRowHtml(c, grpCls) {
           <div><label>Destination</label><div>${c.destination || '—'}</div></div>
           <div><label># of Pieces</label><div>${c.pieces || '—'}</div></div>
           <div><label>Weight</label><div>${c.weight || '—'}</div></div>
+          ${c.done ? `<div style="grid-column:1/-1"><label>Delivered</label><div>${cargoDeliveredLabel(c, 'full')}</div></div>` : ''}
         </div>
         ${c.notes ? `<p class="bd-notes">${c.notes}</p>` : ''}
         <div class="bd-actions">
@@ -2779,7 +2887,7 @@ function bdClack(strong) {
   } catch (e) {}
 }
 
-function cargoRowHtml(c, barCls) {
+function cargoRowHtml(c, barCls, record) {
   const open = S.cargoOpen.has(c.id);
   // Today/Tomorrow/a specific weekday are single-date buckets -- the group
   // header already says the date, so the sub-line shows piece count there
@@ -2788,7 +2896,9 @@ function cargoRowHtml(c, barCls) {
   const showDate = barCls === 'later' || barCls === 'overdue';
   // Standby rows expand like any other; their Edit opens the boarding pass.
   const sb = cargoIsStandby(c);
-  const subParts = [c.location, c.aircraft, sb ? `waiting since ${cargoSinceLabel(c)}` : showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean);
+  const subParts = c.done
+    ? [`<span class="cg-dlv">✓ ${cargoDeliveredLabel(c, record ? 'record' : 'short')}</span>`, record ? null : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean)
+    : [c.location, c.aircraft, sb ? `waiting since ${cargoSinceLabel(c)}` : showDate ? cargoDateLabel(c.shipDate) : (c.pieces ? `${c.pieces} pcs` : null)].filter(Boolean);
   return `
     <div class="cg-item ${open ? 'open' : ''} ${c.done ? 'done' : ''} ${S.cargoMoved === c.id ? 'cg-moved' : ''}" data-id="${c.id}">
       <div class="cg-row" onclick="toggleCargoItem('${c.id}')">
@@ -2809,6 +2919,8 @@ function cargoRowHtml(c, barCls) {
             <div class="cg-f"><label># of Pieces</label><div class="cg-v">${c.pieces || '—'}</div></div>
             <div class="cg-f"><label>Weight</label><div class="cg-v">${c.weight || '—'}</div></div>
             ${sb ? `<div class="cg-f"><label>Waiting since</label><div class="cg-v">${cargoSinceLabel(c)}</div></div>` : ''}
+            ${c.done && c.shipDate ? `<div class="cg-f"><label>Ship date</label><div class="cg-v">${cargoDateLabel(c.shipDate)}</div></div>` : ''}
+            ${c.done ? `<div class="cg-f wide"><label>Delivered</label><div class="cg-v dlvv">${cargoDeliveredLabel(c, 'full')}</div></div>` : ''}
           </div>
           ${c.notes ? `<div class="cg-dnotes"><label>Notes</label><p>${c.notes}</p></div>` : ''}
           <div class="cg-dactions">
