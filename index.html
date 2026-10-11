@@ -1064,14 +1064,8 @@ body::before{
 .cg-item.open .cg-chev{transform:rotate(180deg);color:var(--accent2)}
 .cg-item.done .cg-client{text-decoration:line-through;color:var(--t4)}
 .cg-item.done .cg-sub{color:var(--t4)}
-/* Delivered: when it was delivered (gold), folding group, link to Records */
+/* Delivered pieces (Records): when it was delivered, in gold */
 .cg-dlv{color:var(--gold2);font-weight:600}
-.cg-grp.fold .cg-th{cursor:pointer;-webkit-tap-highlight-color:transparent}
-.cg-grp.fold.folded .cg-sbfold{transform:rotate(-90deg)}
-.cg-grp.fold.folded .cg-dlst{display:none}
-.cg-grp.fold.folded .cg-sbhint{display:block}
-.cg-reclink{margin:4px 0 0;padding:10px 12px;border:1px dashed var(--border2);border-radius:12px;font-size:12.5px;color:var(--t2);text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.cg-reclink b{color:var(--gold)}
 .cg-viewseg{padding:8px 16px 2px}
 .cg-rsearch{display:block;width:100%;margin-top:10px;padding:11px 12px;border-radius:12px;background:var(--glass2);border:1px solid var(--border);color:var(--t1);font:inherit;font-size:14px;outline:none;-webkit-user-select:text;user-select:text}
 .cg-rsearch::placeholder{color:var(--t3)}
@@ -1079,10 +1073,6 @@ body::before{
 .cg-rsum b{color:var(--gold2)}
 .cg-dgrid .cg-f.wide{grid-column:1/-1}
 .cg-dgrid .cg-f .cg-v.dlvv{color:var(--gold2)}
-.bd-grp.fold .bd-h{cursor:pointer;-webkit-tap-highlight-color:transparent}
-.bd-grp.fold.folded .bd-sbfold{transform:rotate(-90deg)}
-.bd-grp.fold.folded .bd-dlst{display:none}
-.bd-grp.fold.folded .bd-h{border-radius:5px;border-bottom:none}
 .bd-who em .bd-dlv{color:var(--gold2)}
 .cg-detail{max-height:0;overflow:hidden;transition:max-height .25s ease}
 .cg-item.open .cg-detail{max-height:340px}
@@ -2549,10 +2539,8 @@ function toggleCargoStandby() {
   document.querySelectorAll('.cg-grp.standby, .bd-grp.standby').forEach(g => g.classList.toggle('folded', folded));
 }
 
-// Delivered pieces stay on the Cargo tab for 3 days after being marked delivered, then are listed
-// under Records (the last 2 months). Nothing is deleted: older deliveries stay in the database.
-const CARGO_DELIV_SHOW_MS = 3 * 86400000;
-function cargoRecent(c) { return !!c.deliveredAt && Date.now() - c.deliveredAt < CARGO_DELIV_SHOW_MS; }
+// A piece leaves the Cargo list the moment it's marked delivered and is listed under Records
+// (the last 2 months). Nothing is deleted: older deliveries stay in the database.
 function cargoRecordsSince() { const d = new Date(); d.setMonth(d.getMonth() - 2); d.setHours(0, 0, 0, 0); return d; }
 function cargoRecords() {
   const since = +cargoRecordsSince();
@@ -2568,29 +2556,15 @@ function cargoDeliveredLabel(c, style) {
   const days = Math.round((cargoDateOnly(new Date()) - cargoDateOnly(d)) / 86400000);
   return (days === 0 ? 'Today' : days === 1 ? 'Yesterday' : day) + ', ' + time;
 }
-// Delivered group open/folded -- open unless this phone folded it.
-function cargoDelivFolded() { try { return localStorage.getItem('gyav_cargo_dl_folded') === '1'; } catch (e) { return false; } }
-function toggleCargoDelivered() {
-  const folded = !cargoDelivFolded();
-  try { localStorage.setItem('gyav_cargo_dl_folded', folded ? '1' : '0'); } catch (e) {}
-  haptic();
-  document.querySelectorAll('.cg-grp.delivered.fold, .bd-grp.delivered.fold').forEach(g => g.classList.toggle('folded', folded));
-}
 function setCargoView(v) {
   S.cargoView = v;
   haptic();
   renderCargo(document.getElementById('content'));
   document.getElementById('content').scrollTop = 0;
 }
-function cargoOlderLinkHtml() {
-  const older = cargoRecords().filter(c => !cargoRecent(c)).length;
-  return older ? `<div class="cg-reclink" onclick="setCargoView('records')">${older} older deliver${older === 1 ? 'y is' : 'ies are'} in <b>Records ›</b></div>` : '';
-}
-
 function groupedCargo() {
   const pending = S.cargo.filter(c => !c.done && !c.standby).sort((a, b) => cargoParseDate(a.shipDate) - cargoParseDate(b.shipDate));
   const standby = S.cargo.filter(cargoIsStandby).sort((a, b) => (a.standbySince || a.createdAt || 0) - (b.standbySince || b.createdAt || 0));
-  const delivered = S.cargo.filter(c => c.done && cargoRecent(c)).sort((a, b) => (b.deliveredAt || 0) - (a.deliveredAt || 0));
 
   const order = [];
   const byKey = {};
@@ -2601,7 +2575,6 @@ function groupedCargo() {
   });
   const groups = order.map(k => byKey[k]);
   if (standby.length) groups.push({ key: 'standby', cls: 'standby', label: 'Standby', items: standby });
-  if (delivered.length) groups.push({ key: 'delivered', cls: 'delivered', label: 'Delivered', items: delivered });
   return groups;
 }
 
@@ -2663,20 +2636,11 @@ function renderCargo(el) {
           <div class="cg-sblst">${g.items.map(c => cargoRowHtml(c, g.cls)).join('')}</div></div>`;
         return;
       }
-      if (g.key === 'delivered') {
-        // Folds (open unless this phone folded it); older deliveries are one tap away in Records.
-        html += `<div class="cg-grp delivered fold ${cargoDelivFolded() ? 'folded' : ''}">
-          <div class="cg-th" onclick="toggleCargoDelivered()"><h3>${g.label}</h3><span class="cg-td">last 3 days</span><span class="cg-tn">${n}</span><span class="cg-sbfold">▾</span></div>
-          <div class="cg-sbhint" onclick="toggleCargoDelivered()">${n} delivered in the last 3 days · tap to show</div>
-          <div class="cg-dlst">${g.items.map(c => cargoRowHtml(c, g.cls)).join('')}${cargoOlderLinkHtml()}</div></div>`;
-        return;
-      }
       html += `<div class="cg-grp ${g.cls}">
         <div class="cg-th"><h3>${g.label}</h3><span class="cg-td">${sub}</span><span class="cg-tn">${n}</span></div>`;
       g.items.forEach(c => { html += cargoRowHtml(c, g.cls); });
       html += `</div>`;
     });
-    if (!groups.some(g => g.key === 'delivered')) html += cargoOlderLinkHtml();
     html += `</div>`;
   }
   html += `<div style="height:80px"></div>`;
@@ -2772,12 +2736,6 @@ function cargoBoardHtml(groups) {
     const title = g.label.toUpperCase().split('').map(ch => ch === ' '
       ? '<span class="sp"></span>'
       : `<div class="bd-flap bd-ttl" data-ch="${ch}"><span>${ch}</span></div>`).join('');
-    if (g.key === 'delivered') {
-      html += `<div class="bd-grp delivered fold ${cargoDelivFolded() ? 'folded' : ''}">
-        <div class="bd-h" onclick="toggleCargoDelivered()"><div class="bd-tt">${title}</div><div class="bd-rt"><em>last 3 days</em><b>${String(n).padStart(2, '0')}</b><span class="bd-sbfold">▾</span></div></div>
-        <div class="bd-dlst">${g.items.map(c => boardRowHtml(c, g.cls)).join('')}<div style="padding:0 12px 12px">${cargoOlderLinkHtml()}</div></div></div>`;
-      return;
-    }
     if (g.key === 'standby') {
       html += `<div class="bd-grp standby ${cargoSbFolded() ? 'folded' : ''}">
         <div class="bd-h" onclick="toggleCargoStandby()"><div class="bd-tt">${title}</div><div class="bd-rt"><em>${sub}</em><b>${String(n).padStart(2, '0')}</b><span class="bd-sbfold">▾</span></div></div>
@@ -3166,7 +3124,7 @@ function markCargoDelivered(id) {
   S.cargoOpen.delete(id); // collapse it -- an expanded card would otherwise carry over into Delivered
   if (!db) { toast('No connection'); return; }
   db.collection('cargoTracker').doc(id).update({ done: true, deliveredAt: Date.now() })
-    .then(() => toast('✅ Marked delivered'))
+    .then(() => toast('✅ Delivered — moved to Records'))
     .catch(e => { console.log('Mark cargo delivered failed:', e); toast('⚠️ Failed — check connection'); });
 }
 function reopenCargo(id) {
