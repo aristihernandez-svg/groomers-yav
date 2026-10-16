@@ -608,7 +608,27 @@ body::before{
 .hh-crypt .pl::before,.hh-crypt .pl::after{content:'';position:absolute;top:8px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#F0D090,#5A4020)}
 .hh-crypt .pl::before{left:8px}.hh-crypt .pl::after{right:8px}
 .hh-crypt small.k{display:block;font:800 10px Cinzel,Georgia,serif;letter-spacing:2px;text-transform:uppercase;color:#3A1A04}
-.hh-crypt p{font-family:Georgia,serif;font-size:13.5px;line-height:1.5;margin-top:6px}
+.hh-crypt p{font-family:Georgia,serif;font-size:15.5px;font-weight:700;line-height:1.5;margin-top:6px;color:#1E1206}
+/* YAV: the gate sign cut in two — Fleet and Cargo hang side by side */
+.hh-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:30px 0 0}
+.hh-pair .hh-gate{margin:0}
+.hh-pair .hh-gate::before{left:24%}.hh-pair .hh-gate::after{right:24%}
+.hh-half .fr{height:100%;box-sizing:border-box;padding:9px 11px 11px;display:flex;flex-direction:column}
+.hh-half .hdr{font-size:8.5px;letter-spacing:1.5px}
+.hh-half .mid{display:flex;align-items:flex-end;gap:9px;margin-top:8px}
+.hh-half .cd{height:52px}
+.hh-half .big{font-family:'Pirata One',Georgia,serif;font-size:44px;line-height:.85;color:#FFE2A8;text-shadow:0 0 12px rgba(255,170,60,.6)}
+.hh-half .big small{display:block;font:800 8.5px Cinzel,Georgia,serif;letter-spacing:1.5px;color:#FF9A2A;margin-top:3px}
+.hh-half .reg{font-family:'Pirata One',Georgia,serif;font-size:24px;line-height:1;color:#FFB061;text-shadow:0 0 10px rgba(255,120,20,.6);margin-top:8px}
+.hh-half .sub{font-size:11px;color:#E6DCC8;margin-top:3px;line-height:1.35}
+.hh-half .chest{width:46px;height:40px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(255,170,60,.55))}
+.hh-half .chest svg{width:100%;height:100%}
+.hh-half .rows{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.hh-half .rows div{display:flex;justify-content:space-between;gap:6px;font-size:11px;color:#E6DCC8;padding-top:4px;border-top:1px dashed rgba(255,255,255,.14)}
+.hh-half .rows span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hh-half .rows b{color:#FFB061;font-weight:800;flex-shrink:0}
+.hh-half .rows .od b{color:#FF6A5A}
+.hh-half .pcs{color:#E6DCC8;font:800 9px Inter,sans-serif;letter-spacing:1px}
 .hh-crypt audio{width:100%;height:32px;margin-top:8px}
 .hh-crypt .hh-ok{color:#2A1A08;border-color:#2A1A08}
 .hh-line{border-top:1px solid rgba(255,255,255,.25);margin-top:14px;padding-top:12px;text-shadow:0 1px 6px rgba(0,0,0,.85)}
@@ -4394,12 +4414,29 @@ async function hhYavFleetRefresh() {
     .map(q => ({...q, eta: etaMinutes(q.distNm, q.speedKts)})).filter(q => q.eta != null).sort((a, b) => a.distNm - b.distNm)[0];
   const lead = inbound ? {...inbound, inbound: true} : (air.filter(q => q.distNm != null).sort((a, b) => a.distNm - b.distNm)[0] || null);
   _hhFleet = { info, lead, air: air.length, ground: pos.length - air.length };
-  const el = document.querySelector('[data-hhgate]'); if(el) el.innerHTML = hhYavGate();
+  const el = document.querySelector('[data-hhgate]'); if(el) el.innerHTML = hhYavFleetHalf();
 }
-function hhYavGate() {
-  if(!_hhFleet) return hhGateSign(hhGateModel(null, 'Checking…', {}));
-  const q = _hhFleet.lead, fp = q && !_hhFleet.info ? {...q, type: (FLEET_AIRCRAFT.find(a => a.tail === q.tail) || {}).type || ''} : null;
-  return hhGateSign(hhGateModel(fp, _hhFleet.info, {air: _hhFleet.air, ground: _hhFleet.ground}));
+function hhYavFleetHalf() {
+  const f = _hhFleet, hdr = off => `<div class="hdr"><span>✠ Arrivals</span><span class="live ${off?'off':''}"><i></i>${off?'OFF':'LIVE'}</span></div>`;
+  if(!f) return hdr(false) + '<div class="reg">Checking…</div><div class="sub">Reading the live fleet</div>';
+  if(f.info === 'Overnight') return hdr(true) + '<div class="mid"><div class="cd out"><i style="height:60px"></i></div><div class="big">6 AM<small>GATE OPENS</small></div></div><div class="reg">Locked</div><div class="sub">Tracking resumes at 6 AM</div>';
+  if(f.info === 'No live feed') return hdr(true) + '<div class="reg">No live feed</div><div class="sub">Open the Fleet tab</div>';
+  const q = f.lead, air = f.air ? `<br>✈ ${f.air} in the air` : '';
+  if(q && q.inbound) {
+    const eta = q.eta >= 60 ? Math.floor(q.eta/60) + 'h' + String(q.eta%60).padStart(2,'0') : String(q.eta), type = (FLEET_AIRCRAFT.find(a => a.tail === q.tail) || {}).type;
+    return hdr(false) + `<div class="mid"><div class="cd"><i style="height:${Math.round(10 + Math.min(1, q.eta/60) * 48)}px"></i></div><div class="big">${eta}<small>${q.eta >= 60 ? 'ETA' : 'MIN TO YAV'}</small></div></div>
+      <div class="reg">${_hdEsc(q.reg)}</div><div class="sub">${type ? _hdEsc(type) + ' · ' : ''}${q.distNm} nm out${air}</div>`;
+  }
+  if(q) return hdr(false) + `<div class="reg">${_hdEsc(q.reg)}</div><div class="sub">Airborne · ${q.distNm} nm from YAV · nothing inbound${air}</div>`;
+  return hdr(false) + `<div class="reg">All quiet</div><div class="sub">No arrivals at the gate${air}</div>`;
+}
+// What ships today (overdue first), the same list the Cargo card on the other designs uses
+function hhYavCargoHalf() {
+  const { list, next } = hdCargoToday(), pcs = list.reduce((n, c) => n + (+c.pieces || 0), 0);
+  const top = `<div class="hdr"><span>✠ Cargo today</span><span class="pcs">${pcs ? pcs + ' PCS' : ''}</span></div>`;
+  if(!list.length) return top + `<div class="mid"><div class="chest">${HH_CHEST}</div><div class="big">0<small>NOTHING SHIPS</small></div></div>${next ? `<div class="sub" style="margin-top:8px">Next: ${_hdEsc(cargoBucketFor(next.shipDate).label)} → ${_hdEsc(next.destination || '—')}</div>` : ''}`;
+  const rows = list.slice(0, 3).map(c => `<div class="${c.od ? 'od' : ''}"><span>${_hdEsc(c.destination || '—')}</span><b>${c.od ? 'overdue' : c.pieces ? c.pieces + (+c.pieces === 1 ? ' pc' : ' pcs') : ''}</b></div>`).join('');
+  return top + `<div class="mid"><div class="chest">${HH_CHEST}</div><div class="big">${list.length}<small>TO SHIP</small></div></div><div class="rows">${rows}${list.length > 3 ? `<div><span>+${list.length - 3} more</span><b></b></div>` : ''}</div>`;
 }
 function hhLayoutYav() {
   const d = new Date(), st = homeStats(), notes = S.handoffNotes || [], evs = calEventsOn(localDateISO());
@@ -4410,7 +4447,7 @@ function hhLayoutYav() {
   const fleetOn = BASE_CONFIG.features?.fleet !== false;
   return `<div class="hd hd-haunt">${HH_FX}
     <div class="hh-title"><small class="hh-cz">${isHw ? 'Happy Halloween · ' : ''}${dow} · ${mon} ${d.getDate()}${soon ? ` · ${nights} night${nights === 1 ? '' : 's'} to Halloween` : ''}</small><h2>Skycare</h2></div>
-    ${fleetOn ? `<div class="hh-gate" data-hhgate onclick="goTab('fleet')">${hhYavGate()}</div>` : ''}
+    <div class="hh-pair" style="${fleetOn ? '' : 'grid-template-columns:1fr'}">${fleetOn ? `<div class="hh-gate hh-half" onclick="goTab('fleet')"><div class="fr" data-hhgate>${hhYavFleetHalf()}</div></div>` : ''}<div class="hh-gate hh-half" onclick="openCargoFromHome()"><div class="fr">${hhYavCargoHalf()}</div></div></div>
     <div class="hh-scene"></div>
     ${notes.map(n => hhCrypt(`<small class="k">Handoff from ${_hdEsc(n.day || 'last shift')}</small>${n.text ? `<p>${txt(n.text)}</p>` : ''}${n.audio ? `<audio controls src="${n.audio}"></audio>` : ''}<button class="hh-ok" onclick="markHandoffComplete('${n.id}')">✓ Complete</button>`)).join('')}
     <div style="margin-top:12px"><button class="hh-ok" style="width:100%;padding:11px;border-style:dashed" onclick="openHandoffNote()">📜 Leave a note for next shift</button></div>
