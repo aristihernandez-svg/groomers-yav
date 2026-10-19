@@ -1,0 +1,26 @@
+// The storage rules DEPLOYED to skycare-yav (Oct 19 2026). Edit this file and deploy it to change the live rules.
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /audits/{month}/{allPaths=**} {
+      allow read: if true;
+      allow write: if (request.resource.contentType == 'text/html'
+                        || request.resource.contentType.matches('image/.*'))
+                   && request.resource.size < 15 * 1024 * 1024;
+      allow delete: if false;
+    }
+
+    // Procedure videos (Procedures → Edit → Upload video): anyone can watch; only new video files
+    // under 200 MB can be added; nothing here can be replaced or deleted.
+    match /procedures/{key}/{file} {
+      allow read: if true;
+      allow create: if request.resource.contentType.matches('video/.*')
+                    && request.resource.size < 200 * 1024 * 1024;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
