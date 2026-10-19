@@ -5,7 +5,7 @@ service firebase.storage {
 
     match /audits/{month}/{allPaths=**} {
       allow read: if true;
-      allow write: if (request.resource.contentType == 'text/html'
+      allow create, update: if (request.resource.contentType == 'text/html'
                         || request.resource.contentType.matches('image/.*'))
                    && request.resource.size < 15 * 1024 * 1024;
       allow delete: if false;
