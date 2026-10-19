@@ -1205,6 +1205,24 @@ body::before{
 .cg-grp.standby .cg-item.open .cg-chev{color:#8FBBEE}
 .cg-dbtn.cg-seat-btn{background:rgba(111,168,232,.14);border-color:#6FA8E8;color:#8FBBEE}
 .cg-icon.standby{background:rgba(111,168,232,.14)}
+/* Cargo photos: cover photo on the row, swipe gallery in the open card, 4 slots in Log Cargo */
+.cg-thumb{width:44px;height:44px;border-radius:10px;flex-shrink:0;background:var(--glass2) center/cover no-repeat;position:relative}
+.cg-thumb em{position:absolute;right:-6px;bottom:-6px;font:800 9px Inter,sans-serif;font-style:normal;padding:2px 5px;border-radius:999px;background:var(--bg);border:1px solid var(--accent);color:var(--accent)}
+.cg-gal{margin-top:12px}
+.cg-gal-sc{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px;border-radius:12px;scrollbar-width:none}
+.cg-gal-sc::-webkit-scrollbar{display:none}
+.cg-gal-sc img{flex:0 0 100%;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;scroll-snap-align:center;cursor:zoom-in;background:var(--bg3)}
+.cg-gal-cap{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--t3);margin-top:6px}
+.cg-gal-dots{display:flex;gap:5px}.cg-gal-dots i{width:6px;height:6px;border-radius:50%;background:var(--border2)}.cg-gal-dots i.on{background:var(--accent);width:14px;border-radius:3px}
+.cg-slots{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.cg-slot{position:relative;aspect-ratio:4/3;border-radius:12px;border:1.5px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11.5px;font-weight:700;color:var(--t2);background:var(--glass) center/cover no-repeat;cursor:pointer;overflow:hidden}
+.cg-slot.f{border:none}
+.cg-slot .cap{position:absolute;left:0;right:0;bottom:0;padding:16px 8px 6px;background:linear-gradient(transparent,rgba(0,0,0,.7));color:#fff;font-size:11px;text-align:left}
+.cg-slot .x{position:absolute;right:6px;top:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:12px;display:grid;place-items:center}
+.cg-slot.up::after{content:'Uploading…';position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.55);color:#fff;font-size:12px}
+.cg-dlvph{position:relative;margin-top:10px;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:var(--bg3) center/cover no-repeat}
+.cg-dlvph span{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff;font-size:12px;font-weight:700}
+.cg-snap{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 14px 10px;padding:11px;border-radius:12px;border:1px dashed var(--border2);background:var(--glass);color:var(--t1);font-size:13px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .cg-item.cg-moved{animation:cgMoved 1.4s ease 2}
 @keyframes cgMoved{0%{box-shadow:0 0 0 0 rgba(46,204,138,.7)}100%{box-shadow:0 0 0 14px rgba(46,204,138,0)}}
 .bd-grp.standby .bd-h{border-top:3px dashed #6FA8E8}
@@ -2718,7 +2736,7 @@ function renderCargo(el) {
   const groups = groupedCargo();
   const board = S.cargoDesign === 'board';
 
-  let html = cargoViewSegHtml('cargo');
+  let html = cargoViewSegHtml('cargo') + '<div class="cg-snap" onclick="cargoSnapFirst()">📷 Snap a label &amp; log it</div>';
 
   if (!groups.length) {
     html += `<div class="empty"><div class="empty-icon">📦</div><p>No cargo logged. Tap + to add a piece.</p></div>`;
@@ -2866,6 +2884,7 @@ function boardRowHtml(c, grpCls) {
         ${bdTiles(c.destination)}
       </div>
       <div class="bd-detail"><div class="bd-detail-in">
+        ${cargoGalleryHtml(c)}
         <div class="bd-grid">
           <div><label>Location</label><div>${c.location || '—'}</div></div>
           ${c.aircraft ? `<div><label>Aircraft</label><div>${c.aircraft}</div></div>` : ''}
@@ -2878,7 +2897,7 @@ function boardRowHtml(c, grpCls) {
         <div class="bd-actions">
           ${c.done
             ? `<div class="bd-btn" onclick="event.stopPropagation();reopenCargo('${c.id}')">↺ Reopen</div>`
-            : `<div class="bd-btn" onclick="event.stopPropagation();markCargoDelivered('${c.id}')">✓ Delivered</div>`}
+            : `<div class="bd-btn" onclick="event.stopPropagation();confirmCargoDelivered('${c.id}')">✓ Delivered</div>`}
           ${sb
             ? `<div class="bd-btn bd-seat" onclick="event.stopPropagation();openStandbyPass('${c.id}')">✈ Edit</div>`
             : `<div class="bd-btn" onclick="event.stopPropagation();editCargoPrompt('${c.id}')">Edit</div>`}
@@ -2983,7 +3002,7 @@ function cargoRowHtml(c, barCls, record) {
   return `
     <div class="cg-item ${open ? 'open' : ''} ${c.done ? 'done' : ''} ${S.cargoMoved === c.id ? 'cg-moved' : ''}" data-id="${c.id}">
       <div class="cg-row" onclick="toggleCargoItem('${c.id}')">
-        <div class="cg-icon ${c.done ? 'done' : barCls}">${c.done ? '✓' : '📦'}</div>
+        ${cargoCover(c) ? `<div class="cg-thumb" style="background-image:url('${cargoCover(c).thumb || cargoCover(c).src}')">${c.photos.filter(p => p && p.src).length > 1 ? `<em>📷 ${c.photos.filter(p => p && p.src).length}</em>` : ''}</div>` : `<div class="cg-icon ${c.done ? 'done' : barCls}">${c.done ? '✓' : '📦'}</div>`}
         <div class="cg-rmain">
           <div class="cg-client">${c.client || '(no client name)'}</div>
           <div class="cg-sub">${subParts.join(' · ')}</div>
@@ -2993,6 +3012,7 @@ function cargoRowHtml(c, barCls, record) {
       </div>
       <div class="cg-detail">
         <div class="cg-detail-in">
+          ${cargoGalleryHtml(c)}
           <div class="cg-dgrid">
             <div class="cg-f"><label>Location</label><div class="cg-v">${c.location || '—'}</div></div>
             ${c.aircraft ? `<div class="cg-f"><label>Aircraft</label><div class="cg-v">${c.aircraft}</div></div>` : ''}
@@ -3007,7 +3027,7 @@ function cargoRowHtml(c, barCls, record) {
           <div class="cg-dactions">
             ${c.done
               ? `<div class="cg-dbtn" onclick="event.stopPropagation();reopenCargo('${c.id}')">↺ Reopen</div>`
-              : `<div class="cg-dbtn cg-done-btn" onclick="event.stopPropagation();markCargoDelivered('${c.id}')">✓ Mark Delivered</div>`}
+              : `<div class="cg-dbtn cg-done-btn" onclick="event.stopPropagation();confirmCargoDelivered('${c.id}')">✓ Mark Delivered</div>`}
             ${sb
               ? `<div class="cg-dbtn cg-seat-btn" onclick="event.stopPropagation();openStandbyPass('${c.id}')">✈ Edit</div>`
               : `<div class="cg-dbtn" onclick="event.stopPropagation();editCargoPrompt('${c.id}')">✏️ Edit</div>`}
@@ -3025,6 +3045,83 @@ function toggleCargoItem(id) {
   item.classList.toggle('open', willOpen);
   if (willOpen) S.cargoOpen.add(id); else S.cargoOpen.delete(id);
   if (willOpen && item.classList.contains('bd-item')) bdFlipRow(item);
+}
+
+// ── Cargo photos ────────────────────────────────────────────────────
+// Up to 4 per piece (Label, All pieces, Condition, Paperwork), like the crew car audits. Each is shrunk on the
+// phone (1280 px) and saved with a 360 px thumbnail in storage under cargo/<piece id>/ (storage rules: anyone can
+// read, add or replace, nobody can delete). The piece keeps photos: [{slot, src, thumb, at}] — the first is its cover.
+const CARGO_SLOTS = ['Label', 'All pieces', 'Condition', 'Paperwork'];
+let _cgPhotos = null, _cgFormId = null, _cgUploading = 0;
+function cargoCover(c) { const p = (c.photos || []).filter(x => x && x.src); return p.length ? p[0] : null; }
+function cargoPhotosField() {
+  return '<label>Photos <span style="font-weight:400;color:var(--t2)">(optional)</span></label><div class="cg-slots" id="cgSlots">' + cargoSlotsInner() + '</div>';
+}
+function cargoSlotsInner() {
+  return CARGO_SLOTS.map((n, i) => {
+    const p = _cgPhotos && _cgPhotos[i];
+    return p
+      ? '<div class="cg-slot f" style="background-image:url(\'' + (p.thumb || p.src) + '\')" onclick="viewPhoto(\'' + p.src + '\')"><span class="x" onclick="event.stopPropagation();cargoRemovePhoto(' + i + ')">✕</span><span class="cap">' + n + '</span></div>'
+      : '<div class="cg-slot" id="cgSlot' + i + '" onclick="cargoPickPhoto(' + i + ')"><span style="font-size:20px">📷</span>' + n + '</div>';
+  }).join('');
+}
+function cargoRefreshSlots() { const el = document.getElementById('cgSlots'); if (el) el.innerHTML = cargoSlotsInner(); }
+function cargoPickPhoto(i) {
+  if (!storage || !_cgFormId) { toast('⚠️ Not connected — photos need a connection'); return; }
+  S.cargoPhotoSlot = i; triggerPhoto('cargo');
+}
+function cargoRemovePhoto(i) { if (_cgPhotos) { _cgPhotos[i] = null; cargoRefreshSlots(); } }
+async function uploadCargoPhoto(dataUrl, i) {
+  const id = _cgFormId; if (!storage || !id) return;
+  const el = document.getElementById('cgSlot' + i); if (el) el.classList.add('up');
+  _cgUploading++;
+  try {
+    const base = 'cargo/' + id + '/' + CARGO_SLOTS[i].toLowerCase().replace(/[^a-z]+/g, '-') + '_' + Date.now();
+    const ref = storage.ref(base + '.jpg');
+    await ref.put(await (await fetch(dataUrl)).blob(), {contentType: 'image/jpeg', cacheControl: 'public, max-age=31536000'});
+    const src = await ref.getDownloadURL();
+    let thumb = null;
+    try {
+      const tRef = storage.ref(base + '_thumb.jpg');
+      await tRef.put(await (await fetch(await compressImage(dataUrl, 360, 0.7))).blob(), {contentType: 'image/jpeg', cacheControl: 'public, max-age=31536000'});
+      thumb = await tRef.getDownloadURL();
+    } catch (e) { console.log('Cargo thumbnail failed (photo kept):', e); }
+    if (_cgFormId === id && _cgPhotos) { _cgPhotos[i] = {slot: CARGO_SLOTS[i], src, thumb, at: Date.now()}; cargoRefreshSlots(); }
+  } catch (e) {
+    console.log('Cargo photo upload failed:', e); toast('⚠️ Photo upload failed — check the connection');
+    const el2 = document.getElementById('cgSlot' + i); if (el2) el2.classList.remove('up');
+  } finally { _cgUploading--; }
+}
+// Camera first: the camera opens straight away; the photo becomes the Label photo of a new piece
+function cargoSnapFirst() {
+  if (!storage || !db) { toast('⚠️ Not connected'); return; }
+  const input = document.getElementById('photoInput');
+  input.setAttribute('capture', 'environment');
+  setTimeout(() => input.removeAttribute('capture'), 1500);
+  triggerPhoto('cargoSnap');
+}
+// The open card's photos: swipe through them, tap for full screen
+function cargoGalleryHtml(c) {
+  const ph = (c.photos || []).filter(p => p && p.src); if (!ph.length) return '';
+  return '<div class="cg-gal" onclick="event.stopPropagation()"><div class="cg-gal-sc" onscroll="cargoGalScroll(this)">'
+    + ph.map(p => '<img src="' + p.src + '" loading="lazy" alt="' + p.slot + '" onclick="viewPhoto(\'' + p.src + '\')">').join('')
+    + '</div><div class="cg-gal-cap"><span>1 / ' + ph.length + ' · ' + ph[0].slot + '</span><span class="cg-gal-dots">' + ph.map((_, i) => '<i class="' + (i ? '' : 'on') + '"></i>').join('') + '</span></div></div>';
+}
+function cargoGalScroll(sc) {
+  const imgs = sc.querySelectorAll('img'), i = Math.max(0, Math.min(imgs.length - 1, Math.round(sc.scrollLeft / (sc.clientWidth + 8))));
+  const cap = sc.parentElement.querySelector('.cg-gal-cap span');
+  if (cap) cap.textContent = (i + 1) + ' / ' + imgs.length + ' · ' + imgs[i].alt;
+  sc.parentElement.querySelectorAll('.cg-gal-dots i').forEach((d, j) => d.classList.toggle('on', j === i));
+}
+// Mark Delivered asks first, showing the piece's first photo
+function confirmCargoDelivered(id) {
+  const c = S.cargo.find(x => x.id === id); if (!c) return;
+  const cov = cargoCover(c), when = new Date().toLocaleString('en-CA', {weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'});
+  openModal('✓ Mark delivered',
+    '<div style="font-size:14px;color:var(--t1);line-height:1.5">' + (c.client || '(no client name)') + ' → <b>' + (c.destination || '—') + '</b>' + (c.pieces ? ' · ' + c.pieces + ' pcs' : '') + '</div>'
+    + (cov ? '<div class="cg-dlvph" style="background-image:url(\'' + cov.src + '\')"><span>Delivered · ' + when + '</span></div>' : ''),
+    () => { closeModal(); markCargoDelivered(id); });
+  document.getElementById('mSave').textContent = '✓ Delivered';
 }
 
 function cargoFormFields(c) {
@@ -3176,14 +3273,18 @@ function selectExistingCargoLoc(loc) {
 }
 
 function openAddCargo() {
-  openModal('📦 Log Cargo', cargoFormFields(),
+  _cgPhotos = [null, null, null, null];
+  _cgFormId = db ? db.collection('cargoTracker').doc().id : null;   // made now, so photos can go under it
+  openModal('📦 Log Cargo', cargoFormFields() + cargoPhotosField(),
     () => {
       const v = cargoFormValues();
       if (!v.client) { toast('Enter a client name'); return; }
+      if (_cgUploading) { toast('Wait for the photo to finish uploading'); return; }
+      const photos = (_cgPhotos || []).filter(Boolean), id = _cgFormId;
       closeModal();
-      if (!db) { toast('No connection — cargo not saved'); return; }
-      db.collection('cargoTracker').add({
-        ...v, standbySince: v.standby ? Date.now() : null, done: false, deliveredAt: null, deleted: false, createdAt: Date.now(),
+      if (!db || !id) { toast('No connection — cargo not saved'); return; }
+      db.collection('cargoTracker').doc(id).set({
+        ...v, photos, standbySince: v.standby ? Date.now() : null, done: false, deliveredAt: null, deleted: false, createdAt: Date.now(),
       }).then(() => toast(v.standby ? '📦 Logged on standby ✓' : '📦 Cargo logged ✓'))
         .catch(e => { console.log('Add cargo failed:', e); toast('⚠️ Failed to save — check connection'); });
     });
@@ -3192,10 +3293,14 @@ function openAddCargo() {
 function editCargoPrompt(id) {
   const c = S.cargo.find(x => x.id === id);
   if (!c) return;
-  openModal('✏️ Edit Cargo', cargoFormFields(c),
+  _cgFormId = id;
+  _cgPhotos = CARGO_SLOTS.map(n => (c.photos || []).find(p => p && p.slot === n) || null);
+  openModal('✏️ Edit Cargo', cargoFormFields(c) + cargoPhotosField(),
     () => {
       const v = cargoFormValues();
       if (!v.client) { toast('Enter a client name'); return; }
+      if (_cgUploading) { toast('Wait for the photo to finish uploading'); return; }
+      v.photos = (_cgPhotos || []).filter(Boolean);
       closeModal();
       if (!db) { toast('No connection — change not saved'); return; }
       // Going onto standby starts the "waiting since" clock; leaving it keeps the old value harmlessly.
@@ -12896,6 +13001,8 @@ function setupPhotoInput() {
     reader.onload=async ev=>{
       const maxDim = S.photoCtx==='proc' ? 200 : 1280;
       const compressed=await compressImage(ev.target.result, maxDim);
+      if(S.photoCtx==='cargo') { await uploadCargoPhoto(compressed, S.cargoPhotoSlot || 0); return; }
+      if(S.photoCtx==='cargoSnap') { openAddCargo(); await uploadCargoPhoto(compressed, 0); return; }
       if(S.photoCtx==='audit' && auditPhotoTarget && storage) {
         await uploadAuditPhoto(compressed, auditPhotoTarget, auditPhotoSlot);
       } else {

@@ -19,6 +19,13 @@ service firebase.storage {
                     && request.resource.size < 200 * 1024 * 1024;
     }
 
+    // Cargo photos (Log/Edit Cargo): anyone can view; photos under 15 MB can be added or replaced; nobody can delete.
+    match /cargo/{id}/{file} {
+      allow read: if true;
+      allow create, update: if request.resource.contentType.matches('image/.*')
+                            && request.resource.size < 15 * 1024 * 1024;
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

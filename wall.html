@@ -27,7 +27,7 @@ body{display:grid;place-items:center}
 @keyframes flip{0%{transform:rotateX(0)}49%{transform:rotateX(88deg)}51%{transform:rotateX(-88deg)}100%{transform:rotateX(0)}}
 .tile.clk{width:2.2cqw;height:3.2cqw;line-height:3.2cqw;font-size:2.6cqw}
 .colon{font-size:2.6cqw;color:#E8C77A;font-weight:700;line-height:1;padding:0 .1cqw}
-.cols{display:grid;grid-template-columns:16cqw 1fr 10cqw 18cqw 19cqw;align-items:center;padding:.5cqw 2.4cqw;font-size:1.25cqw;letter-spacing:.35cqw;color:#7C6A44;text-transform:uppercase;font-weight:600;background:#0E0B08;border-bottom:.1cqw solid #2a2114}
+.cols{display:grid;grid-template-columns:7cqw 14cqw 1fr 10cqw 18cqw 15cqw;align-items:center;padding:.5cqw 2.4cqw;font-size:1.25cqw;letter-spacing:.35cqw;color:#7C6A44;text-transform:uppercase;font-weight:600;background:#0E0B08;border-bottom:.1cqw solid #2a2114}
 .body{flex:1;display:flex;flex-direction:column;overflow:hidden}
 .day{display:flex;align-items:center;justify-content:space-between;padding:.5cqw 2.4cqw;background:#17120B;border-top:.3cqw solid #B8923F;border-bottom:.1cqw solid #3a2d14}
 .day.od{border-top-color:#C43A2B}
@@ -35,7 +35,8 @@ body{display:grid;place-items:center}
 .tile.dt{width:2cqw;height:3.1cqw;line-height:3.1cqw;font-size:2.5cqw}
 .tile.dt.sp{width:1cqw;background:none;box-shadow:none}
 .day em{font-style:normal;font-size:1.8cqw;letter-spacing:.3cqw;color:#A88F58;text-transform:uppercase;font-weight:600}
-.row{display:grid;grid-template-columns:16cqw 1fr 10cqw 18cqw 19cqw;align-items:center;padding:.75cqw 2.4cqw;border-top:.1cqw dashed #2a2114;background:#0E0B08}
+.row{display:grid;grid-template-columns:7cqw 14cqw 1fr 10cqw 18cqw 15cqw;align-items:center;padding:.75cqw 2.4cqw;border-top:.1cqw dashed #2a2114;background:#0E0B08}
+.ph{width:6cqw;aspect-ratio:4/3;border-radius:.5cqw;background:#1A140C center/cover no-repeat;display:grid;place-items:center;font-size:1.8cqw}
 .row.new{animation:glow 1.5s ease-in-out infinite}
 @keyframes glow{0%,100%{box-shadow:inset 0 0 0 0 rgba(232,163,61,0)}50%{box-shadow:inset 0 0 4cqw rgba(232,163,61,.5)}}
 /* Today: heavy side rails */
@@ -78,7 +79,7 @@ body{display:grid;place-items:center}
     <h2>Departures<small id="base"></small></h2>
     <div class="clock"><div class="dt"><b id="cDay"></b><span id="cDate"></span></div><div class="tl" id="clk"></div></div>
   </div>
-  <div class="cols"><span>Aircraft</span><span>Client</span><span>Pieces</span><span>To</span><span>Remarks</span></div>
+  <div class="cols"><span>Photo</span><span>Aircraft</span><span>Client</span><span>Pieces</span><span>To</span><span>Remarks</span></div>
   <div class="body" id="board"></div>
   <div class="foot"><span class="live" id="live">Live</span><span id="upd"></span><span id="cnt"></span></div>
 </div>
@@ -161,6 +162,7 @@ function rowHtml(c, b) {
   const dest = String(c.destination || '—').replace(/\s+/g, '').slice(0, 7);
   const note = String(c.notes || '').split('\n')[0];
   return `<div class="row ${isNew ? 'new' : ''} ${od ? 'od' : ''} ${b.key === 'today' ? 'td' : ''} ${b.key === 'standby' ? 'sb' : ''}" data-id="${esc(c.id)}">
+    ${(() => { const p = (c.photos || []).find(x => x && x.src); return p ? `<div class="ph" style="background-image:url('${esc(p.thumb || p.src)}')"></div>` : '<div class="ph">📦</div>'; })()}
     <div>${ac ? tiles(ac, 'ac' + (ac.length > 6 ? ' sm' : '')) : '<span class="ground">Ground</span>'}</div>
     <div class="who"><b>${esc(c.client || '—')}${isNew ? '<span class="new-tag">NEW</span>' : ''}</b><span>${esc(sub)}</span></div>
     <div class="pcs">${c.pieces ? esc(c.pieces) + ' pcs' : ''}</div>
