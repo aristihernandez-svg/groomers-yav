@@ -2659,8 +2659,9 @@ function toggleCargoStandby() {
 }
 
 // A piece leaves the Cargo list the moment it's marked delivered and is listed under Records
-// (the last 2 months). Nothing is deleted: older deliveries stay in the database.
-function cargoRecordsSince() { const d = new Date(); d.setMonth(d.getMonth() - 2); d.setHours(0, 0, 0, 0); return d; }
+// (the last month). 90 days after delivery, a nightly job (functions/index.js, cleanDeliveredCargo) removes the
+// piece and its photos for good.
+function cargoRecordsSince() { const d = new Date(); d.setMonth(d.getMonth() - 1); d.setHours(0, 0, 0, 0); return d; }
 function cargoRecords() {
   const since = +cargoRecordsSince();
   return S.cargo.filter(c => c.done && c.deliveredAt && c.deliveredAt >= since).sort((a, b) => b.deliveredAt - a.deliveredAt);
@@ -2769,7 +2770,7 @@ function renderCargo(el) {
   if (board) bdStartTimer();
 }
 
-// ── Cargo: Records (deliveries from the last 2 months, newest first, by week) ──
+// ── Cargo: Records (deliveries from the last month, newest first, by week) ──
 function renderCargoRecords(el) {
   const since = cargoRecordsSince(), n = cargoRecords().length;
   const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -2782,7 +2783,7 @@ function renderCargoRecords(el) {
 function cargoRecordsListHtml() {
   const q = (S.cargoRecQ || '').trim().toLowerCase();
   const list = cargoRecords().filter(c => !q || [c.client, c.destination, c.aircraft, c.location, c.notes].some(v => String(v || '').toLowerCase().includes(q)));
-  if (!list.length) return `<div class="empty"><div class="empty-icon">📦</div><p>${q ? 'No delivery matches that search.' : 'No deliveries in the last 2 months.'}</p></div>`;
+  if (!list.length) return `<div class="empty"><div class="empty-icon">📦</div><p>${q ? 'No delivery matches that search.' : 'No deliveries in the last month.'}</p></div>`;
   // weeks run Monday–Sunday
   const monday = t => { const d = cargoDateOnly(new Date(t)); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; };
   const thisWk = +monday(Date.now()), md = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -3052,9 +3053,10 @@ function toggleCargoItem(id) {
 // read, add or replace, nobody can delete). The piece keeps photos: [{slot, src, thumb, at}] — the first is its cover.
 const CARGO_SLOTS = ['Label', 'All pieces', 'Condition', 'Paperwork'];
 let _cgPhotos = null, _cgFormId = null, _cgUploading = 0;
-// Storage deletes cargo photos 90 days after they're taken (a lifecycle rule on the cargo/ folder), so the app stops
-// showing them at that age — the piece keeps its details and shows 📦 instead of a broken picture.
-const CARGO_PHOTO_DAYS = 90;
+// A delivered piece and its photos are removed 90 days after delivery by the nightly job (functions/index.js).
+// Storage also deletes any cargo photo after 1 year (a backstop lifecycle rule on cargo/, for strays like a cancelled
+// Log Cargo window), so the app stops showing a photo at that age and shows 📦 instead of a broken picture.
+const CARGO_PHOTO_DAYS = 365;
 function cargoPhotos(c) { const cut = Date.now() - CARGO_PHOTO_DAYS * 864e5; return (c.photos || []).filter(p => p && p.src && (!p.at || p.at > cut)); }
 function cargoCover(c) { const p = cargoPhotos(c); return p.length ? p[0] : null; }
 function cargoPhotosField() {
