@@ -3286,18 +3286,33 @@ function editCargoPrompt(id) {
   if (!c) return;
   _cgFormId = id;
   _cgPhotos = CARGO_SLOTS.map(n => (c.photos || []).find(p => p && p.slot === n) || null);
+  // Only the photos this window shows can be removed from it (two phones filling the same box at once keeps both)
+  const openedPhotos = _cgPhotos.filter(Boolean).map(p => p.src);
+  const openedVals = {...c};
   openModal('✏️ Edit Cargo', cargoFormFields(c) + cargoPhotosField(),
     () => {
       const v = cargoFormValues();
       if (!v.client) { toast('Enter a client name'); return; }
       if (_cgUploading) { toast('Wait for the photo to finish uploading'); return; }
-      v.photos = (_cgPhotos || []).filter(Boolean);
+      const formPhotos = (_cgPhotos || []).filter(Boolean);
       closeModal();
       if (!db) { toast('No connection — change not saved'); return; }
+      // Another phone may have changed this piece while this window was open. Save reads it fresh and applies only
+      // what was changed here: the fields edited, the photos added and the photos removed — never this phone's old copy.
+      const removed = openedPhotos.filter(src => !formPhotos.some(p => p.src === src));
+      const added = formPhotos.filter(p => !openedPhotos.includes(p.src));
+      const changed = {};
+      Object.keys(v).forEach(k => { if (JSON.stringify(v[k] ?? null) !== JSON.stringify(openedVals[k] ?? null)) changed[k] = v[k]; });
       // Going onto standby starts the "waiting since" clock; leaving it keeps the old value harmlessly.
-      if (v.standby && !c.standby) v.standbySince = Date.now();
-      db.collection('cargoTracker').doc(id).update(v)
-        .then(() => toast('Cargo updated ✓'))
+      if (v.standby && !c.standby) changed.standbySince = Date.now();
+      const ref = db.collection('cargoTracker').doc(id);
+      db.runTransaction(async tx => {
+        const snap = await tx.get(ref);
+        const fresh = ((snap.exists && snap.data().photos) || []).filter(p => p && p.src && !removed.includes(p.src));
+        added.forEach(p => { if (!fresh.some(f => f.src === p.src)) fresh.push(p); });
+        if (removed.length || added.length) changed.photos = fresh;
+        if (Object.keys(changed).length) tx.update(ref, changed);
+      }).then(() => toast('Cargo updated ✓'))
         .catch(e => { console.log('Edit cargo failed:', e); toast('⚠️ Failed — check connection'); });
     });
 }
