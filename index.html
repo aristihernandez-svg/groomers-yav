@@ -1176,7 +1176,7 @@ body::before{
 .cg-dgrid .cg-f .cg-v.dlvv{color:var(--gold2)}
 .bd-who em .bd-dlv{color:var(--gold2)}
 .cg-detail{max-height:0;overflow:hidden;transition:max-height .25s ease}
-.cg-item.open .cg-detail{max-height:340px}
+.cg-item.open .cg-detail{max-height:1200px}   /* room for the photo gallery + details + buttons */
 .cg-detail-in{padding:0 14px 14px;border-top:1px solid var(--border)}
 .cg-dgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px 14px;margin:12px 0;padding:11px 12px;background:var(--bg3);border-radius:var(--radius-sm)}
 .cg-dgrid .cg-f label{display:block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;color:var(--t3);margin-bottom:3px}
@@ -1344,7 +1344,7 @@ body::before{
 .bd-item.done .bd-who b{text-decoration:line-through}
 .bd-item.open{background:#120E09}
 .bd-detail{max-height:0;overflow:hidden;transition:max-height .25s ease}
-.bd-item.open .bd-detail{max-height:360px}
+.bd-item.open .bd-detail{max-height:1200px}   /* room for the photo gallery + details + buttons */
 .bd-detail-in{padding:4px 14px 14px}
 .bd-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 14px;padding:10px 12px;border:1px solid #2a2114;border-radius:4px;background:#0B0907}
 .bd-grid label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7C6A44;font-weight:600}
@@ -3001,7 +3001,7 @@ function cargoRowHtml(c, barCls, record) {
   return `
     <div class="cg-item ${open ? 'open' : ''} ${c.done ? 'done' : ''} ${S.cargoMoved === c.id ? 'cg-moved' : ''}" data-id="${c.id}">
       <div class="cg-row" onclick="toggleCargoItem('${c.id}')">
-        ${cargoCover(c) ? `<div class="cg-thumb" style="background-image:url('${cargoCover(c).thumb || cargoCover(c).src}')">${c.photos.filter(p => p && p.src).length > 1 ? `<em>📷 ${c.photos.filter(p => p && p.src).length}</em>` : ''}</div>` : `<div class="cg-icon ${c.done ? 'done' : barCls}">${c.done ? '✓' : '📦'}</div>`}
+        ${cargoCover(c) ? `<div class="cg-thumb" style="background-image:url('${cargoCover(c).thumb || cargoCover(c).src}')">${cargoPhotos(c).length > 1 ? `<em>📷 ${cargoPhotos(c).length}</em>` : ''}</div>` : `<div class="cg-icon ${c.done ? 'done' : barCls}">${c.done ? '✓' : '📦'}</div>`}
         <div class="cg-rmain">
           <div class="cg-client">${c.client || '(no client name)'}</div>
           <div class="cg-sub">${subParts.join(' · ')}</div>
@@ -3052,7 +3052,11 @@ function toggleCargoItem(id) {
 // read, add or replace, nobody can delete). The piece keeps photos: [{slot, src, thumb, at}] — the first is its cover.
 const CARGO_SLOTS = ['Label', 'All pieces', 'Condition', 'Paperwork'];
 let _cgPhotos = null, _cgFormId = null, _cgUploading = 0;
-function cargoCover(c) { const p = (c.photos || []).filter(x => x && x.src); return p.length ? p[0] : null; }
+// Storage deletes cargo photos 90 days after they're taken (a lifecycle rule on the cargo/ folder), so the app stops
+// showing them at that age — the piece keeps its details and shows 📦 instead of a broken picture.
+const CARGO_PHOTO_DAYS = 90;
+function cargoPhotos(c) { const cut = Date.now() - CARGO_PHOTO_DAYS * 864e5; return (c.photos || []).filter(p => p && p.src && (!p.at || p.at > cut)); }
+function cargoCover(c) { const p = cargoPhotos(c); return p.length ? p[0] : null; }
 function cargoPhotosField() {
   return '<label>Photos <span style="font-weight:400;color:var(--t2)">(optional)</span></label><div class="cg-slots" id="cgSlots">' + cargoSlotsInner() + '</div>';
 }
@@ -3093,7 +3097,7 @@ async function uploadCargoPhoto(dataUrl, i) {
 }
 // The open card's photos: swipe through them, tap for full screen
 function cargoGalleryHtml(c) {
-  const ph = (c.photos || []).filter(p => p && p.src); if (!ph.length) return '';
+  const ph = cargoPhotos(c); if (!ph.length) return '';
   return '<div class="cg-gal" onclick="event.stopPropagation()"><div class="cg-gal-sc" onscroll="cargoGalScroll(this)">'
     + ph.map(p => '<img src="' + p.src + '" loading="lazy" alt="' + p.slot + '" onclick="viewPhoto(\'' + p.src + '\')">').join('')
     + '</div><div class="cg-gal-cap"><span>1 / ' + ph.length + '</span><span class="cg-gal-dots">' + ph.map((_, i) => '<i class="' + (i ? '' : 'on') + '"></i>').join('') + '</span></div></div>';
@@ -3285,7 +3289,7 @@ function editCargoPrompt(id) {
   const c = S.cargo.find(x => x.id === id);
   if (!c) return;
   _cgFormId = id;
-  _cgPhotos = CARGO_SLOTS.map(n => (c.photos || []).find(p => p && p.slot === n) || null);
+  _cgPhotos = CARGO_SLOTS.map(n => cargoPhotos(c).find(p => p.slot === n) || null);
   // Only the photos this window shows can be removed from it (two phones filling the same box at once keeps both)
   const openedPhotos = _cgPhotos.filter(Boolean).map(p => p.src);
   const openedVals = {...c};

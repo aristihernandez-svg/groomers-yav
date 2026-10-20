@@ -162,7 +162,7 @@ function rowHtml(c, b) {
   const dest = String(c.destination || '—').replace(/\s+/g, '').slice(0, 7);
   const note = String(c.notes || '').split('\n')[0];
   return `<div class="row ${isNew ? 'new' : ''} ${od ? 'od' : ''} ${b.key === 'today' ? 'td' : ''} ${b.key === 'standby' ? 'sb' : ''}" data-id="${esc(c.id)}">
-    ${(() => { const p = (c.photos || []).find(x => x && x.src); return p ? `<div class="ph" style="background-image:url('${esc(p.thumb || p.src)}')"></div>` : '<div class="ph">📦</div>'; })()}
+    ${(() => { const p = (c.photos || []).find(x => x && x.src && (!x.at || x.at > Date.now() - 90 * 864e5));   /* storage deletes cargo photos after 90 days */ return p ? `<div class="ph" style="background-image:url('${esc(p.thumb || p.src)}')"></div>` : '<div class="ph">📦</div>'; })()}
     <div>${ac ? tiles(ac, 'ac' + (ac.length > 6 ? ' sm' : '')) : '<span class="ground">Ground</span>'}</div>
     <div class="who"><b>${esc(c.client || '—')}${isNew ? '<span class="new-tag">NEW</span>' : ''}</b><span>${esc(sub)}</span></div>
     <div class="pcs">${c.pieces ? esc(c.pieces) + ' pcs' : ''}</div>
