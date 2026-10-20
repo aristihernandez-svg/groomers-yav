@@ -1151,14 +1151,6 @@ body::before{
 .cg-tl .cg-item{margin:0 0 8px}
 .cg-item{border-radius:var(--radius);overflow:hidden;margin:0 16px 8px;background:var(--glass);border:1px solid var(--border)}
 .cg-item.open{border-color:var(--accent-border)}
-/* An open piece reads as its own card: its group's colour on the left edge and border, a little space around it,
-   a tinted top row, and the other pieces of that group fade slightly while it's open */
-.cg-item{transition:opacity .2s,margin .2s,box-shadow .2s}
-.cg-grp .cg-item.open{margin-top:12px;margin-bottom:14px;background:var(--glass2);border-color:color-mix(in srgb,var(--c,var(--accent)) 45%,transparent);border-left:4px solid var(--c,var(--accent));box-shadow:0 8px 22px rgba(0,0,0,.35)}
-.cg-grp .cg-item.open .cg-row{background:color-mix(in srgb,var(--c,var(--accent)) 10%,transparent)}
-.cg-grp .cg-item.open .cg-client{font-weight:800}
-.cg-grp .cg-item.open .cg-detail-in{border-top-color:color-mix(in srgb,var(--c,var(--accent)) 30%,transparent)}
-.cg-grp:has(.cg-item.open) .cg-item:not(.open){opacity:.62}
 .cg-row{display:flex;align-items:center;gap:12px;padding:12px 13px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .cg-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
 .cg-icon.overdue{background:var(--red-dim)}
