@@ -1331,7 +1331,10 @@ body::before{
 .bd-item{margin:7px 7px 0;background:#120E09;border:1px solid #3D2F1C;border-radius:5px;box-shadow:inset 0 1px 0 rgba(255,220,150,.04)}
 .bd-grp .bd-item:last-child{margin-bottom:7px}
 .bd-row{padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.bd-who{min-width:0}
+.bd-who{min-width:0;flex:1}
+/* Cover photo on a collapsed piece, like Classic (only when the piece has photos) */
+.bd-thumb{width:44px;height:44px;border-radius:5px;flex-shrink:0;background:#1A140C center/cover no-repeat;border:1px solid #3D2F1C;position:relative;margin-right:-2px}
+.bd-thumb em{position:absolute;right:-6px;bottom:-6px;font:800 9px Inter,sans-serif;font-style:normal;padding:2px 5px;border-radius:999px;background:#0B0907;border:1px solid #B58A3B;color:#E8C77A}
 .bd-who b{display:block;font-size:17px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;color:#EFE4CB;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bd-who em{display:block;font-style:normal;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#B58A3B;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bd-flaps{display:flex;gap:2px;flex-shrink:0;perspective:220px}
@@ -2887,6 +2890,7 @@ function boardRowHtml(c, grpCls) {
   return `
     <div class="bd-item ${open ? 'open' : ''} ${c.done ? 'done' : ''}" data-id="${c.id}">
       <div class="bd-row" onclick="toggleCargoItem('${c.id}')">
+        ${cargoCover(c) ? `<div class="bd-thumb" style="background-image:url('${cargoCover(c).thumb || cargoCover(c).src}')">${cargoPhotos(c).length > 1 ? `<em>📷 ${cargoPhotos(c).length}</em>` : ''}</div>` : ''}
         <div class="bd-who"><b>${c.client || '(no client name)'}</b><em>${sub}</em></div>
         ${bdTiles(c.destination)}
       </div>
