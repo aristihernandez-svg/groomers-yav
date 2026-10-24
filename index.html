@@ -7,13 +7,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Groomers YAV">
-<title>Groomers YAV</title>
+<meta name="apple-mobile-web-app-title" content="Groomies YAV">
+<title>Groomies YAV</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="cars/skycare-icon-192.png">
-<link rel="apple-touch-icon" href="cars/skycare-icon-192.png">
-<link rel="apple-touch-icon" sizes="192x192" href="cars/skycare-icon-192.png">
-<link rel="apple-touch-icon" sizes="512x512" href="cars/skycare-icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="cars/groomers-icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="cars/groomers-icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="cars/groomers-icon-180.png">
 <!-- Per-base config — must load before the app script below -->
 <script src="baseConfig.js"></script>
 <!-- Leaflet (fleet map) -->
@@ -251,6 +250,14 @@ body::before{
 .sp-bar{width:160px;height:1px;background:rgba(255,255,255,0.08);border-radius:1px;margin-top:8px;overflow:hidden}
 .sp-fill{height:100%;background:linear-gradient(90deg,#C8A84B,#E8C86A);animation:prog 2s ease forwards;box-shadow:0 0 8px #C8A84B}
 @keyframes prog{to{width:100%}}
+/* Brand row on the opening screen: Skycare | Groomies emblem + name (font subset to the letters G R O M I E S) */
+@font-face{font-family:'Groomies';font-weight:800;font-display:block;src:url(data:font/woff2;base64,d09GMgABAAAAAAT0ABAAAAAACOAAAASaAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGhwbgWwcKAZgP1NUQVQqAGQRCAqFGIQvCxQAATYCJAMkBCAFhDgHIAwHG1EHyAQCwrmaTVIhxaWolafgxeXE1PrmhRfRvkmOxlyddvEoWvJqepn8bj+1LmKQLGQSCSINkpjlpUAl9MACO4O1FrR+dyIAVxQmiWmBLKd1GGTcfrlKDBakiqqGLriPGThlHBtBGej+YbSMHjppHMaU+AYFCWO6BpWFUFi7lRgkZAT8ugozSWIJS1xfcoe0JSsIRN5lYAS96EIXmsggqv9wAyAjoUeHnoloP+z2G5oTSXMia04UzYlOc6LXnBi0T8FR7ecQnBihCUwlXOc/nFMdR5zUGwvus5LcTuojm9FNSKukHkB9vBfRD4uIxVknSu8aNmngcB5gpl3+6v9/Qf5KKP168bVkz5pxORcYW8A3HAlFmj58xBSRcwmYd5HNjwqfH4O4DE4rtMhZTzzbTjZTSTW1NNJM+95X1ARtf6B9pd3Rbmu3tOvaNe3KXonTLhCahgcndmHeHPNS2TMqDwNwJeTKI/NLe+GKs4Q4xdPX21dRkk06D2WQm+zatb1rS+/WLm0mnUlRhRvD1NTAVR2sTCzs/JZptaO0y70OddWbb7LA4TCt7uwUXQcJNxa8+SYC2b8fqg43Kaoc20XtFi+hIg7HkMib3UYUFna8PsPxrzl6C9Pq+2LhPVUVHBYi6pCZLu/VvefAVR1t3e86TKtfEAvvPc/AyyJirynqcqpDXXWDBTefczheG/Gvtdkj7SenZXVmBRze9eyzu2SX22+8cQab/bI9dvuC7fMjNvfZ3Ntt+6ztbFVbV1iHDc5d0tScv2TkoDXWlv47y/6ePj2/a1Jefi9Ldu/iYkvfHln5+S3JSe35MxrLDJvmhczvff5QL2z2y3Zs9oUeu4rcdy20X9x7/dCvUw7+en0v213bVuYMG5y3rKkpd8nQwSutbW0rrUMH5y5taspdOnTICmvb/sLuWel9bWnB9dbqsNTC7pb0vsUZwQ3W6lBeDF+wPOWb2JjvUpYvPVAzJruor81W3G/8U/Vx4fbL9pdeSj8Q9083QtWei7J7TphY1Z6QneoeEpRxosq/ynw+ujq7oqT/5KzGxoVZeydO0Eoj4mN3BgYWHasKqIw4GF1vHbVl8jNzNYigXWt87f37exT+ZpTlr5gS7737+f/xcR/lByRp8/8f7FEml0H/FBMEfS8O7DFVm//f3x5lT+MyXKT92KTJ2OQAQkUmNnkQNjmFEGk7NqkLJm6u3O7CFdxp/K6scOhbklGZl/qU5zl/QnibFoEZp0XCnc8sMlbOrVX6LTrymWLRY6aL2R0r4VUhcGXuqHB5c35WyQymMImBlDGeMQyhO0MZyXBGMMUfnsIEJpNPunTVZAYziZFMYAqTSWOfMpIxpDGeSQwnnWaqaJAdpzKFYYzcLHV2YTeYhBsezzjMZJLGswypWMBwhnEwHjQ8md5kkEYev9NCDn1ZGDbf1oZTsJawbf/hTGUMA5kEdGZuL2c8E5h5RkrAuBkLGVjIJHS3EQzFPMNJLUxiPKMYyuAylPbACErYZG7jBBJhOOrkEUxlEGkMZjxjqVuYEROzSi2bShVZmHZ/4t8LydvtwYLTekNoSy8oawE=) format('woff2')}
+.sp-brand{display:flex;align-items:center;gap:14px;margin-bottom:38px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45))}
+.sp-brand>img{height:40px;filter:brightness(0) invert(1);opacity:.95}
+.sp-brand>i{width:1px;height:38px;background:rgba(232,200,106,.45)}
+.sp-gm{display:flex;align-items:center;gap:8px}
+.sp-gm img{width:44px;height:35px}
+.sp-gm span{font:800 21px/1 Groomies,'Arial Black',sans-serif;letter-spacing:.14em;color:#fff}
 
 /* ── Harry Potter living portrait ── */
 .hp-portrait-wrap{display:inline-flex;flex-direction:column;align-items:center;margin-bottom:16px}
@@ -1482,8 +1489,9 @@ body::before{
 </head>
 <body>
 <div id="splash">
+  <div class="sp-brand"><img src="cars/Skycare_logo-removebg-preview.png" alt="Skycare"><i></i><div class="sp-gm"><img src="cars/groomies-emblem.svg" alt=""><span>GROOMIES</span></div></div>
   <div id="spHero"></div>
-  <div class="sp-title">Groomers YAV</div>
+  <div class="sp-title">YAV</div>
   <div class="sp-divider"></div>
   <div class="sp-sub">Aviation Grooming Team</div>
   <div class="sp-bar"><div class="sp-fill"></div></div>

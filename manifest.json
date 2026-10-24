@@ -1,7 +1,7 @@
 {
-  "name": "Groomers YAV",
-  "short_name": "Skycare YAV",
-  "description": "Skycare — Aviation Grooming Team YAV Operations",
+  "name": "Groomies YAV",
+  "short_name": "Groomies YAV",
+  "description": "Groomies — Skycare aviation grooming team, YAV",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#171310",
@@ -9,16 +9,28 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "cars/skycare-icon-192.png",
+      "src": "cars/groomers-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "cars/skycare-icon-512.png",
+      "src": "cars/groomers-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "cars/groomers-icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "cars/groomers-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
