@@ -1,6 +1,6 @@
 {
   "name": "skycare-yav-functions",
-  "description": "Nightly cargo cleanup for YAV (see index.js)",
+  "description": "Nightly cleanups for YAV: delivered cargo and done one-time tasks (see index.js)",
   "private": true,
   "main": "index.js",
   "engines": { "node": "22" },

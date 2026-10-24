@@ -2369,6 +2369,11 @@ function renderAuditsLocked(el) {
 // "Delete" is a soft delete (deleted:true) -- Firestore rules block real
 // document deletes app-wide by design, matching the project's standing
 // "nothing here ever hard-deletes a live doc" rule.
+// One exception, asked for by the team: a one-time task leaves the list 2 days after it is marked done,
+// and the nightly cleanup on Google's servers (functions/index.js) then removes it for good.
+const MT_ONE_TIME_KEEP_DAYS = 2;
+const mtIsOneTime = t => !t.frequency || t.frequency === 'none';
+const mtOneTimeGone = t => mtIsOneTime(t) && t.lastDoneAt != null && Date.now() - t.lastDoneAt > MT_ONE_TIME_KEEP_DAYS * 864e5;
 const MT_FREQ_LABEL = {none:'', daily:'Daily', weekly:'Weekly', monthly:'Monthly'};
 // How many days can pass since lastDoneAt before a task's ring flips from
 // "on rhythm" to "due again". No entry (frequency none/blank) is never
@@ -2578,7 +2583,7 @@ function toggleMasterTaskDone(id) {
     const d = new Date(t.lastDoneAt), ago = mtDoneLabel(t).replace('Done ','');
     last = `${ago[0].toUpperCase()+ago.slice(1)} · ${String(d.getDate()).padStart(2,'0')} ${STAMP_MON[d.getMonth()]}`;
   }
-  confirmDoneModal({kicker:'Mark as done?', task:t.task, facts:[['How often',freq],['Last done',last]],
+  confirmDoneModal({kicker:'Mark as done?', task:t.task, facts:[['How often',freq], mtIsOneTime(t) ? ['Leaves the list','2 days after'] : ['Last done',last]],
     preview:doneStampHtml(Date.now()), onConfirm:()=>masterTaskMarkDone(id)});
 }
 function masterTaskMarkDone(id) {
@@ -14905,7 +14910,7 @@ function setupLiveSync() {
 
     // Master Task -- live, Firestore-only, no localStorage
     db.collection('masterTasks').onSnapshot(snap => {
-      S.masterTasks = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(t=>!t.deleted);
+      S.masterTasks = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(t=>!t.deleted && !mtOneTimeGone(t));
       if(S.tab==='mastertask') renderMasterTask(document.getElementById('content'));
       else if(S.tab==='home') homeRefreshSoft();
     }, e => console.log('masterTasks listener error:', e));
