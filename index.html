@@ -1213,6 +1213,19 @@ body::before{
 /* Cargo photos: cover photo on the row, swipe gallery in the open card, 4 slots in Log Cargo */
 .cg-thumb{width:44px;height:44px;border-radius:10px;flex-shrink:0;background:var(--glass2) center/cover no-repeat;position:relative}
 .cg-thumb em{position:absolute;right:-6px;bottom:-6px;font:800 9px Inter,sans-serif;font-style:normal;padding:2px 5px;border-radius:999px;background:var(--bg);border:1px solid var(--accent);color:var(--accent)}
+#imgLightbox{position:fixed;inset:0;z-index:9999;background:#000;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#imgLightbox .lb-track{display:flex;height:100%;will-change:transform}
+#imgLightbox .lb-slide{flex:0 0 100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#imgLightbox .lb-slide img{max-width:100%;max-height:100%;object-fit:contain;transform-origin:center;-webkit-user-drag:none;pointer-events:none}
+#imgLightbox .lb-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.16);color:#fff;font-size:20px;line-height:1;cursor:pointer;z-index:2}
+#imgLightbox .lb-count{position:absolute;top:calc(env(safe-area-inset-top,0px) + 24px);left:50%;transform:translateX(-50%);font:700 13px Inter,sans-serif;color:#fff;background:rgba(0,0,0,.45);padding:4px 11px;border-radius:999px;pointer-events:none}
+#imgLightbox .lb-dots{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);left:0;right:0;display:flex;justify-content:center;gap:7px;pointer-events:none}
+#imgLightbox .lb-dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35)}
+#imgLightbox .lb-dots i.on{background:#fff}
+#imgLightbox .lb-nav{position:absolute;top:50%;margin-top:-22px;width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:28px;line-height:1;cursor:pointer;z-index:2}
+#imgLightbox .lb-nav.l{left:10px}#imgLightbox .lb-nav.r{right:10px}
+#imgLightbox .lb-nav.off{opacity:0;pointer-events:none}
+@media (hover:none){#imgLightbox .lb-nav{display:none}}
 .cg-gal{margin-top:12px}
 .cg-gal-sc{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px;border-radius:12px;scrollbar-width:none}
 .cg-gal-sc::-webkit-scrollbar{display:none}
@@ -3085,11 +3098,16 @@ function cargoCover(c) { const p = cargoPhotos(c); return p.length ? p[0] : null
 function cargoPhotosField() {
   return '<label>Photos <span style="font-weight:400;color:var(--t2)">(optional)</span></label><div class="cg-slots" id="cgSlots">' + cargoSlotsInner() + '</div>';
 }
+// In the Log/Edit form: open the photos taken so far, starting at the one tapped
+function cargoFormViewPhotos(i) {
+  const list = (_cgPhotos || []).map((p, j) => p ? {src: p.src, j} : null).filter(Boolean);
+  viewPhotos(list.map(p => p.src), Math.max(0, list.findIndex(p => p.j === i)));
+}
 function cargoSlotsInner() {
   return CARGO_SLOTS.map((n, i) => {
     const p = _cgPhotos && _cgPhotos[i];
     return p
-      ? '<div class="cg-slot f" style="background-image:url(\'' + (p.thumb || p.src) + '\')" onclick="viewPhoto(\'' + p.src + '\')"><span class="x" onclick="event.stopPropagation();cargoRemovePhoto(' + i + ')">✕</span></div>'
+      ? '<div class="cg-slot f" style="background-image:url(\'' + (p.thumb || p.src) + '\')" onclick="cargoFormViewPhotos(' + i + ')"><span class="x" onclick="event.stopPropagation();cargoRemovePhoto(' + i + ')">✕</span></div>'
       : '<div class="cg-slot" id="cgSlot' + i + '" onclick="cargoPickPhoto(' + i + ')"><span style="font-size:22px">📷</span></div>';
   }).join('');
 }
@@ -3124,7 +3142,7 @@ async function uploadCargoPhoto(dataUrl, i) {
 function cargoGalleryHtml(c) {
   const ph = cargoPhotos(c); if (!ph.length) return '';
   return '<div class="cg-gal" onclick="event.stopPropagation()"><div class="cg-gal-sc" onscroll="cargoGalScroll(this)">'
-    + ph.map(p => '<img src="' + p.src + '" loading="lazy" alt="' + p.slot + '" onclick="viewPhoto(\'' + p.src + '\')">').join('')
+    + ph.map((p, i) => '<img src="' + p.src + '" loading="lazy" alt="' + p.slot + '" onclick="viewPhotos(cargoPhotos(S.cargo.find(x => x.id === \'' + c.id + '\')).map(p => p.src), ' + i + ')">').join('')
     + '</div><div class="cg-gal-cap"><span>1 / ' + ph.length + '</span><span class="cg-gal-dots">' + ph.map((_, i) => '<i class="' + (i ? '' : 'on') + '"></i>').join('') + '</span></div></div>';
 }
 function cargoGalScroll(sc) {
@@ -13121,18 +13139,85 @@ function triggerPhoto(ctx) {
   input.click();
 }
 
-function viewPhoto(src) {
-  const existing = document.getElementById('imgLightbox');
-  if(existing) existing.remove();
-  const lb = document.createElement('div');
+function viewPhoto(src) { viewPhotos([src], 0); }
+
+// Full-screen photos: swipe left/right between them, pinch or double-tap to zoom, drag to look around
+// when zoomed, swipe down (or ✕) to close. The app blocks the phone's own pinch-zoom, so it's done here.
+function viewPhotos(srcs, start) {
+  srcs = (srcs || []).filter(Boolean); if (!srcs.length) return;
+  document.getElementById('imgLightbox')?.remove();
+  const n = srcs.length, lb = document.createElement('div');
+  let idx = Math.max(0, Math.min(n - 1, start || 0));
   lb.id = 'imgLightbox';
-  lb.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;touch-action:none';
-  lb.innerHTML = `
-    <button onclick="document.getElementById('imgLightbox').remove()"
-      style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:50%;width:40px;height:40px;font-size:22px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">✕</button>
-    <img src="${src}" style="max-width:100vw;max-height:100vh;object-fit:contain;touch-action:pinch-zoom" draggable="false">`;
-  lb.addEventListener('click', e=>{ if(e.target===lb) lb.remove(); });
+  lb.innerHTML = '<div class="lb-track">' + srcs.map(u => '<div class="lb-slide"><img src="' + u + '" draggable="false" alt=""></div>').join('') + '</div>'
+    + '<button class="lb-x" aria-label="Close">✕</button>'
+    + (n > 1 ? '<div class="lb-count"></div><div class="lb-dots">' + srcs.map(() => '<i></i>').join('') + '</div>'
+      + '<button class="lb-nav l" aria-label="Previous photo">‹</button><button class="lb-nav r" aria-label="Next photo">›</button>' : '');
   document.body.appendChild(lb);
+  const track = lb.querySelector('.lb-track'), imgs = [...lb.querySelectorAll('.lb-slide img')];
+  let z = {s: 1, x: 0, y: 0};                   // zoom of the current photo
+  const W = () => lb.clientWidth, H = () => lb.clientHeight;
+  const close = () => { lb.remove(); document.removeEventListener('keydown', onKey); };
+  const clampZ = () => {
+    const im = imgs[idx], mx = Math.max(0, (im.offsetWidth * z.s - W()) / 2), my = Math.max(0, (im.offsetHeight * z.s - H()) / 2);
+    z.x = Math.max(-mx, Math.min(mx, z.x)); z.y = Math.max(-my, Math.min(my, z.y));
+  };
+  const paintZ = anim => { const im = imgs[idx]; im.style.transition = anim ? 'transform .25s ease' : 'none'; im.style.transform = 'translate(' + z.x + 'px,' + z.y + 'px) scale(' + z.s + ')'; };
+  const paintTrack = (dx, anim) => { track.style.transition = anim ? 'transform .3s ease' : 'none'; track.style.transform = 'translateX(' + (-idx * W() + (dx || 0)) + 'px)'; };
+  const paintUi = () => {
+    const c = lb.querySelector('.lb-count'); if (c) c.textContent = (idx + 1) + ' / ' + n;
+    lb.querySelectorAll('.lb-dots i').forEach((d, j) => d.classList.toggle('on', j === idx));
+    lb.querySelector('.lb-nav.l')?.classList.toggle('off', idx === 0); lb.querySelector('.lb-nav.r')?.classList.toggle('off', idx === n - 1);
+  };
+  const go = i => { if (i < 0 || i >= n) { paintTrack(0, true); return; } if (i !== idx) { z = {s: 1, x: 0, y: 0}; paintZ(); } idx = i; paintTrack(0, true); paintUi(); };
+  // zoom to scale ns, keeping the point (px,py) (relative to the screen centre) under the finger
+  const zoomAt = (ns, px, py) => { ns = Math.max(1, Math.min(5, ns)); z.x = px - (px - z.x) * ns / z.s; z.y = py - (py - z.y) * ns / z.s; z.s = ns; if (ns === 1) z.x = z.y = 0; clampZ(); };
+  const rel = e => ({x: e.clientX - lb.getBoundingClientRect().left - W() / 2, y: e.clientY - lb.getBoundingClientRect().top - H() / 2});
+
+  const P = new Map(); let g = null, lastTap = null;
+  lb.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    try { lb.setPointerCapture(e.pointerId); } catch (err) {} P.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if (P.size === 1) g = {mode: 'one', x0: e.clientX, y0: e.clientY, zx: z.x, zy: z.y, t0: Date.now(), moved: false};
+    else if (P.size === 2) { const [a, b] = [...P.values()]; g = {mode: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y), s0: z.s, moved: true}; paintTrack(0, true); }
+  });
+  lb.addEventListener('pointermove', e => {
+    if (!P.has(e.pointerId) || !g) return;
+    P.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if (g.mode === 'pinch' && P.size >= 2) {
+      const [a, b] = [...P.values()], mid = rel({clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2});
+      zoomAt(g.s0 * Math.hypot(a.x - b.x, a.y - b.y) / g.d0, mid.x, mid.y); paintZ(); return;
+    }
+    if (g.mode !== 'one') return;
+    const dx = e.clientX - g.x0, dy = e.clientY - g.y0;
+    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) g.moved = true;
+    if (z.s > 1) { z.x = g.zx + dx; z.y = g.zy + dy; clampZ(); paintZ(); return; }       // zoomed: look around
+    if (!g.dir && g.moved) g.dir = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    if (g.dir === 'x') paintTrack(n > 1 ? dx : dx / 4);                                    // swipe between photos
+    else if (g.dir === 'y' && dy > 0) { track.style.transform = 'translate(' + (-idx * W()) + 'px,' + dy + 'px)'; lb.style.background = 'rgba(0,0,0,' + Math.max(.35, .95 - dy / 500) + ')'; }
+  });
+  const end = e => {
+    if (!P.has(e.pointerId)) return; P.delete(e.pointerId);
+    if (!g) return;
+    if (g.mode === 'pinch') { if (P.size === 0) { if (z.s < 1.05) { z = {s: 1, x: 0, y: 0}; } clampZ(); paintZ(true); g = null; } return; }
+    const dx = e.clientX - g.x0, dy = e.clientY - g.y0, fast = Date.now() - g.t0 < 300;
+    if (!g.moved) {                                                                          // a tap: two quick taps = zoom in/out
+      const now = Date.now(), p = rel(e);
+      if (lastTap && now - lastTap.t < 320 && Math.hypot(p.x - lastTap.x, p.y - lastTap.y) < 40) { if (z.s > 1) z = {s: 1, x: 0, y: 0}; else zoomAt(2.5, p.x, p.y); paintZ(true); lastTap = null; }
+      else lastTap = {t: now, x: p.x, y: p.y};
+    } else if (z.s === 1 && g.dir === 'x') go(Math.abs(dx) > W() * .2 || (fast && Math.abs(dx) > 40) ? idx + (dx < 0 ? 1 : -1) : idx);
+    else if (z.s === 1 && g.dir === 'y') { if (dy > 110 || (fast && dy > 50)) close(); else { lb.style.background = ''; paintTrack(0, true); } }
+    g = null;
+  };
+  lb.addEventListener('pointerup', end); lb.addEventListener('pointercancel', end);
+  lb.addEventListener('gesturestart', e => e.preventDefault());                              // iPhone: don't let Safari zoom the page
+  lb.addEventListener('wheel', e => { e.preventDefault(); const p = rel(e); zoomAt(z.s * (e.deltaY < 0 ? 1.15 : 1 / 1.15), p.x, p.y); paintZ(); }, {passive: false});
+  lb.querySelector('.lb-x').onclick = close;
+  lb.querySelector('.lb-nav.l')?.addEventListener('click', () => go(idx - 1));
+  lb.querySelector('.lb-nav.r')?.addEventListener('click', () => go(idx + 1));
+  const onKey = e => { if (e.key === 'Escape') close(); else if (e.key === 'ArrowLeft') go(idx - 1); else if (e.key === 'ArrowRight') go(idx + 1); };
+  document.addEventListener('keydown', onKey);
+  paintTrack(0); paintUi();
 }
 
 // Share a damage report (description + photo) via the device's native
