@@ -10,7 +10,7 @@ const BASE_CONFIG = {
   companyName: 'Skycare Aviation Services',
   themeColor: '#171310',
   pinCorrect: '0801',  // TODO: placeholder — pick YAV's real PIN
-  adminPin: '0001',    // TODO: placeholder — pick YAV's real admin PIN
+  adminPin: '0000',    // same as YKF (set Nov 2026) — guards audit/procedure/car admin actions
 
   firebaseConfig: {
     apiKey: "AIzaSyClm8rZ3hFg4ymhumXiQ73c3aVdk0Htbrk",
