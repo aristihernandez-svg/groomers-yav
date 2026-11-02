@@ -1535,11 +1535,10 @@ body::before{
   <img class="sp-sky" src="cars/Skycare_logo-removebg-preview.png" alt="Skycare">
 </div>
 <script>
-// Opening screen — "Stardust" (same as YKF's Monday, sped up to fit YAV's ~2 s opening): silver dust gathers into
-// the eagle, it sets as chrome, its colours bloom through the metal, GROOMIES settles in. The app still opens at the
-// same moment as before (1.8 s after the page has loaded); the animation just has to be finished by then.
+// Opening screen — "Stardust" (same as YKF's Monday, shortened to 3.5 s): silver dust gathers into the eagle, it sets
+// as chrome, its colours bloom through the metal, GROOMIES settles in. clearSplash keeps it up for those 3.5 s.
 (function () {
-  const $ = id => document.getElementById(id), T0 = performance.now(), RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = id => document.getElementById(id), T0 = window.__splashT0 = performance.now(), RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const seg = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a))), eo = x => 1 - Math.pow(1 - x, 3), sio = x => .5 - .5 * Math.cos(Math.PI * x);
   const eio = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
   const rnd = (i, k) => { const x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return x - Math.floor(x); };
@@ -1553,33 +1552,33 @@ body::before{
   im.src = 'cars/groomies-emblem.svg';
   const CX = 195, CY = 354;
   function frame(now) {
-    const sp = $('splash'); if (!sp || sp.classList.contains('out') && now - T0 > 4000) return;   // stop once the app is showing
+    const sp = $('splash'); if (!sp || sp.classList.contains('out') && now - T0 > 5000) return;   // stop once the app is showing
     const t = RM ? 9 : (now - T0) / 1000;
-    const light = eo(seg(t, 0, .35)); $('hxBeam').style.opacity = light; $('hxPool').style.opacity = light * .9;
+    const light = eo(seg(t, 0, .5)); $('hxBeam').style.opacity = light; $('hxPool').style.opacity = light * .9;
     g.clearRect(0, 0, 390, 844);
-    const n = Math.min(PIX.length, 1100), fade = 1 - seg(t, 1.1, 1.45), melt = 1 - .85 * sio(seg(t, .9, 1.25));
+    const n = Math.min(PIX.length, 1100), fade = 1 - seg(t, 1.75, 2.3), melt = 1 - .85 * sio(seg(t, 1.45, 2));
     if (fade > 0) for (let i = 0; i < n; i++) {
-      const q = PIX[Math.floor(i * PIX.length / n)], s0 = .05 + rnd(i, 1) * .45, k = eio(seg(t, s0, s0 + .75));
+      const q = PIX[Math.floor(i * PIX.length / n)], s0 = .1 + rnd(i, 1) * .7, k = eio(seg(t, s0, s0 + 1.2));
       const a0 = rnd(i, 2) * 6.283, r0 = 120 + rnd(i, 3) * 280, sx = CX + Math.cos(a0) * r0, sy = CY + Math.sin(a0) * r0 * 1.25, tx = 75 + q[0], ty = 258 + q[1], sw = (1 - k) * 1.8;
       let x = sx + (tx - sx) * k, y = sy + (ty - sy) * k; const dx = x - CX, dy = y - CY;
       x = CX + dx * Math.cos(sw) - dy * Math.sin(sw); y = CY + dx * Math.sin(sw) + dy * Math.cos(sw);
       const landed = k > .985, big = rnd(i, 6) > .93 && !landed;
-      g.globalAlpha = seg(t, rnd(i, 5) * .2, .15 + rnd(i, 5) * .2) * fade * (landed ? .9 * melt : .55 + .45 * Math.sin(t * (12 + rnd(i, 4) * 10) + i));
+      g.globalAlpha = seg(t, rnd(i, 5) * .3, .25 + rnd(i, 5) * .3) * fade * (landed ? .9 * melt : .55 + .45 * Math.sin(t * (8 + rnd(i, 4) * 6) + i));
       g.fillStyle = landed ? '#f4f6fa' : (rnd(i, 8) > .5 ? '#e9eef8' : '#c9d0dc');
       g.shadowBlur = big ? 6 : 0; g.shadowColor = 'rgba(220,230,255,.9)';
       g.beginPath(); g.arc(x, y, landed ? 1.1 : big ? 2.2 : 1.2 + rnd(i, 7) * .8, 0, 6.283); g.fill();
     }
     g.shadowBlur = 0; g.globalAlpha = 1;
-    const solid = sio(seg(t, .9, 1.3)), bloom = eio(seg(t, 1.3, 1.8)), R = bloom * 78;
+    const solid = sio(seg(t, 1.45, 2.05)), bloom = eio(seg(t, 2.05, 2.8)), R = bloom * 78;
     $('sdChrome').style.opacity = solid.toFixed(3);
     const col = $('sdColor'), m = `radial-gradient(circle at 50% 46%,#000 ${R.toFixed(1)}%,transparent ${(R + 14).toFixed(1)}%)`;
     col.style.opacity = bloom > 0 ? 1 : 0; col.style.webkitMaskImage = col.style.maskImage = bloom >= 1 ? 'none' : m;
-    const gp = (-30 + 160 * eio(seg(t, 1.7, 2.3))).toFixed(1) + '% 0';
+    const gp = (-30 + 160 * eio(seg(t, 2.7, 3.5))).toFixed(1) + '% 0';
     document.querySelectorAll('#splash .hx-glint').forEach(e => e.style.backgroundPosition = gp);
     $('hxRefl').style.opacity = (.45 * solid).toFixed(3); $('hxReflImg').style.filter = `grayscale(${(1 - bloom).toFixed(2)}) saturate(1.1) brightness(.8)`;
-    const nm = eo(seg(t, 1.45, 2.0)); $('hxName').style.opacity = nm.toFixed(3); $('hxName').style.letterSpacing = (.55 - .35 * nm).toFixed(3) + 'em';
-    const tg = eo(seg(t, 1.6, 2.1)); $('hxTag').style.opacity = (tg * .9).toFixed(3); $('hxLine').style.opacity = tg.toFixed(3);
-    $('hxFill').style.width = (100 * eio(seg(t, 0, 2.2))).toFixed(1) + '%';
+    const nm = eo(seg(t, 2.3, 3.0)); $('hxName').style.opacity = nm.toFixed(3); $('hxName').style.letterSpacing = (.55 - .35 * nm).toFixed(3) + 'em';
+    const tg = eo(seg(t, 2.5, 3.1)); $('hxTag').style.opacity = (tg * .9).toFixed(3); $('hxLine').style.opacity = tg.toFixed(3);
+    $('hxFill').style.width = (100 * eio(seg(t, 0, 3.4))).toFixed(1) + '%';
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
@@ -2154,6 +2153,8 @@ const NAV_ITEMS = [
 let splashCleared = false;
 function clearSplash() {
   if(splashCleared) return;
+  const wait = 3500 - (performance.now() - (window.__splashT0 || 0));   // let the Stardust opening play its 3.5 s
+  if(wait > 0) { setTimeout(clearSplash, wait); return; }
   splashCleared = true;
   document.getElementById('splash')?.classList.add('out');
   document.getElementById('app')?.classList.add('show');
