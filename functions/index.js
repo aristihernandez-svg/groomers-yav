@@ -67,4 +67,6 @@ if (!process.env.CARGO_CLEANUP_TEST) {
     () => cleanDelivered(getFirestore(), getStorage().bucket(BUCKET), Date.now(), m => logger.info(m)));
   exports.cleanDoneOneTimeTasks = onSchedule({ schedule: 'every day 03:10', timeZone: 'America/Winnipeg', retryCount: 0 },
     () => cleanDoneOneTime(getFirestore(), Date.now(), m => logger.info(m)));
+  // "✨ Create video with AI" on a procedure: voice + video maker (see procvideo.js)
+  exports.makeProcVideo = require('./procvideo').makeProcVideoFunction();
 }
